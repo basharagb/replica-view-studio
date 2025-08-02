@@ -169,7 +169,7 @@ export const LabInterface = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex gap-8">
           {/* Main lab area */}
-          <div className="flex-1 space-y-20">
+          <div className="flex-1 space-y-24">
             {/* Top section */}
             <div className="flex gap-6 justify-center">
               {topGroups.map((group, index) => (
