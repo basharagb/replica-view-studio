@@ -189,6 +189,13 @@ export const LabInterface = () => {
               <div className="flex gap-6 justify-center">
                 {bottomRowData.map((group, index) => (
                   <div key={index} className="relative flex flex-col items-center gap-1">
+                    <div className="flex gap-1 px-2">
+                      {group.squares.map((num, squareIndex) => (
+                        <div key={squareIndex} className="w-6 h-6 bg-white border border-gray-300 flex items-center justify-center text-xs font-medium text-lab-text">
+                          {num}
+                        </div>
+                      ))}
+                    </div>
                     <div className="flex gap-1">
                       {group.circles.map((circle, circleIndex) => (
                         <div key={circleIndex} className={`
@@ -206,13 +213,6 @@ export const LabInterface = () => {
                           text-sm
                         `}>
                           {circle.number}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex gap-1 px-2">
-                      {group.squares.map((num, squareIndex) => (
-                        <div key={squareIndex} className="w-6 h-6 bg-white border border-gray-300 flex items-center justify-center text-xs font-medium text-lab-text">
-                          {num}
                         </div>
                       ))}
                     </div>
