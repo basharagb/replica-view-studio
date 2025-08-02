@@ -196,7 +196,7 @@ export const LabInterface = () => {
                         </div>
                       ))}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex">
                       {group.circles.map((circle, circleIndex) => (
                         <div key={circleIndex} className={`
                           w-12 h-12 

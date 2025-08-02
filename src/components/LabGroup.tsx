@@ -10,7 +10,7 @@ export const LabGroup = ({ circles, squares }: LabGroupProps) => {
   return (
     <div className="relative flex flex-col items-center gap-1">
       {/* Top row of circles */}
-      <div className="flex gap-1">
+      <div className="flex">
         {circles.slice(0, 3).map((circle, index) => (
           <LabCircle key={index} number={circle.number} color={circle.color} />
         ))}
@@ -24,7 +24,7 @@ export const LabGroup = ({ circles, squares }: LabGroupProps) => {
       </div>
       
       {/* Bottom row of circles */}
-      <div className="flex gap-1">
+      <div className="flex">
         {circles.slice(3, 6).map((circle, index) => (
           <LabCircle key={index + 3} number={circle.number} color={circle.color} />
         ))}
