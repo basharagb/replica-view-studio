@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 240 10% 95%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -35,6 +35,14 @@ All colors MUST be HSL.
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
+
+    /* Lab Interface Colors */
+    --lab-green: 120 50% 70%;
+    --lab-yellow: 50 100% 75%;
+    --lab-pink: 350 70% 80%;
+    --lab-beige: 35 25% 75%;
+    --lab-cylinder: 120 40% 65%;
+    --lab-text: 0 0% 20%;
 
     --radius: 0.5rem;
 
