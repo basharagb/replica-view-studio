@@ -1,4 +1,4 @@
-import { getSensorReadings, getTemperatureColor } from '../services/siloData';
+import { getSensorReadings, getTemperatureColor, findSiloByNumber } from '../services/siloData';
 import { Silo } from '../types/silo';
 
 interface LabCylinderProps {
@@ -20,6 +20,11 @@ export const LabCylinder = ({
   onSiloLeave,
   onSiloMouseMove
 }: LabCylinderProps) => {
+  // Get the current silo being displayed (reading silo takes priority)
+  const currentSiloNum = readingSilo || selectedSilo || 112;
+  const currentSilo = findSiloByNumber(currentSiloNum);
+  const sensorReadings = getSensorReadings(currentSiloNum);
+
   const handleClick = (silo: Silo) => {
     if (onSiloClick) {
       onSiloClick(silo.num, silo.temp);
@@ -39,23 +44,46 @@ export const LabCylinder = ({
           Cylinder Sensors
         </div>
         <div className="text-xs text-center text-lab-text mb-3">
-          Silo {selectedSilo || 112}
+          {readingSilo ? (
+            <span className="text-blue-600 font-bold animate-pulse">Reading Silo {readingSilo}</span>
+          ) : (
+            <span>Silo {selectedSilo || 112}</span>
+          )}
         </div>
         
-        {readingSilo ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="reading-spinner w-6 h-6 border-2 border-white border-t-transparent"></div>
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {getSensorReadings(selectedSilo || 112).map((reading, sensorIndex) => (
-              <div key={sensorIndex} className="flex justify-between items-center bg-white bg-opacity-20 rounded px-2 py-1">
-                <span className="text-xs font-medium text-lab-text">S{sensorIndex + 1}:</span>
-                <span className="text-xs font-bold text-lab-text">{reading.toFixed(1)}°C</span>
-              </div>
-            ))}
+        {/* Display main temperature if available */}
+        {currentSilo && (
+          <div className="text-center mb-2">
+            <div className="text-xs text-lab-text">Main Temp:</div>
+            <div className={`text-sm font-bold ${
+              readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
+            }`}>
+              {currentSilo.temp.toFixed(1)}°C
+            </div>
           </div>
         )}
+        
+        <div className="space-y-1">
+          {sensorReadings.map((reading, sensorIndex) => (
+            <div key={sensorIndex} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${
+              readingSilo ? 'bg-blue-100 bg-opacity-30' : 'bg-white bg-opacity-20'
+            }`}>
+              <span className="text-xs font-medium text-lab-text">S{sensorIndex + 1}:</span>
+              <span className={`text-xs font-bold ${
+                readingSilo ? 'text-blue-600' : 'text-lab-text'
+              }`}>
+                {readingSilo ? (
+                  <span className="inline-flex items-center">
+                    <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin mr-1"></div>
+                    {reading.toFixed(1)}°C
+                  </span>
+                ) : (
+                  `${reading.toFixed(1)}°C`
+                )}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
