@@ -1,5 +1,6 @@
 import { getSensorReadings, getTemperatureColor, findSiloByNumber } from '../services/siloData';
 import { Silo } from '../types/silo';
+import React from 'react';
 
 interface LabCylinderProps {
   selectedSilo?: number;
@@ -9,15 +10,19 @@ interface LabCylinderProps {
   // Only shows readings for selected or reading silo
 }
 
-export const LabCylinder = ({
+const LabCylinderComponent = ({
   selectedSilo,
   readingSilo,
   onSiloClick
 }: LabCylinderProps) => {
   // Get the current silo being displayed (only selected or reading silo, not hovered)
+  // Use a stable reference to prevent unnecessary re-renders
   const currentSiloNum = readingSilo || selectedSilo || 112;
   const currentSilo = findSiloByNumber(currentSiloNum);
   const sensorReadings = getSensorReadings(currentSiloNum);
+
+  // Debug logging to see what's changing
+  console.log('LabCylinder render:', { selectedSilo, readingSilo, currentSiloNum });
 
   const handleClick = (silo: Silo) => {
     if (onSiloClick) {
@@ -97,3 +102,6 @@ export const LabCylinder = ({
     </div>
   );
 };
+
+// Export with React.memo to prevent unnecessary re-renders
+export const LabCylinder = React.memo(LabCylinderComponent);
