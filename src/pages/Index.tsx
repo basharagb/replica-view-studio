@@ -1,4 +1,4 @@
-import { LabInterface } from "@/components/LabInterface";
+import { LabInterface } from "../components/LabInterface";
 
 const Index = () => {
   return <LabInterface />;
