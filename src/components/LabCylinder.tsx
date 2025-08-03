@@ -4,18 +4,14 @@ import { Silo } from '../types/silo';
 interface LabCylinderProps {
   selectedSilo?: number;
   readingSilo?: number | null;
-  hoveredSilo?: Silo | null;
   onSiloClick?: (number: number, temp: number) => void;
-  // Hover handlers are not used for LabCylinder - it only shows selected/reading silo
-  // onSiloHover?: (number: number, temp: number, event: React.MouseEvent) => void;
-  // onSiloLeave?: () => void;
-  // onSiloMouseMove?: (event: React.MouseEvent) => void;
+  // LabCylinder is completely independent of hover state
+  // Only shows readings for selected or reading silo
 }
 
 export const LabCylinder = ({
   selectedSilo,
   readingSilo,
-  hoveredSilo,
   onSiloClick
 }: LabCylinderProps) => {
   // Get the current silo being displayed (only selected or reading silo, not hovered)
