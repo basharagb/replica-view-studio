@@ -106,6 +106,9 @@ export const getAllSilos = (): Silo[] => {
     if (group.row5) group.row5.forEach(silo => allSilos.push(silo));
   });
 
+  // Add cylinder silos
+  cylinderSilos.forEach(silo => allSilos.push(silo));
+
   // Sort by silo number
   return allSilos.sort((a, b) => a.num - b.num);
 };
@@ -119,5 +122,17 @@ export const findSiloByNumber = (siloNum: number): Silo | null => {
 // Temperature scale values for display
 export const temperatureScaleValues = [-3.9, -3.3, -2.8, -1.7, 0.0, 1.7, 2.2, 3.3];
 
-// Cylinder measurements (from original LabCylinder)
+// Cylinder silo data - interactive silos with temperatures
+export const cylinderSilos: Silo[] = [
+  { num: 25, temp: -1.9 },  // From existing data (silo 25)
+  { num: 26, temp: -1.7 },  // From existing data (silo 26)
+  { num: 27, temp: 3.6 },   // From existing data (silo 27)
+  { num: 29, temp: 2.2 },   // From existing data (silo 29)
+  { num: 32, temp: -1.9 },  // From existing data (silo 32)
+  { num: 35, temp: -1.8 },  // From existing data (silo 35)
+  { num: 36, temp: 1.9 },   // From existing data (silo 36)
+  { num: 38, temp: 2.1 }    // From existing data (silo 38)
+];
+
+// Cylinder measurements (from original LabCylinder) - kept for backward compatibility
 export const cylinderMeasurements = [25.0, 26.0, 27.0, 29.0, 32.0, 35.0, 36.0, 38.0];

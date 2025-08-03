@@ -51,74 +51,10 @@ export const LabInterface = () => {
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex gap-8">
-          {/* Manual/Auto Test Controls */}
-          <div className="flex flex-col gap-2 items-start">
-            <Button
-              variant={readingMode === 'manual' ? 'default' : 'outline'}
-              onClick={handleManualReadMode}
-              disabled={isReading && readingMode === 'auto'}
-              className="w-32"
-            >
-              {readingMode === 'manual' ? 'Stop Manual' : 'Start Manual Test'}
-            </Button>
-            <Button
-              variant={readingMode === 'auto' ? 'default' : 'outline'}
-              onClick={startAutoRead}
-              disabled={isReading && readingMode === 'manual'}
-              className="w-32"
-            >
-              {readingMode === 'auto' ? 'Stop Auto Test' : 'Start Auto Test'}
-            </Button>
-            
-            {/* Auto Read Progress */}
-            {readingMode === 'auto' && (
-              <div className="w-48 mt-2">
-                <div className="bg-gray-200 h-3 rounded">
-                  <div
-                    className="bg-green-500 h-3 rounded transition-all duration-300"
-                    style={{ width: `${autoReadProgress}%` }}
-                  />
-                </div>
-                <div className="text-xs mt-1 text-center">
-                  {Math.round(autoReadProgress)}% complete
-                </div>
-              </div>
-            )}
-
-            {/* Reading Status */}
-            {isReading && readingSilo && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
-                <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                Reading Silo {readingSilo}
-              </div>
-            )}
-
-            {/* Temperature Scale */}
-            <div className="mt-4 bg-green-200 rounded-lg p-3 w-32">
-              <div className="text-xs font-semibold text-green-800 mb-2 text-center">
-                Temperature Scale
-              </div>
-              <div className="flex flex-col gap-1">
-                {temperatureScaleValues.map((temp, index) => (
-                  <div key={index} className="text-xs font-bold text-green-800 text-center">
-                    {temp.toFixed(1)}°C
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Current Temperature Display */}
-            <div className="mt-2 bg-white border-2 border-gray-300 rounded-lg p-3 w-32 text-center">
-              <div className="text-lg font-bold text-gray-800">
-                {selectedTemp.toFixed(1)}°C
-              </div>
-            </div>
-          </div>
-
           {/* Main lab area */}
-          <div className="flex-1 space-y-24">
+          <div className="flex-1 space-y-0">
             {/* Top section */}
-            <div className="flex gap-6 justify-center">
+            <div className="flex gap-0 justify-center">
               {topSiloGroups.map((group, index) => (
                 <LabGroup 
                   key={index} 
@@ -139,8 +75,8 @@ export const LabInterface = () => {
             </div>
 
             {/* Bottom section */}
-            <div className="space-y-4">
-              <div className="flex gap-6 justify-center">
+            <div className="space-y-0">
+              <div className="flex gap-0 justify-center">
                 {bottomSiloGroups.map((group, index) => (
                   <LabGroup 
                     key={index} 
@@ -161,23 +97,23 @@ export const LabInterface = () => {
               </div>
               
               {/* Bottom row with fewer circles */}
-              <div className="flex gap-6 justify-center">
+              <div className="flex gap-0 justify-center">
                 {bottomRowData.map((group, index) => (
-                  <div key={index} className="relative flex flex-col items-center gap-1">
-                    <div className="flex gap-1 px-2">
+                  <div key={index} className="relative flex flex-col items-center gap-0">
+                    <div className="flex gap-0 px-2">
                       {group.squares.map((num, squareIndex) => (
                         <div 
                           key={squareIndex} 
                           className={`
-                            w-6 h-6 
+                            w-6 h-6
                             temp-beige
-                            border 
-                            border-gray-300 
-                            flex 
-                            items-center 
-                            justify-center 
-                            text-xs 
-                            font-medium 
+                            border
+                            border-gray-300
+                            flex
+                            items-center
+                            justify-center
+                            text-xs
+                            font-medium
                             text-lab-text
                             cursor-pointer
                             transition-all
@@ -201,20 +137,20 @@ export const LabInterface = () => {
                         </div>
                       ))}
                     </div>
-                    <div className="flex">
+                    <div className="flex gap-0">
                       {group.circles.map((circle, circleIndex) => (
                         <div 
                           key={circleIndex} 
                           className={`
-                            w-12 h-12 
+                            w-12 h-12
                             temp-beige
-                            rounded-full 
-                            flex 
-                            items-center 
-                            justify-center 
-                            font-semibold 
-                            text-lab-text 
-                            border-2 
+                            rounded-full
+                            flex
+                            items-center
+                            justify-center
+                            font-semibold
+                            text-lab-text
+                            border-2
                             border-gray-300
                             shadow-sm
                             cursor-pointer
@@ -245,16 +181,67 @@ export const LabInterface = () => {
             </div>
           </div>
 
-          {/* Right side with cylinder and input */}
+          {/* Right side with cylinder, input, and controls */}
           <div className="flex flex-col items-center gap-4">
-            <LabCylinder />
+            <LabCylinder
+              selectedSilo={selectedSilo}
+              readingSilo={readingSilo}
+              hoveredSilo={hoveredSilo}
+              onSiloClick={handleSiloClick}
+              onSiloHover={handleSiloHover}
+              onSiloLeave={handleSiloLeave}
+              onSiloMouseMove={handleSiloMouseMove}
+            />
             <div className="w-20">
-              <Input 
-                value={selectedSilo} 
+              <Input
+                value={selectedSilo}
                 onChange={handleInputChange}
                 className="text-center font-semibold"
                 type="number"
               />
+            </div>
+            
+            {/* Manual/Auto Test Controls */}
+            <div className="flex flex-col gap-2 items-center mt-4">
+              <Button
+                variant={readingMode === 'manual' ? 'default' : 'outline'}
+                onClick={handleManualReadMode}
+                disabled={isReading && readingMode === 'auto'}
+                className="w-32"
+              >
+                {readingMode === 'manual' ? 'Stop Manual' : 'Start Manual Test'}
+              </Button>
+              <Button
+                variant={readingMode === 'auto' ? 'default' : 'outline'}
+                onClick={startAutoRead}
+                disabled={isReading && readingMode === 'manual'}
+                className="w-32"
+              >
+                {readingMode === 'auto' ? 'Stop Auto Test' : 'Start Auto Test'}
+              </Button>
+              
+              {/* Auto Read Progress */}
+              {readingMode === 'auto' && (
+                <div className="w-48 mt-2">
+                  <div className="bg-gray-200 h-3 rounded">
+                    <div
+                      className="bg-green-500 h-3 rounded transition-all duration-300"
+                      style={{ width: `${autoReadProgress}%` }}
+                    />
+                  </div>
+                  <div className="text-xs mt-1 text-center">
+                    {Math.round(autoReadProgress)}% complete
+                  </div>
+                </div>
+              )}
+
+              {/* Reading Status */}
+              {isReading && readingSilo && (
+                <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
+                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  Reading Silo {readingSilo}
+                </div>
+              )}
             </div>
           </div>
         </div>

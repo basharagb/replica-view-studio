@@ -26,7 +26,7 @@ export const LabGroup = ({
   onSiloMouseMove
 }: LabGroupProps) => {
   return (
-    <div className="relative flex flex-col items-center gap-1">
+    <div className="relative flex flex-col items-center gap-0">
       {/* Top row of circles */}
       <div className="flex">
         {circles.slice(0, 3).map((circle, index) => (
@@ -46,7 +46,7 @@ export const LabGroup = ({
       </div>
       
       {/* Middle row with squares */}
-      <div className="flex gap-1 px-2">
+      <div className="flex gap-0 px-2">
         {squares.slice(0, 5).map((num, index) => (
           <LabNumberSquare
             key={index}
