@@ -50,13 +50,13 @@ export const LabInterface = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-8" data-testid="lab-interface">
       <div className="max-w-7xl mx-auto">
         <div className="flex gap-8">
           {/* Main lab area */}
           <div className="flex-1 space-y-12">
             {/* Top section (1-55) - First 3 rows */}
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200" data-testid="top-silo-section">
               <div className="flex gap-6 justify-center">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative">
@@ -84,7 +84,7 @@ export const LabInterface = () => {
             </div>
 
             {/* Bottom section (101-195) - All 5 rows */}
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200" data-testid="bottom-silo-section">
               <div className="flex gap-6 justify-center">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative">
@@ -188,7 +188,7 @@ export const LabInterface = () => {
           </div>
 
           {/* Right side with cylinder, input, and controls */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4" data-testid="control-panel">
             <LabCylinder
               selectedSilo={selectedSilo}
               readingSilo={readingSilo}
@@ -204,6 +204,7 @@ export const LabInterface = () => {
                 onChange={handleInputChange}
                 className="text-center font-semibold"
                 type="number"
+                data-testid="silo-input"
               />
             </div>
             
@@ -214,6 +215,7 @@ export const LabInterface = () => {
                 onClick={handleManualReadMode}
                 disabled={isReading && readingMode === 'auto'}
                 className="w-32"
+                data-testid="manual-test-button"
               >
                 {readingMode === 'manual' ? 'Stop Manual' : 'Start Manual Test'}
               </Button>
@@ -222,13 +224,14 @@ export const LabInterface = () => {
                 onClick={startAutoRead}
                 disabled={isReading && readingMode === 'manual'}
                 className="w-32"
+                data-testid="auto-test-button"
               >
                 {readingMode === 'auto' ? 'Stop Auto Test' : 'Start Auto Test'}
               </Button>
               
               {/* Auto Read Progress */}
               {readingMode === 'auto' && (
-                <div className="w-48 mt-2">
+                <div className="w-48 mt-2" data-testid="auto-test-progress">
                   <div className="bg-gray-200 h-3 rounded">
                     <div
                       className="bg-green-500 h-3 rounded transition-all duration-300"
@@ -261,6 +264,7 @@ export const LabInterface = () => {
             left: tooltipPosition.x + 10,
             top: tooltipPosition.y - 30,
           }}
+          data-testid="temperature-tooltip"
         >
           Silo {hoveredSilo.num}: {hoveredSilo.temp.toFixed(1)}°C
         </div>

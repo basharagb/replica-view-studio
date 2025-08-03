@@ -39,7 +39,7 @@ export const LabCylinder = ({
 
   return (
     <div className="relative">
-      <div className="w-32 bg-lab-cylinder border-2 border-gray-400 rounded-lg p-2">
+      <div className="w-32 bg-lab-cylinder border-2 border-gray-400 rounded-lg p-2" data-testid="lab-cylinder">
         <div className="text-xs font-bold text-center text-lab-text mb-2">
           Cylinder Sensors
         </div>
@@ -66,25 +66,23 @@ export const LabCylinder = ({
         <div className="space-y-1">
           {sensorReadings.map((reading, sensorIndex) => {
             const tempColor = getTemperatureColor(reading);
-            const getBackgroundColor = () => {
-              if (readingSilo) return 'bg-blue-100 bg-opacity-30';
-              
-              switch (tempColor) {
-                case 'green':
-                  return 'bg-green-100 bg-opacity-40';
-                case 'yellow':
-                  return 'bg-yellow-100 bg-opacity-40';
-                case 'pink':
-                  return 'bg-red-100 bg-opacity-40';
-                default:
-                  return 'bg-white bg-opacity-20';
+            const getBackgroundClass = () => {
+              if (readingSilo) {
+                // In auto mode, apply a semi-transparent overlay over the temperature color
+                return `temp-${tempColor} relative`;
               }
+              
+              // Use the same temperature color classes as silos
+              return `temp-${tempColor}`;
             };
 
             return (
-              <div key={sensorIndex} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundColor()}`}>
-                <span className="text-xs font-medium text-lab-text">S{sensorIndex + 1}:</span>
-                <span className={`text-xs font-bold ${
+              <div key={sensorIndex} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundClass()}`}>
+                {readingSilo && (
+                  <div className="absolute inset-0 bg-blue-100 bg-opacity-40 rounded"></div>
+                )}
+                <span className="text-xs font-medium text-lab-text relative z-10">S{sensorIndex + 1}:</span>
+                <span className={`text-xs font-bold relative z-10 ${
                   readingSilo ? 'text-blue-600' : 'text-lab-text'
                 }`}>
                   {readingSilo ? (
