@@ -122,16 +122,50 @@ export const findSiloByNumber = (siloNum: number): Silo | null => {
 // Temperature scale values for display
 export const temperatureScaleValues = [-3.9, -3.3, -2.8, -1.7, 0.0, 1.7, 2.2, 3.3];
 
-// Cylinder silo data - interactive silos with temperatures
-export const cylinderSilos: Silo[] = [
-  { num: 25, temp: -1.9 },  // From existing data (silo 25)
-  { num: 26, temp: -1.7 },  // From existing data (silo 26)
-  { num: 27, temp: 3.6 },   // From existing data (silo 27)
-  { num: 29, temp: 2.2 },   // From existing data (silo 29)
-  { num: 32, temp: -1.9 },  // From existing data (silo 32)
-  { num: 35, temp: -1.8 },  // From existing data (silo 35)
-  { num: 36, temp: 1.9 },   // From existing data (silo 36)
-  { num: 38, temp: 2.1 }    // From existing data (silo 38)
+// Predefined sensor readings for specific silos
+const predefinedReadings: { [key: number]: number[] } = {
+  25: [-1.8, -2.1, -1.7, -2.0, -1.9, -1.6, -2.2, -1.8],
+  26: [-1.5, -1.9, -1.6, -1.8, -1.4, -2.0, -1.7, -1.6],
+  27: [3.4, 3.8, 3.5, 3.7, 3.9, 3.3, 3.6, 3.5],
+  29: [2.0, 2.4, 2.1, 2.3, 2.5, 1.9, 2.2, 2.1],
+  32: [-1.7, -2.1, -1.8, -2.0, -1.6, -2.2, -1.9, -1.8],
+  35: [-1.6, -2.0, -1.7, -1.9, -1.5, -2.1, -1.8, -1.7],
+  36: [1.7, 2.1, 1.8, 2.0, 1.6, 2.2, 1.9, 1.8],
+  38: [1.9, 2.3, 2.0, 2.2, 1.8, 2.4, 2.1, 2.0],
+  112: [0.1, 0.3, 0.0, 0.4, 0.2, -0.1, 0.3, 0.1]
+};
+
+// Generate 8 sensor readings for any silo based on its main temperature
+export const generateSensorReadings = (mainTemp: number): number[] => {
+  const variance = 0.3; // Temperature variance range
+  return Array.from({ length: 8 }, () => {
+    const offset = (Math.random() - 0.5) * 2 * variance;
+    return mainTemp + offset;
+  });
+};
+
+// Get sensor readings for any silo
+export const getSensorReadings = (siloNum: number): number[] => {
+  const silo = findSiloByNumber(siloNum);
+  if (!silo) return [0, 0, 0, 0, 0, 0, 0, 0];
+  
+  return predefinedReadings[siloNum] || generateSensorReadings(silo.temp);
+};
+
+// Cylinder silo data with 8 sensor readings each (kept for backward compatibility)
+export interface CylinderSilo extends Silo {
+  sensors: number[];  // 8 sensor readings
+}
+
+export const cylinderSilos: CylinderSilo[] = [
+  { num: 25, temp: -1.9, sensors: predefinedReadings[25] },
+  { num: 26, temp: -1.7, sensors: predefinedReadings[26] },
+  { num: 27, temp: 3.6, sensors: predefinedReadings[27] },
+  { num: 29, temp: 2.2, sensors: predefinedReadings[29] },
+  { num: 32, temp: -1.9, sensors: predefinedReadings[32] },
+  { num: 35, temp: -1.8, sensors: predefinedReadings[35] },
+  { num: 36, temp: 1.9, sensors: predefinedReadings[36] },
+  { num: 38, temp: 2.1, sensors: predefinedReadings[38] }
 ];
 
 // Cylinder measurements (from original LabCylinder) - kept for backward compatibility
