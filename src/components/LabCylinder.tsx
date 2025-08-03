@@ -80,26 +80,13 @@ export const LabCylinder = ({
                   return 'bg-white bg-opacity-20';
               }
             };
-            
-            const getTextColor = () => {
-              if (readingSilo) return 'text-blue-600';
-              
-              switch (tempColor) {
-                case 'green':
-                  return 'text-green-700';
-                case 'yellow':
-                  return 'text-yellow-700';
-                case 'pink':
-                  return 'text-red-700';
-                default:
-                  return 'text-lab-text';
-              }
-            };
 
             return (
               <div key={sensorIndex} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundColor()}`}>
                 <span className="text-xs font-medium text-lab-text">S{sensorIndex + 1}:</span>
-                <span className={`text-xs font-bold ${getTextColor()}`}>
+                <span className={`text-xs font-bold ${
+                  readingSilo ? 'text-blue-600' : 'text-lab-text'
+                }`}>
                   {readingSilo ? (
                     <span className="inline-flex items-center">
                       <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin mr-1"></div>
