@@ -27,11 +27,11 @@ export const LabGroup = ({
 }: LabGroupProps) => {
   return (
     <div className="relative flex flex-col items-center gap-0">
-      {/* Top row of circles */}
-      <div className="flex">
+      {/* Top row of circles - exactly 3 circles */}
+      <div className="flex gap-0">
         {circles.slice(0, 3).map((circle, index) => (
           <LabCircle
-            key={index}
+            key={`top-${circle.num}`}
             number={circle.num}
             temp={circle.temp}
             isSelected={selectedSilo === circle.num}
@@ -45,11 +45,11 @@ export const LabGroup = ({
         ))}
       </div>
       
-      {/* Middle row with squares */}
-      <div className="flex gap-0 px-2">
+      {/* Middle row with squares - exactly 5 squares */}
+      <div className="flex gap-0">
         {squares.slice(0, 5).map((num, index) => (
           <LabNumberSquare
-            key={index}
+            key={`square-${num}`}
             number={num}
             isSelected={selectedSilo === num}
             isReading={readingSilo === num}
@@ -62,11 +62,11 @@ export const LabGroup = ({
         ))}
       </div>
       
-      {/* Bottom row of circles */}
-      <div className="flex">
+      {/* Bottom row of circles - exactly 3 circles */}
+      <div className="flex gap-0">
         {circles.slice(3, 6).map((circle, index) => (
           <LabCircle
-            key={index + 3}
+            key={`bottom-${circle.num}`}
             number={circle.num}
             temp={circle.temp}
             isSelected={selectedSilo === circle.num}

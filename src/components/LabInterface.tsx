@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { LabGroup } from './LabGroup';
+import { LabCircle } from './LabCircle';
+import { LabNumberSquare } from './LabNumberSquare';
 import { LabCylinder } from './LabCylinder';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -52,129 +54,133 @@ export const LabInterface = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex gap-8">
           {/* Main lab area */}
-          <div className="flex-1 space-y-0">
-            {/* Top section */}
-            <div className="flex gap-0 justify-center">
-              {topSiloGroups.map((group, index) => (
-                <LabGroup 
-                  key={index} 
-                  circles={[
-                    ...(group.topRow || []),
-                    ...(group.bottomRow || [])
-                  ]}
-                  squares={group.middleRow?.map(silo => silo.num) || []}
-                  selectedSilo={selectedSilo}
-                  readingSilo={readingSilo}
-                  hoveredSilo={hoveredSilo}
-                  onSiloClick={handleSiloClick}
-                  onSiloHover={handleSiloHover}
-                  onSiloLeave={handleSiloLeave}
-                  onSiloMouseMove={handleSiloMouseMove}
-                />
-              ))}
-            </div>
-
-            {/* Bottom section */}
-            <div className="space-y-0">
-              <div className="flex gap-0 justify-center">
-                {bottomSiloGroups.map((group, index) => (
-                  <LabGroup 
-                    key={index} 
-                    circles={[
-                      ...(group.row1 || []),
-                      ...(group.row3 || [])
-                    ]}
-                    squares={group.row2?.map(silo => silo.num) || []}
-                    selectedSilo={selectedSilo}
-                    readingSilo={readingSilo}
-                    hoveredSilo={hoveredSilo}
-                    onSiloClick={handleSiloClick}
-                    onSiloHover={handleSiloHover}
-                    onSiloLeave={handleSiloLeave}
-                    onSiloMouseMove={handleSiloMouseMove}
-                  />
+          <div className="flex-1 space-y-12">
+            {/* Top section (1-55) - First 3 rows */}
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+              <div className="flex gap-6 justify-center">
+                {topSiloGroups.map((group, index) => (
+                  <div key={index} className="relative">
+                    <LabGroup
+                      circles={[
+                        ...(group.topRow || []),
+                        ...(group.bottomRow || [])
+                      ]}
+                      squares={group.middleRow?.map(silo => silo.num) || []}
+                      selectedSilo={selectedSilo}
+                      readingSilo={readingSilo}
+                      hoveredSilo={hoveredSilo}
+                      onSiloClick={handleSiloClick}
+                      onSiloHover={handleSiloHover}
+                      onSiloLeave={handleSiloLeave}
+                      onSiloMouseMove={handleSiloMouseMove}
+                    />
+                    {/* Visual separator between groups */}
+                    {index < topSiloGroups.length - 1 && (
+                      <div className="absolute -right-3 top-0 bottom-0 w-px bg-gray-400"></div>
+                    )}
+                  </div>
                 ))}
               </div>
-              
-              {/* Bottom row with fewer circles */}
-              <div className="flex gap-0 justify-center">
-                {bottomRowData.map((group, index) => (
-                  <div key={index} className="relative flex flex-col items-center gap-0">
-                    <div className="flex gap-0 px-2">
-                      {group.squares.map((num, squareIndex) => (
-                        <div 
-                          key={squareIndex} 
-                          className={`
-                            w-6 h-6
-                            temp-beige
-                            border
-                            border-gray-300
-                            flex
-                            items-center
-                            justify-center
-                            text-xs
-                            font-medium
-                            text-lab-text
-                            cursor-pointer
-                            transition-all
-                            duration-200
-                            user-select-none
-                            rounded-sm
-                            ${selectedSilo === num ? 'silo-selected' : ''}
-                            ${readingSilo === num ? 'silo-reading' : ''}
-                            ${hoveredSilo?.num === num ? 'silo-hover' : ''}
-                          `}
-                          onClick={() => handleSiloClick(num, 0)}
-                          onMouseEnter={(e) => handleSiloHover(num, 0, e)}
-                          onMouseLeave={handleSiloLeave}
-                          onMouseMove={handleSiloMouseMove}
-                        >
-                          {readingSilo === num ? (
-                            <div className="reading-spinner w-3 h-3 border border-white border-t-transparent"></div>
-                          ) : (
-                            num
-                          )}
-                        </div>
-                      ))}
+            </div>
+
+            {/* Bottom section (101-195) - All 5 rows */}
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+              <div className="flex gap-6 justify-center">
+                {bottomSiloGroups.map((group, index) => (
+                  <div key={index} className="relative">
+                    <div className="flex flex-col items-center gap-0">
+                      {/* Row 1: circles */}
+                      <div className="flex gap-0">
+                        {(group.row1 || []).slice(0, 3).map((circle) => (
+                          <LabCircle
+                            key={`row1-${circle.num}`}
+                            number={circle.num}
+                            temp={circle.temp}
+                            isSelected={selectedSilo === circle.num}
+                            isReading={readingSilo === circle.num}
+                            isHovered={hoveredSilo?.num === circle.num}
+                            onClick={handleSiloClick}
+                            onMouseEnter={handleSiloHover}
+                            onMouseLeave={handleSiloLeave}
+                            onMouseMove={handleSiloMouseMove}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Row 2: squares */}
+                      <div className="flex gap-0">
+                        {(group.row2 || []).slice(0, 5).map((silo) => (
+                          <LabNumberSquare
+                            key={`row2-${silo.num}`}
+                            number={silo.num}
+                            isSelected={selectedSilo === silo.num}
+                            isReading={readingSilo === silo.num}
+                            isHovered={hoveredSilo?.num === silo.num}
+                            onClick={handleSiloClick}
+                            onMouseEnter={handleSiloHover}
+                            onMouseLeave={handleSiloLeave}
+                            onMouseMove={handleSiloMouseMove}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Row 3: circles */}
+                      <div className="flex gap-0">
+                        {(group.row3 || []).slice(0, 3).map((circle) => (
+                          <LabCircle
+                            key={`row3-${circle.num}`}
+                            number={circle.num}
+                            temp={circle.temp}
+                            isSelected={selectedSilo === circle.num}
+                            isReading={readingSilo === circle.num}
+                            isHovered={hoveredSilo?.num === circle.num}
+                            onClick={handleSiloClick}
+                            onMouseEnter={handleSiloHover}
+                            onMouseLeave={handleSiloLeave}
+                            onMouseMove={handleSiloMouseMove}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Row 4: squares */}
+                      <div className="flex gap-0">
+                        {(group.row4 || []).slice(0, 5).map((silo) => (
+                          <LabNumberSquare
+                            key={`row4-${silo.num}`}
+                            number={silo.num}
+                            isSelected={selectedSilo === silo.num}
+                            isReading={readingSilo === silo.num}
+                            isHovered={hoveredSilo?.num === silo.num}
+                            onClick={handleSiloClick}
+                            onMouseEnter={handleSiloHover}
+                            onMouseLeave={handleSiloLeave}
+                            onMouseMove={handleSiloMouseMove}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Row 5: circles */}
+                      <div className="flex gap-0">
+                        {(group.row5 || []).slice(0, 3).map((circle) => (
+                          <LabCircle
+                            key={`row5-${circle.num}`}
+                            number={circle.num}
+                            temp={circle.temp}
+                            isSelected={selectedSilo === circle.num}
+                            isReading={readingSilo === circle.num}
+                            isHovered={hoveredSilo?.num === circle.num}
+                            onClick={handleSiloClick}
+                            onMouseEnter={handleSiloHover}
+                            onMouseLeave={handleSiloLeave}
+                            onMouseMove={handleSiloMouseMove}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex gap-0">
-                      {group.circles.map((circle, circleIndex) => (
-                        <div 
-                          key={circleIndex} 
-                          className={`
-                            w-12 h-12
-                            temp-beige
-                            rounded-full
-                            flex
-                            items-center
-                            justify-center
-                            font-semibold
-                            text-lab-text
-                            border-2
-                            border-gray-300
-                            shadow-sm
-                            cursor-pointer
-                            transition-all
-                            duration-200
-                            user-select-none
-                            text-sm
-                            ${selectedSilo === circle.num ? 'silo-selected' : ''}
-                            ${readingSilo === circle.num ? 'silo-reading' : ''}
-                            ${hoveredSilo?.num === circle.num ? 'silo-hover' : ''}
-                          `}
-                          onClick={() => handleSiloClick(circle.num, circle.temp)}
-                          onMouseEnter={(e) => handleSiloHover(circle.num, circle.temp, e)}
-                          onMouseLeave={handleSiloLeave}
-                          onMouseMove={handleSiloMouseMove}
-                        >
-                          {readingSilo === circle.num ? (
-                            <div className="reading-spinner"></div>
-                          ) : (
-                            circle.num
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    {/* Visual separator between groups */}
+                    {index < bottomSiloGroups.length - 1 && (
+                      <div className="absolute -right-3 top-0 bottom-0 w-px bg-gray-400"></div>
+                    )}
                   </div>
                 ))}
               </div>
