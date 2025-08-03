@@ -23,6 +23,8 @@
 
 **Production Site:** https://replica-view-studio.netlify.app
 
+**⚠️ Note:** If you're getting a "Site not found" error, make sure you're using the correct URL above. The old URL (incandescent-sprite-715bb3.netlify.app) is no longer active.
+
 ## 🛠️ Technology Stack
 
 ### Frontend Framework
