@@ -1,75 +1,248 @@
-# Welcome to your Lovable project
+# Replica View Studio - Silo Monitoring System
 
-## Project info
+## 🏭 Project Overview
 
-**URL**: https://lovable.dev/projects/a1c988ed-b1f9-454d-9ad7-67187419270d
+**Replica View Studio** is an advanced industrial silo monitoring and visualization system that provides real-time sensor data display and interactive control interfaces for silo management operations.
 
-## How can I edit this code?
+### 🌟 Key Features
 
-There are several ways of editing your application.
+- **Real-time Sensor Monitoring**: Live temperature readings from 8 sensor positions (S1-S8)
+- **Interactive 3D Cylinder Visualization**: Dynamic cylindrical display showing sensor data
+- **Hover Tooltips**: Detailed information display on silo interaction
+- **Selection-based Control**: Click to select and monitor specific silos
+- **Responsive Design**: Optimized for desktop and mobile interfaces
+- **Performance Optimized**: React.memo implementation for smooth interactions
 
-**Use Lovable**
+## 👨‍💻 Developer Information
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a1c988ed-b1f9-454d-9ad7-67187419270d) and start prompting.
+**Developer:** Eng. Bashar Zabadani  
+**Project:** Replica View Studio  
+**Technology Stack:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🚀 Live Demo
 
-**Use your preferred IDE**
+**Production Site:** https://replica-view-studio.netlify.app
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Technology Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Frontend Framework
+- **React 18** - Modern UI library with hooks and functional components
+- **TypeScript** - Type-safe development with enhanced IDE support
+- **Vite** - Fast build tool and development server
 
-Follow these steps:
+### UI/UX Components
+- **Tailwind CSS** - Utility-first CSS framework for rapid styling
+- **shadcn/ui** - High-quality React components built on Radix UI
+- **Radix UI** - Accessible component primitives
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Development Tools
+- **ESLint** - Code linting and quality assurance
+- **Playwright** - End-to-end testing framework
+- **PostCSS** - CSS processing and optimization
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 📁 Project Structure
 
-# Step 3: Install the necessary dependencies.
-npm i
+```
+replica-view-studio/
+├── src/
+│   ├── components/
+│   │   ├── LabCylinder.tsx      # 3D cylinder visualization
+│   │   ├── LabInterface.tsx      # Main interface component
+│   │   ├── LabCircle.tsx         # Circular silo representations
+│   │   ├── LabGroup.tsx          # Grouped silo components
+│   │   └── LabNumberSquare.tsx   # Numbered square components
+│   ├── hooks/
+│   │   ├── useSiloSystem.ts      # Core silo state management
+│   │   └── use-mobile.tsx        # Mobile responsiveness hook
+│   ├── services/
+│   │   └── siloData.ts           # Silo data and sensor logic
+│   ├── types/
+│   │   └── silo.ts               # TypeScript type definitions
+│   └── pages/
+│       ├── Index.tsx             # Main application page
+│       └── NotFound.tsx          # 404 error page
+├── public/                       # Static assets
+├── tests/                        # Playwright test files
+└── netlify.toml                 # Netlify deployment configuration
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+## 🎯 Core Features Explained
+
+### 1. Silo Monitoring System
+- **8 Sensor Positions**: S1 through S8 with temperature readings
+- **Real-time Updates**: Dynamic sensor data visualization
+- **Selection Control**: Click to select and monitor specific silos
+
+### 2. Interactive Cylinder Display
+- **3D Visualization**: Cylindrical representation of silo data
+- **Sensor Readings**: Temperature values displayed in organized columns
+- **Hover Isolation**: Stable readings that only change on selection (not hover)
+
+### 3. Performance Optimizations
+- **React.memo**: Prevents unnecessary re-renders
+- **Component Isolation**: Cylinder component isolated from hover state
+- **Debug Logging**: Console logs for performance monitoring
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn package manager
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/basharagb/replica-view-studio.git
+
+# Navigate to project directory
+cd replica-view-studio
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Available Scripts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+# Development server
+npm run dev
 
-**Use GitHub Codespaces**
+# Build for production
+npm run build
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Preview production build
+npm run preview
 
-## What technologies are used for this project?
+# Run tests
+npm run test
 
-This project is built with:
+# Lint code
+npm run lint
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🌐 Deployment
 
-## How can I deploy this project?
+### Netlify Deployment
+The project is configured for automatic deployment on Netlify:
 
-Simply open [Lovable](https://lovable.dev/projects/a1c988ed-b1f9-454d-9ad7-67187419270d) and click on Share -> Publish.
+1. **Build Command**: `npm run build`
+2. **Publish Directory**: `dist`
+3. **Node Version**: 18.x
 
-## Can I connect a custom domain to my Lovable project?
+### Manual Deployment
+```bash
+# Build the project
+npm run build
 
-Yes, you can!
+# Deploy to Netlify
+netlify deploy --prod
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🧪 Testing
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-# Deployment triggered at Sun Aug  3 18:22:12 +03 2025
-# Fresh deployment triggered at Sun Aug  3 18:24:10 +03 2025
+### Playwright Tests
+```bash
+# Run tests
+npm run test
+
+# Run tests with UI
+npm run test:ui
+
+# Generate test report
+npm run test:report
+```
+
+## 📊 Performance Features
+
+### React.memo Implementation
+- **LabCylinder Component**: Wrapped with React.memo for performance
+- **Stable Props**: Only re-renders when selectedSilo or readingSilo change
+- **Hover Isolation**: Complete separation from hover state
+
+### Debug Logging
+- **Console Logs**: Track component re-renders
+- **Performance Monitoring**: Identify unnecessary updates
+- **State Tracking**: Monitor prop changes
+
+## 🔧 Configuration Files
+
+### Vite Configuration (`vite.config.ts`)
+- Base path configuration for deployment
+- Build optimization settings
+- Development server configuration
+
+### Netlify Configuration (`netlify.toml`)
+- Build settings for Netlify deployment
+- Redirect rules for SPA routing
+- Environment configuration
+
+### Tailwind Configuration (`tailwind.config.ts`)
+- Custom color schemes
+- Component styling
+- Responsive design breakpoints
+
+## 🎨 UI/UX Design
+
+### Color Scheme
+- **Primary**: Modern blue gradients
+- **Secondary**: Neutral grays and whites
+- **Accent**: Highlight colors for interactive elements
+
+### Responsive Design
+- **Desktop**: Full-featured interface
+- **Mobile**: Optimized touch interactions
+- **Tablet**: Adaptive layout scaling
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **White Screen on Deploy**
+   - Check base path configuration in `vite.config.ts`
+   - Verify redirect rules in `netlify.toml`
+
+2. **Component Re-rendering Issues**
+   - Check React.memo implementation
+   - Verify prop stability
+   - Monitor console logs for debugging
+
+3. **Build Failures**
+   - Ensure all dependencies are installed
+   - Check TypeScript compilation errors
+   - Verify Node.js version compatibility
+
+## 📈 Future Enhancements
+
+### Planned Features
+- **Real-time Data Integration**: Connect to actual sensor systems
+- **Historical Data**: Time-series data visualization
+- **Alert System**: Temperature threshold notifications
+- **Multi-silo Support**: Expand to multiple silo monitoring
+- **Mobile App**: Native mobile application
+
+### Technical Improvements
+- **WebSocket Integration**: Real-time data streaming
+- **Database Integration**: Persistent data storage
+- **Authentication**: User management system
+- **API Development**: RESTful API for data access
+
+## 📄 License
+
+This project is developed by Eng. Bashar Zabadani for industrial silo monitoring applications.
+
+## 🤝 Contributing
+
+For contributions or questions, please contact:
+- **Developer**: Eng. Bashar Zabadani
+- **Email**: basharagb@gmail.com
+- **GitHub**: https://github.com/basharagb
+
+---
+
+**Last Updated**: January 2025  
+**Version**: 1.0.0  
+**Status**: Production Ready ✅
