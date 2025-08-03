@@ -1,187 +1,162 @@
+import { useEffect } from 'react';
 import { LabGroup } from './LabGroup';
 import { LabCylinder } from './LabCylinder';
 import { Input } from './ui/input';
+import { Button } from './ui/button';
+import { useSiloSystem } from '../hooks/useSiloSystem';
+import { topSiloGroups, bottomSiloGroups, temperatureScaleValues } from '../services/siloData';
 
 export const LabInterface = () => {
-  // Top section groups data
-  const topGroups = [
-    {
-      circles: [
-        { number: 55, color: 'green' as const },
-        { number: 51, color: 'yellow' as const },
-        { number: 47, color: 'green' as const },
-        { number: 53, color: 'pink' as const },
-        { number: 49, color: 'pink' as const },
-        { number: 45, color: 'yellow' as const }
-      ],
-      squares: [54, 52, 50, 48, 46]
-    },
-    {
-      circles: [
-        { number: 44, color: 'yellow' as const },
-        { number: 40, color: 'yellow' as const },
-        { number: 36, color: 'yellow' as const },
-        { number: 42, color: 'pink' as const },
-        { number: 38, color: 'yellow' as const },
-        { number: 34, color: 'green' as const }
-      ],
-      squares: [43, 41, 39, 37, 35]
-    },
-    {
-      circles: [
-        { number: 33, color: 'pink' as const },
-        { number: 29, color: 'yellow' as const },
-        { number: 25, color: 'yellow' as const },
-        { number: 31, color: 'green' as const },
-        { number: 27, color: 'pink' as const },
-        { number: 23, color: 'green' as const }
-      ],
-      squares: [32, 30, 28, 26, 24]
-    },
-    {
-      circles: [
-        { number: 22, color: 'pink' as const },
-        { number: 18, color: 'yellow' as const },
-        { number: 14, color: 'yellow' as const },
-        { number: 20, color: 'green' as const },
-        { number: 16, color: 'green' as const },
-        { number: 12, color: 'green' as const }
-      ],
-      squares: [21, 19, 17, 15, 13]
-    },
-    {
-      circles: [
-        { number: 11, color: 'yellow' as const },
-        { number: 7, color: 'yellow' as const },
-        { number: 3, color: 'green' as const },
-        { number: 9, color: 'yellow' as const },
-        { number: 5, color: 'yellow' as const },
-        { number: 1, color: 'green' as const }
-      ],
-      squares: [10, 8, 6, 4, 2]
-    }
-  ];
+  const {
+    selectedSilo,
+    selectedTemp,
+    hoveredSilo,
+    tooltipPosition,
+    readingMode,
+    isReading,
+    readingSilo,
+    autoReadProgress,
+    handleSiloClick,
+    handleSiloHover,
+    handleSiloMouseMove,
+    handleSiloLeave,
+    startAutoRead,
+    handleManualReadMode,
+    setSelectedSilo,
+    cleanup
+  } = useSiloSystem();
 
-  // Bottom section groups data
-  const bottomGroups = [
-    {
-      circles: [
-        { number: 195, color: 'beige' as const },
-        { number: 188, color: 'beige' as const },
-        { number: 181, color: 'beige' as const },
-        { number: 193, color: 'beige' as const },
-        { number: 186, color: 'beige' as const },
-        { number: 179, color: 'beige' as const }
-      ],
-      squares: [194, 190, 187, 183, 180]
-    },
-    {
-      circles: [
-        { number: 176, color: 'beige' as const },
-        { number: 169, color: 'beige' as const },
-        { number: 162, color: 'beige' as const },
-        { number: 174, color: 'beige' as const },
-        { number: 167, color: 'beige' as const },
-        { number: 160, color: 'beige' as const }
-      ],
-      squares: [175, 171, 168, 164, 161]
-    },
-    {
-      circles: [
-        { number: 157, color: 'beige' as const },
-        { number: 150, color: 'beige' as const },
-        { number: 143, color: 'beige' as const },
-        { number: 155, color: 'beige' as const },
-        { number: 148, color: 'beige' as const },
-        { number: 141, color: 'beige' as const }
-      ],
-      squares: [156, 152, 149, 145, 142]
-    },
-    {
-      circles: [
-        { number: 138, color: 'beige' as const },
-        { number: 131, color: 'beige' as const },
-        { number: 124, color: 'beige' as const },
-        { number: 136, color: 'beige' as const },
-        { number: 129, color: 'beige' as const },
-        { number: 122, color: 'beige' as const }
-      ],
-      squares: [137, 133, 130, 126, 123]
-    },
-    {
-      circles: [
-        { number: 119, color: 'beige' as const },
-        { number: 112, color: 'yellow' as const },
-        { number: 105, color: 'pink' as const },
-        { number: 117, color: 'beige' as const },
-        { number: 110, color: 'pink' as const },
-        { number: 103, color: 'pink' as const }
-      ],
-      squares: [118, 114, 111, 107, 104]
-    }
-  ];
+  // Cleanup on unmount
+  useEffect(() => {
+    return cleanup;
+  }, [cleanup]);
 
-  const bottomRowData = [
-    {
-      circles: [
-        { number: 191, color: 'beige' as const },
-        { number: 184, color: 'beige' as const },
-        { number: 177, color: 'beige' as const },
-      ],
-      squares: [192, 189, 185, 182, 178]
-    },
-    {
-      circles: [
-        { number: 172, color: 'beige' as const },
-        { number: 165, color: 'beige' as const },
-        { number: 158, color: 'beige' as const },
-      ],
-      squares: [173, 170, 166, 163, 159]
-    },
-    {
-      circles: [
-        { number: 153, color: 'beige' as const },
-        { number: 146, color: 'beige' as const },
-        { number: 139, color: 'beige' as const },
-      ],
-      squares: [154, 151, 147, 144, 140]
-    },
-    {
-      circles: [
-        { number: 134, color: 'beige' as const },
-        { number: 127, color: 'beige' as const },
-        { number: 120, color: 'beige' as const },
-      ],
-      squares: [135, 132, 128, 125, 121]
-    },
-    {
-      circles: [
-        { number: 115, color: 'beige' as const },
-        { number: 108, color: 'yellow' as const },
-        { number: 101, color: 'yellow' as const },
-      ],
-      squares: [116, 113, 109, 106, 102]
+  // Handle input change
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value);
+    if (!isNaN(value)) {
+      setSelectedSilo(value);
     }
-  ];
+  };
+
+  // Create bottom row data (simplified groups with 3 circles each)
+  const bottomRowData = bottomSiloGroups.map(group => ({
+    circles: [
+      ...(group.row1?.slice(0, 3) || [])
+    ],
+    squares: (group.row2?.slice(0, 5) || []).map(silo => silo.num)
+  }));
 
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex gap-8">
+          {/* Manual/Auto Test Controls */}
+          <div className="flex flex-col gap-2 items-start">
+            <Button
+              variant={readingMode === 'manual' ? 'default' : 'outline'}
+              onClick={handleManualReadMode}
+              disabled={isReading && readingMode === 'auto'}
+              className="w-32"
+            >
+              {readingMode === 'manual' ? 'Stop Manual' : 'Start Manual Test'}
+            </Button>
+            <Button
+              variant={readingMode === 'auto' ? 'default' : 'outline'}
+              onClick={startAutoRead}
+              disabled={isReading && readingMode === 'manual'}
+              className="w-32"
+            >
+              {readingMode === 'auto' ? 'Stop Auto Test' : 'Start Auto Test'}
+            </Button>
+            
+            {/* Auto Read Progress */}
+            {readingMode === 'auto' && (
+              <div className="w-48 mt-2">
+                <div className="bg-gray-200 h-3 rounded">
+                  <div
+                    className="bg-green-500 h-3 rounded transition-all duration-300"
+                    style={{ width: `${autoReadProgress}%` }}
+                  />
+                </div>
+                <div className="text-xs mt-1 text-center">
+                  {Math.round(autoReadProgress)}% complete
+                </div>
+              </div>
+            )}
+
+            {/* Reading Status */}
+            {isReading && readingSilo && (
+              <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
+                <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                Reading Silo {readingSilo}
+              </div>
+            )}
+
+            {/* Temperature Scale */}
+            <div className="mt-4 bg-green-200 rounded-lg p-3 w-32">
+              <div className="text-xs font-semibold text-green-800 mb-2 text-center">
+                Temperature Scale
+              </div>
+              <div className="flex flex-col gap-1">
+                {temperatureScaleValues.map((temp, index) => (
+                  <div key={index} className="text-xs font-bold text-green-800 text-center">
+                    {temp.toFixed(1)}°C
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Current Temperature Display */}
+            <div className="mt-2 bg-white border-2 border-gray-300 rounded-lg p-3 w-32 text-center">
+              <div className="text-lg font-bold text-gray-800">
+                {selectedTemp.toFixed(1)}°C
+              </div>
+            </div>
+          </div>
+
           {/* Main lab area */}
           <div className="flex-1 space-y-24">
             {/* Top section */}
             <div className="flex gap-6 justify-center">
-              {topGroups.map((group, index) => (
-                <LabGroup key={index} circles={group.circles} squares={group.squares} />
+              {topSiloGroups.map((group, index) => (
+                <LabGroup 
+                  key={index} 
+                  circles={[
+                    ...(group.topRow || []),
+                    ...(group.bottomRow || [])
+                  ]}
+                  squares={group.middleRow?.map(silo => silo.num) || []}
+                  selectedSilo={selectedSilo}
+                  readingSilo={readingSilo}
+                  hoveredSilo={hoveredSilo}
+                  onSiloClick={handleSiloClick}
+                  onSiloHover={handleSiloHover}
+                  onSiloLeave={handleSiloLeave}
+                  onSiloMouseMove={handleSiloMouseMove}
+                />
               ))}
             </div>
 
             {/* Bottom section */}
             <div className="space-y-4">
               <div className="flex gap-6 justify-center">
-                {bottomGroups.map((group, index) => (
-                  <LabGroup key={index} circles={group.circles} squares={group.squares} />
+                {bottomSiloGroups.map((group, index) => (
+                  <LabGroup 
+                    key={index} 
+                    circles={[
+                      ...(group.row1 || []),
+                      ...(group.row3 || [])
+                    ]}
+                    squares={group.row2?.map(silo => silo.num) || []}
+                    selectedSilo={selectedSilo}
+                    readingSilo={readingSilo}
+                    hoveredSilo={hoveredSilo}
+                    onSiloClick={handleSiloClick}
+                    onSiloHover={handleSiloHover}
+                    onSiloLeave={handleSiloLeave}
+                    onSiloMouseMove={handleSiloMouseMove}
+                  />
                 ))}
               </div>
               
@@ -191,28 +166,76 @@ export const LabInterface = () => {
                   <div key={index} className="relative flex flex-col items-center gap-1">
                     <div className="flex gap-1 px-2">
                       {group.squares.map((num, squareIndex) => (
-                        <div key={squareIndex} className="w-6 h-6 bg-white border border-gray-300 flex items-center justify-center text-xs font-medium text-lab-text">
-                          {num}
+                        <div 
+                          key={squareIndex} 
+                          className={`
+                            w-6 h-6 
+                            temp-beige
+                            border 
+                            border-gray-300 
+                            flex 
+                            items-center 
+                            justify-center 
+                            text-xs 
+                            font-medium 
+                            text-lab-text
+                            cursor-pointer
+                            transition-all
+                            duration-200
+                            user-select-none
+                            rounded-sm
+                            ${selectedSilo === num ? 'silo-selected' : ''}
+                            ${readingSilo === num ? 'silo-reading' : ''}
+                            ${hoveredSilo?.num === num ? 'silo-hover' : ''}
+                          `}
+                          onClick={() => handleSiloClick(num, 0)}
+                          onMouseEnter={(e) => handleSiloHover(num, 0, e)}
+                          onMouseLeave={handleSiloLeave}
+                          onMouseMove={handleSiloMouseMove}
+                        >
+                          {readingSilo === num ? (
+                            <div className="reading-spinner w-3 h-3 border border-white border-t-transparent"></div>
+                          ) : (
+                            num
+                          )}
                         </div>
                       ))}
                     </div>
                     <div className="flex">
                       {group.circles.map((circle, circleIndex) => (
-                        <div key={circleIndex} className={`
-                          w-12 h-12 
-                          ${circle.color === 'beige' ? 'bg-lab-beige' : circle.color === 'yellow' ? 'bg-lab-yellow' : 'bg-lab-pink'} 
-                          rounded-full 
-                          flex 
-                          items-center 
-                          justify-center 
-                          font-semibold 
-                          text-lab-text 
-                          border-2 
-                          border-gray-300
-                          shadow-sm
-                          text-sm
-                        `}>
-                          {circle.number}
+                        <div 
+                          key={circleIndex} 
+                          className={`
+                            w-12 h-12 
+                            temp-beige
+                            rounded-full 
+                            flex 
+                            items-center 
+                            justify-center 
+                            font-semibold 
+                            text-lab-text 
+                            border-2 
+                            border-gray-300
+                            shadow-sm
+                            cursor-pointer
+                            transition-all
+                            duration-200
+                            user-select-none
+                            text-sm
+                            ${selectedSilo === circle.num ? 'silo-selected' : ''}
+                            ${readingSilo === circle.num ? 'silo-reading' : ''}
+                            ${hoveredSilo?.num === circle.num ? 'silo-hover' : ''}
+                          `}
+                          onClick={() => handleSiloClick(circle.num, circle.temp)}
+                          onMouseEnter={(e) => handleSiloHover(circle.num, circle.temp, e)}
+                          onMouseLeave={handleSiloLeave}
+                          onMouseMove={handleSiloMouseMove}
+                        >
+                          {readingSilo === circle.num ? (
+                            <div className="reading-spinner"></div>
+                          ) : (
+                            circle.num
+                          )}
                         </div>
                       ))}
                     </div>
@@ -227,13 +250,28 @@ export const LabInterface = () => {
             <LabCylinder />
             <div className="w-20">
               <Input 
-                defaultValue="112" 
+                value={selectedSilo} 
+                onChange={handleInputChange}
                 className="text-center font-semibold"
+                type="number"
               />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Temperature Tooltip */}
+      {hoveredSilo && (
+        <div
+          className="temperature-tooltip"
+          style={{
+            left: tooltipPosition.x + 10,
+            top: tooltipPosition.y - 30,
+          }}
+        >
+          Silo {hoveredSilo.num}: {hoveredSilo.temp.toFixed(1)}°C
+        </div>
+      )}
     </div>
   );
 };

@@ -111,3 +111,80 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Temperature-based silo colors from sillo logic */
+.temp-green {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
+.temp-yellow {
+  background: linear-gradient(135deg, #FFC107 0%, #e0a800 100%);
+}
+
+.temp-pink {
+  background: linear-gradient(135deg, #F44336 0%, #da190b 100%);
+}
+
+.temp-beige {
+  background: linear-gradient(135deg, #F5DEB3 0%, #e6d0a3 100%);
+}
+
+/* Silo states */
+.silo-selected {
+  @apply border-black border-4 shadow-lg;
+  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+}
+
+.silo-reading {
+  @apply border-blue-500 border-4;
+  animation: reading-pulse 1.5s infinite;
+  box-shadow: 0 0 12px rgba(33, 150, 243, 0.6);
+}
+
+.silo-hover {
+  @apply border-gray-600;
+  transform: scale(1.05);
+}
+
+/* Reading animations */
+@keyframes reading-pulse {
+  0% {
+    box-shadow: 0 0 12px rgba(33, 150, 243, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(33, 150, 243, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 12px rgba(33, 150, 243, 0.6);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Reading spinner */
+.reading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top: 2px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Temperature tooltip */
+.temperature-tooltip {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 1000;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}

@@ -69,6 +69,13 @@ export default {
 					beige: 'hsl(var(--lab-beige))',
 					cylinder: 'hsl(var(--lab-cylinder))',
 					text: 'hsl(var(--lab-text))'
+				},
+				// Temperature-based colors from sillo logic
+				temp: {
+					green: '#4CAF50',
+					yellow: '#FFC107',
+					red: '#F44336',
+					wheat: '#F5DEB3'
 				}
 			},
 			borderRadius: {
