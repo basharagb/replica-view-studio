@@ -6,21 +6,19 @@ interface LabCylinderProps {
   readingSilo?: number | null;
   hoveredSilo?: Silo | null;
   onSiloClick?: (number: number, temp: number) => void;
-  onSiloHover?: (number: number, temp: number, event: React.MouseEvent) => void;
-  onSiloLeave?: () => void;
-  onSiloMouseMove?: (event: React.MouseEvent) => void;
+  // Hover handlers are not used for LabCylinder - it only shows selected/reading silo
+  // onSiloHover?: (number: number, temp: number, event: React.MouseEvent) => void;
+  // onSiloLeave?: () => void;
+  // onSiloMouseMove?: (event: React.MouseEvent) => void;
 }
 
 export const LabCylinder = ({
   selectedSilo,
   readingSilo,
   hoveredSilo,
-  onSiloClick,
-  onSiloHover,
-  onSiloLeave,
-  onSiloMouseMove
+  onSiloClick
 }: LabCylinderProps) => {
-  // Get the current silo being displayed (reading silo takes priority)
+  // Get the current silo being displayed (only selected or reading silo, not hovered)
   const currentSiloNum = readingSilo || selectedSilo || 112;
   const currentSilo = findSiloByNumber(currentSiloNum);
   const sensorReadings = getSensorReadings(currentSiloNum);
@@ -31,11 +29,12 @@ export const LabCylinder = ({
     }
   };
 
-  const handleMouseEnter = (silo: Silo, event: React.MouseEvent) => {
-    if (onSiloHover) {
-      onSiloHover(silo.num, silo.temp, event);
-    }
-  };
+  // LabCylinder doesn't respond to hovers - only shows selected/reading silo
+  // const handleMouseEnter = (silo: Silo, event: React.MouseEvent) => {
+  //   if (onSiloHover) {
+  //     onSiloHover(silo.num, silo.temp, event);
+  //   }
+  // };
 
   return (
     <div className="relative">

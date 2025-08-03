@@ -194,9 +194,10 @@ export const LabInterface = () => {
               readingSilo={readingSilo}
               hoveredSilo={hoveredSilo}
               onSiloClick={handleSiloClick}
-              onSiloHover={handleSiloHover}
-              onSiloLeave={handleSiloLeave}
-              onSiloMouseMove={handleSiloMouseMove}
+              // LabCylinder doesn't respond to hovers - only shows selected/reading silo
+              // onSiloHover={handleSiloHover}
+              // onSiloLeave={handleSiloLeave}
+              // onSiloMouseMove={handleSiloMouseMove}
             />
             <div className="w-20">
               <Input
