@@ -64,25 +64,54 @@ export const LabCylinder = ({
         )}
         
         <div className="space-y-1">
-          {sensorReadings.map((reading, sensorIndex) => (
-            <div key={sensorIndex} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${
-              readingSilo ? 'bg-blue-100 bg-opacity-30' : 'bg-white bg-opacity-20'
-            }`}>
-              <span className="text-xs font-medium text-lab-text">S{sensorIndex + 1}:</span>
-              <span className={`text-xs font-bold ${
-                readingSilo ? 'text-blue-600' : 'text-lab-text'
-              }`}>
-                {readingSilo ? (
-                  <span className="inline-flex items-center">
-                    <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin mr-1"></div>
-                    {reading.toFixed(1)}°C
-                  </span>
-                ) : (
-                  `${reading.toFixed(1)}°C`
-                )}
-              </span>
-            </div>
-          ))}
+          {sensorReadings.map((reading, sensorIndex) => {
+            const tempColor = getTemperatureColor(reading);
+            const getBackgroundColor = () => {
+              if (readingSilo) return 'bg-blue-100 bg-opacity-30';
+              
+              switch (tempColor) {
+                case 'green':
+                  return 'bg-green-100 bg-opacity-40';
+                case 'yellow':
+                  return 'bg-yellow-100 bg-opacity-40';
+                case 'pink':
+                  return 'bg-red-100 bg-opacity-40';
+                default:
+                  return 'bg-white bg-opacity-20';
+              }
+            };
+            
+            const getTextColor = () => {
+              if (readingSilo) return 'text-blue-600';
+              
+              switch (tempColor) {
+                case 'green':
+                  return 'text-green-700';
+                case 'yellow':
+                  return 'text-yellow-700';
+                case 'pink':
+                  return 'text-red-700';
+                default:
+                  return 'text-lab-text';
+              }
+            };
+
+            return (
+              <div key={sensorIndex} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundColor()}`}>
+                <span className="text-xs font-medium text-lab-text">S{sensorIndex + 1}:</span>
+                <span className={`text-xs font-bold ${getTextColor()}`}>
+                  {readingSilo ? (
+                    <span className="inline-flex items-center">
+                      <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin mr-1"></div>
+                      {reading.toFixed(1)}°C
+                    </span>
+                  ) : (
+                    `${reading.toFixed(1)}°C`
+                  )}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
