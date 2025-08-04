@@ -15,7 +15,7 @@
 
 ## 👨‍💻 Developer Information
 
-**Developer:** Eng. Bashar Zabadani  
+**Developer:** Eng. Bashar Zabadani (engBasharZy)  
 **Project:** Replica View Studio  
 **Technology Stack:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui
 
