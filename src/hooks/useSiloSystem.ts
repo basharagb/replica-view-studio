@@ -75,8 +75,8 @@ export const useSiloSystem = () => {
     }
 
     // Generate new random data for this auto test
-    regenerateAllSiloData();
-    setDataVersion(prev => prev + 1);
+    // regenerateAllSiloData();
+    // setDataVersion(prev => prev + 1);
     
     setReadingMode('auto');
     setIsReading(true);
