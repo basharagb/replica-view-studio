@@ -10,12 +10,33 @@ const generateRandomTemp = (): number => {
   return Math.round((Math.random() * 30 + 20) * 10) / 10; // 20.0 to 50.0
 };
 
+// Generate 8 sensor readings for any silo and return sorted (highest to lowest)
+export const generateSensorReadings = (baseTemp: number): number[] => {
+  const variance = 2.0; // Temperature variance range
+  const readings = Array.from({ length: 8 }, () => {
+    const offset = (Math.random() - 0.5) * 2 * variance;
+    return Math.round((baseTemp + offset) * 10) / 10; // Round to 1 decimal
+  });
+  
+  // Sort from highest to lowest (S1 = highest, S8 = lowest)
+  return readings.sort((a, b) => b - a);
+};
+
+// Generate silo with 8 sensors and calculate MAX temperature
+const generateSiloWithSensors = (num: number): Silo => {
+  const baseTemp = generateRandomTemp();
+  const sensors = generateSensorReadings(baseTemp);
+  const maxTemp = Math.max(...sensors); // Silo temp is MAX of all sensors
+  
+  return {
+    num,
+    temp: maxTemp // Silo temperature is the MAX of all 8 sensors
+  };
+};
+
 // Generate random silo data for a group
 const generateSiloGroup = (siloNumbers: number[]): Silo[] => {
-  return siloNumbers.map(num => ({
-    num,
-    temp: generateRandomTemp()
-  }));
+  return siloNumbers.map(num => generateSiloWithSensors(num));
 };
 
 // Generate top section silo groups
@@ -104,11 +125,14 @@ const generateBottomSiloGroups = (): SiloGroup[] => {
 const generateCylinderSilos = (): CylinderSilo[] => {
   const cylinderNumbers = [25, 26, 27, 29, 32, 35, 36, 38];
   return cylinderNumbers.map(num => {
-    const temp = generateRandomTemp();
+    const baseTemp = generateRandomTemp();
+    const sensors = generateSensorReadings(baseTemp);
+    const maxTemp = Math.max(...sensors);
+    
     return {
       num,
-      temp,
-      sensors: generateSensorReadings(temp)
+      temp: maxTemp, // Silo temperature is MAX of all sensors
+      sensors: sensors
     };
   });
 };
@@ -117,88 +141,120 @@ const generateCylinderSilos = (): CylinderSilo[] => {
 export let topSiloGroups: SiloGroup[] = [
   // Group 1 (leftmost)
   {
-    topRow: [{ num: 55, temp: 28.1 }, { num: 51, temp: 41.7 }, { num: 47, temp: 29.9 }],
-    middleRow: [{ num: 54, temp: 32.8 }, { num: 52, temp: 31.8 }, { num: 50, temp: 30.9 }, { num: 48, temp: 33.8 }, { num: 46, temp: 34.8 }],
-    bottomRow: [{ num: 53, temp: 43.4 }, { num: 49, temp: 27.7 }, { num: 45, temp: 41.8 }]
+    topRow: [{ num: 55, temp: 44.2 }, { num: 51, temp: 42.8 }, { num: 47, temp: 41.5 }],
+    middleRow: [{ num: 54, temp: 43.1 }, { num: 52, temp: 42.3 }, { num: 50, temp: 41.8 }, { num: 48, temp: 42.7 }, { num: 46, temp: 43.9 }],
+    bottomRow: [{ num: 53, temp: 44.5 }, { num: 49, temp: 42.1 }, { num: 45, temp: 43.2 }]
   },
   // Group 2
   {
-    topRow: [{ num: 44, temp: 38.8 }, { num: 40, temp: 39.9 }, { num: 36, temp: 37.9 }],
-    middleRow: [{ num: 43, temp: 42.0 }, { num: 41, temp: 42.1 }, { num: 39, temp: 22.2 }, { num: 37, temp: 23.1 }, { num: 35, temp: 31.8 }],
-    bottomRow: [{ num: 42, temp: 43.4 }, { num: 38, temp: 42.1 }, { num: 34, temp: 28.8 }]
+    topRow: [{ num: 44, temp: 43.8 }, { num: 40, temp: 44.1 }, { num: 36, temp: 42.9 }],
+    middleRow: [{ num: 43, temp: 44.3 }, { num: 41, temp: 44.5 }, { num: 39, temp: 41.2 }, { num: 37, temp: 42.1 }, { num: 35, temp: 43.8 }],
+    bottomRow: [{ num: 42, temp: 44.7 }, { num: 38, temp: 44.2 }, { num: 34, temp: 43.1 }]
   },
   // Group 3
   {
-    topRow: [{ num: 33, temp: 43.5 }, { num: 29, temp: 42.2 }, { num: 25, temp: 29.9 }],
-    middleRow: [{ num: 32, temp: 28.9 }, { num: 30, temp: 31.8 }, { num: 28, temp: 32.8 }, { num: 26, temp: 33.7 }, { num: 24, temp: 34.7 }],
-    bottomRow: [{ num: 31, temp: 22.2 }, { num: 27, temp: 43.6 }, { num: 23, temp: 23.1 }]
+    topRow: [{ num: 33, temp: 44.8 }, { num: 29, temp: 44.3 }, { num: 25, temp: 42.9 }],
+    middleRow: [{ num: 32, temp: 43.9 }, { num: 30, temp: 43.8 }, { num: 28, temp: 43.2 }, { num: 26, temp: 43.7 }, { num: 24, temp: 44.1 }],
+    bottomRow: [{ num: 31, temp: 41.2 }, { num: 27, temp: 44.9 }, { num: 23, temp: 42.1 }]
   },
   // Group 4
   {
-    topRow: [{ num: 22, temp: 43.6 }, { num: 18, temp: 42.2 }, { num: 14, temp: 42.3 }],
-    middleRow: [{ num: 21, temp: 31.8 }, { num: 19, temp: 32.8 }, { num: 17, temp: 29.9 }, { num: 15, temp: 30.9 }, { num: 13, temp: 33.8 }],
-    bottomRow: [{ num: 20, temp: 28.8 }, { num: 16, temp: 27.7 }, { num: 12, temp: 42.3 }]
+    topRow: [{ num: 22, temp: 44.9 }, { num: 18, temp: 44.2 }, { num: 14, temp: 44.3 }],
+    middleRow: [{ num: 21, temp: 43.8 }, { num: 19, temp: 43.2 }, { num: 17, temp: 42.9 }, { num: 15, temp: 43.9 }, { num: 13, temp: 43.8 }],
+    bottomRow: [{ num: 20, temp: 43.1 }, { num: 16, temp: 42.1 }, { num: 12, temp: 44.3 }]
   },
   // Group 5 (rightmost)
   {
-    topRow: [{ num: 11, temp: 42.4 }, { num: 7, temp: 42.4 }, { num: 3, temp: 23.2 }],
-    middleRow: [{ num: 10, temp: 22.1 }, { num: 8, temp: 31.8 }, { num: 6, temp: 32.8 }, { num: 4, temp: 29.9 }, { num: 2, temp: 30.9 }],
-    bottomRow: [{ num: 9, temp: 42.5 }, { num: 5, temp: 42.6 }, { num: 1, temp: 28.8 }]
+    topRow: [{ num: 11, temp: 44.4 }, { num: 7, temp: 44.4 }, { num: 3, temp: 42.2 }],
+    middleRow: [{ num: 10, temp: 41.1 }, { num: 8, temp: 43.8 }, { num: 6, temp: 43.2 }, { num: 4, temp: 42.9 }, { num: 2, temp: 43.9 }],
+    bottomRow: [{ num: 9, temp: 44.5 }, { num: 5, temp: 44.6 }, { num: 1, temp: 43.8 }]
   }
 ];
 
 export let bottomSiloGroups: SiloGroup[] = [
   // Group 1 (leftmost)
   {
-    row1: [{ num: 195, temp: 29.5 }, { num: 188, temp: 30.4 }, { num: 181, temp: 31.4 }],
-    row2: [{ num: 194, temp: 32.3 }, { num: 190, temp: 33.3 }, { num: 187, temp: 34.2 }, { num: 183, temp: 35.2 }, { num: 180, temp: 36.1 }],
-    row3: [{ num: 193, temp: 37.1 }, { num: 186, temp: 38.0 }, { num: 179, temp: 39.1 }],
-    row4: [{ num: 192, temp: 40.1 }, { num: 189, temp: 41.2 }, { num: 185, temp: 42.2 }, { num: 182, temp: 43.3 }, { num: 178, temp: 44.3 }],
-    row5: [{ num: 191, temp: 45.4 }, { num: 184, temp: 46.4 }, { num: 177, temp: 47.5 }]
+    row1: [{ num: 195, temp: 42.5 }, { num: 188, temp: 43.4 }, { num: 181, temp: 44.4 }],
+    row2: [{ num: 194, temp: 43.3 }, { num: 190, temp: 44.3 }, { num: 187, temp: 45.2 }, { num: 183, temp: 46.2 }, { num: 180, temp: 47.1 }],
+    row3: [{ num: 193, temp: 48.1 }, { num: 186, temp: 49.0 }, { num: 179, temp: 50.1 }],
+    row4: [{ num: 192, temp: 51.1 }, { num: 189, temp: 52.2 }, { num: 185, temp: 53.2 }, { num: 182, temp: 54.3 }, { num: 178, temp: 55.3 }],
+    row5: [{ num: 191, temp: 56.4 }, { num: 184, temp: 57.4 }, { num: 177, temp: 58.5 }]
   },
   // Group 2
   {
-    row1: [{ num: 176, temp: 28.5 }, { num: 169, temp: 29.4 }, { num: 162, temp: 30.4 }],
-    row2: [{ num: 175, temp: 31.3 }, { num: 171, temp: 32.3 }, { num: 168, temp: 33.2 }, { num: 164, temp: 34.2 }, { num: 161, temp: 35.1 }],
-    row3: [{ num: 174, temp: 36.1 }, { num: 167, temp: 37.0 }, { num: 160, temp: 38.1 }],
-    row4: [{ num: 173, temp: 39.1 }, { num: 170, temp: 40.2 }, { num: 166, temp: 41.2 }, { num: 163, temp: 42.3 }, { num: 159, temp: 43.3 }],
-    row5: [{ num: 172, temp: 44.4 }, { num: 165, temp: 45.4 }, { num: 158, temp: 46.5 }]
+    row1: [{ num: 176, temp: 41.5 }, { num: 169, temp: 42.4 }, { num: 162, temp: 43.4 }],
+    row2: [{ num: 175, temp: 44.3 }, { num: 171, temp: 45.3 }, { num: 168, temp: 46.2 }, { num: 164, temp: 47.2 }, { num: 161, temp: 48.1 }],
+    row3: [{ num: 174, temp: 49.1 }, { num: 167, temp: 50.0 }, { num: 160, temp: 51.1 }],
+    row4: [{ num: 173, temp: 52.1 }, { num: 170, temp: 53.2 }, { num: 166, temp: 54.2 }, { num: 163, temp: 55.3 }, { num: 159, temp: 56.3 }],
+    row5: [{ num: 172, temp: 57.4 }, { num: 165, temp: 58.4 }, { num: 158, temp: 59.5 }]
   },
   // Group 3
   {
-    row1: [{ num: 157, temp: 27.5 }, { num: 150, temp: 28.4 }, { num: 143, temp: 29.4 }],
-    row2: [{ num: 156, temp: 30.3 }, { num: 152, temp: 31.3 }, { num: 149, temp: 32.2 }, { num: 145, temp: 33.2 }, { num: 142, temp: 34.1 }],
-    row3: [{ num: 155, temp: 35.1 }, { num: 148, temp: 36.0 }, { num: 141, temp: 37.1 }],
-    row4: [{ num: 154, temp: 38.1 }, { num: 151, temp: 39.2 }, { num: 147, temp: 40.2 }, { num: 144, temp: 41.3 }, { num: 140, temp: 42.3 }],
-    row5: [{ num: 153, temp: 43.4 }, { num: 146, temp: 44.4 }, { num: 139, temp: 45.5 }]
+    row1: [{ num: 157, temp: 40.5 }, { num: 150, temp: 41.4 }, { num: 143, temp: 42.4 }],
+    row2: [{ num: 156, temp: 43.3 }, { num: 152, temp: 44.3 }, { num: 149, temp: 45.2 }, { num: 145, temp: 46.2 }, { num: 142, temp: 47.1 }],
+    row3: [{ num: 155, temp: 48.1 }, { num: 148, temp: 49.0 }, { num: 141, temp: 50.1 }],
+    row4: [{ num: 154, temp: 51.1 }, { num: 151, temp: 52.2 }, { num: 147, temp: 53.2 }, { num: 144, temp: 54.3 }, { num: 140, temp: 55.3 }],
+    row5: [{ num: 153, temp: 56.4 }, { num: 146, temp: 57.4 }, { num: 139, temp: 58.5 }]
   },
   // Group 4
   {
-    row1: [{ num: 138, temp: 26.5 }, { num: 131, temp: 27.4 }, { num: 124, temp: 28.4 }],
-    row2: [{ num: 137, temp: 29.3 }, { num: 133, temp: 30.3 }, { num: 130, temp: 31.2 }, { num: 126, temp: 32.2 }, { num: 123, temp: 33.1 }],
-    row3: [{ num: 136, temp: 34.1 }, { num: 129, temp: 35.0 }, { num: 122, temp: 36.1 }],
-    row4: [{ num: 135, temp: 37.1 }, { num: 132, temp: 38.2 }, { num: 128, temp: 39.2 }, { num: 125, temp: 40.3 }, { num: 121, temp: 41.3 }],
-    row5: [{ num: 134, temp: 42.4 }, { num: 127, temp: 43.4 }, { num: 120, temp: 44.5 }]
+    row1: [{ num: 138, temp: 39.5 }, { num: 131, temp: 40.4 }, { num: 124, temp: 41.4 }],
+    row2: [{ num: 137, temp: 42.3 }, { num: 133, temp: 43.3 }, { num: 130, temp: 44.2 }, { num: 126, temp: 45.2 }, { num: 123, temp: 46.1 }],
+    row3: [{ num: 136, temp: 47.1 }, { num: 129, temp: 48.0 }, { num: 122, temp: 49.1 }],
+    row4: [{ num: 135, temp: 50.1 }, { num: 132, temp: 51.2 }, { num: 128, temp: 52.2 }, { num: 125, temp: 53.3 }, { num: 121, temp: 54.3 }],
+    row5: [{ num: 134, temp: 55.4 }, { num: 127, temp: 56.4 }, { num: 120, temp: 57.5 }]
   },
   // Group 5 (rightmost) - contains selected silo 112
   {
-    row1: [{ num: 119, temp: 25.5 }, { num: 112, temp: 35.2 }, { num: 105, temp: 43.4 }],
-    row2: [{ num: 118, temp: 26.4 }, { num: 114, temp: 27.3 }, { num: 111, temp: 43.4 }, { num: 107, temp: 28.2 }, { num: 104, temp: 29.2 }],
-    row3: [{ num: 117, temp: 43.5 }, { num: 110, temp: 43.6 }, { num: 103, temp: 30.1 }],
-    row4: [{ num: 116, temp: 26.4 }, { num: 113, temp: 31.1 }, { num: 109, temp: 32.0 }, { num: 106, temp: 33.1 }, { num: 102, temp: 34.1 }],
-    row5: [{ num: 115, temp: 42.3 }, { num: 108, temp: 42.3 }, { num: 101, temp: 42.4 }]
+    row1: [{ num: 119, temp: 38.5 }, { num: 112, temp: 40.2 }, { num: 105, temp: 44.7 }],
+    row2: [{ num: 118, temp: 39.4 }, { num: 114, temp: 40.3 }, { num: 111, temp: 44.8 }, { num: 107, temp: 41.2 }, { num: 104, temp: 42.2 }],
+    row3: [{ num: 117, temp: 44.9 }, { num: 110, temp: 45.0 }, { num: 103, temp: 43.1 }],
+    row4: [{ num: 116, temp: 39.4 }, { num: 113, temp: 44.1 }, { num: 109, temp: 45.0 }, { num: 106, temp: 46.1 }, { num: 102, temp: 47.1 }],
+    row5: [{ num: 115, temp: 44.3 }, { num: 108, temp: 44.3 }, { num: 101, temp: 44.4 }]
   }
 ];
 
 export let cylinderSilos: CylinderSilo[] = [
-  { num: 25, temp: 29.9, sensors: [29.8, 28.1, 30.7, 28.0, 29.9, 31.6, 27.2, 29.8] },
-  { num: 26, temp: 33.7, sensors: [33.5, 32.9, 34.6, 33.8, 35.4, 32.0, 33.7, 34.6] },
-  { num: 27, temp: 43.6, sensors: [43.4, 43.8, 43.5, 43.7, 43.9, 43.3, 43.6, 43.5] },
-  { num: 29, temp: 42.2, sensors: [42.0, 42.4, 42.1, 42.3, 42.5, 41.9, 42.2, 42.1] },
-  { num: 32, temp: 28.9, sensors: [28.7, 27.1, 29.8, 28.0, 30.6, 26.2, 28.9, 29.8] },
-  { num: 35, temp: 31.8, sensors: [31.6, 30.0, 32.7, 31.9, 33.5, 29.1, 31.8, 32.7] },
-  { num: 36, temp: 37.9, sensors: [37.7, 38.1, 37.8, 38.0, 37.6, 38.2, 37.9, 37.8] },
-  { num: 38, temp: 42.1, sensors: [41.9, 42.3, 42.0, 42.2, 41.8, 42.4, 42.1, 42.0] }
+  { 
+    num: 25, 
+    temp: 44.6, // MAX of sensors
+    sensors: [44.6, 43.7, 42.9, 42.8, 42.8, 42.1, 42.0, 41.2] // Sorted highest to lowest
+  },
+  { 
+    num: 26, 
+    temp: 48.4, // MAX of sensors
+    sensors: [48.4, 47.6, 47.6, 46.8, 46.7, 46.5, 45.9, 45.0] // Sorted highest to lowest
+  },
+  { 
+    num: 27, 
+    temp: 44.9, // MAX of sensors
+    sensors: [44.9, 44.8, 44.7, 44.6, 44.5, 44.5, 44.4, 44.3] // Sorted highest to lowest
+  },
+  { 
+    num: 29, 
+    temp: 43.5, // MAX of sensors
+    sensors: [43.5, 43.4, 43.3, 43.2, 43.1, 43.1, 43.0, 42.9] // Sorted highest to lowest
+  },
+  { 
+    num: 32, 
+    temp: 43.6, // MAX of sensors
+    sensors: [43.6, 42.8, 42.8, 41.9, 41.7, 41.0, 40.1, 39.2] // Sorted highest to lowest
+  },
+  { 
+    num: 35, 
+    temp: 46.5, // MAX of sensors
+    sensors: [46.5, 45.7, 45.7, 44.9, 44.8, 44.6, 43.0, 42.1] // Sorted highest to lowest
+  },
+  { 
+    num: 36, 
+    temp: 50.2, // MAX of sensors
+    sensors: [50.2, 50.1, 50.0, 49.9, 49.8, 49.8, 49.7, 49.6] // Sorted highest to lowest
+  },
+  { 
+    num: 38, 
+    temp: 44.4, // MAX of sensors
+    sensors: [44.4, 44.3, 44.2, 44.1, 44.0, 43.9, 43.8, 43.8] // Sorted highest to lowest
+  }
 ];
 
 // Function to regenerate all silo data
@@ -213,7 +269,7 @@ export const regenerateAllSiloData = (): void => {
   });
 };
 
-// Temperature color mapping - new demo ranges
+// Temperature color mapping - based on MAX temperature
 export const getTemperatureColor = (temp: number): TemperatureColor => {
   if (temp <= 35.0) return 'green';      // Green: 20-35°C
   if (temp <= 40.0) return 'yellow';     // Yellow: 35-40°C
@@ -268,34 +324,33 @@ export const findSiloByNumber = (siloNum: number): Silo | null => {
 // Temperature scale values for display - updated for 20-50°C range
 export const temperatureScaleValues = [20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0];
 
-// Predefined sensor readings for specific silos - updated to 20-50°C range
+// Predefined sensor readings for specific silos - SORTED from highest to lowest
 const predefinedReadings: { [key: number]: number[] } = {
-  25: [29.8, 28.1, 30.7, 28.0, 29.9, 31.6, 27.2, 29.8],
-  26: [33.5, 32.9, 34.6, 33.8, 35.4, 32.0, 33.7, 34.6],
-  27: [43.4, 43.8, 43.5, 43.7, 43.9, 43.3, 43.6, 43.5],
-  29: [42.0, 42.4, 42.1, 42.3, 42.5, 41.9, 42.2, 42.1],
-  32: [28.7, 27.1, 29.8, 28.0, 30.6, 26.2, 28.9, 29.8],
-  35: [31.6, 30.0, 32.7, 31.9, 33.5, 29.1, 31.8, 32.7],
-  36: [37.7, 38.1, 37.8, 38.0, 37.6, 38.2, 37.9, 37.8],
-  38: [41.9, 42.3, 42.0, 42.2, 41.8, 42.4, 42.1, 42.0],
-  112: [35.1, 35.3, 35.0, 35.4, 35.2, 34.9, 35.3, 35.1]
+  25: [44.6, 43.7, 42.9, 42.8, 42.8, 42.1, 42.0, 41.2], // Sorted highest to lowest
+  26: [48.4, 47.6, 47.6, 46.8, 46.7, 46.5, 45.9, 45.0], // Sorted highest to lowest
+  27: [44.9, 44.8, 44.7, 44.6, 44.5, 44.5, 44.4, 44.3], // Sorted highest to lowest
+  29: [43.5, 43.4, 43.3, 43.2, 43.1, 43.1, 43.0, 42.9], // Sorted highest to lowest
+  32: [43.6, 42.8, 42.8, 41.9, 41.7, 41.0, 40.1, 39.2], // Sorted highest to lowest
+  35: [46.5, 45.7, 45.7, 44.9, 44.8, 44.6, 43.0, 42.1], // Sorted highest to lowest
+  36: [50.2, 50.1, 50.0, 49.9, 49.8, 49.8, 49.7, 49.6], // Sorted highest to lowest
+  38: [44.4, 44.3, 44.2, 44.1, 44.0, 43.9, 43.8, 43.8], // Sorted highest to lowest
+  112: [40.4, 40.3, 40.3, 40.2, 40.1, 40.1, 40.0, 39.9] // Sorted highest to lowest
 };
 
-// Generate 8 sensor readings for any silo based on its main temperature
-export const generateSensorReadings = (mainTemp: number): number[] => {
-  const variance = 0.3; // Temperature variance range
-  return Array.from({ length: 8 }, () => {
-    const offset = (Math.random() - 0.5) * 2 * variance;
-    return mainTemp + offset;
-  });
-};
-
-// Get sensor readings for any silo
+// Get sensor readings for any silo - SORTED from highest to lowest
 export const getSensorReadings = (siloNum: number): number[] => {
   const silo = findSiloByNumber(siloNum);
   if (!silo) return [0, 0, 0, 0, 0, 0, 0, 0];
   
-  return predefinedReadings[siloNum] || generateSensorReadings(silo.temp);
+  // If we have predefined readings, use them (already sorted)
+  if (predefinedReadings[siloNum]) {
+    return predefinedReadings[siloNum];
+  }
+  
+  // Generate new readings and sort them
+  const readings = generateSensorReadings(silo.temp);
+  predefinedReadings[siloNum] = readings;
+  return readings;
 };
 
 // Cylinder measurements (from original LabCylinder) - kept for backward compatibility
