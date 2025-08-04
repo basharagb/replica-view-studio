@@ -5,6 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   Upload, 
   Download, 
@@ -50,6 +51,8 @@ interface ExportTemplate {
 }
 
 const DataManagement = () => {
+  const { isDark } = useTheme();
+  
   const [importedFiles, setImportedFiles] = useState<ImportedData[]>([
     {
       id: '1',
@@ -174,10 +177,10 @@ const DataManagement = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success': return 'bg-green-100 text-green-800';
-      case 'warning': return 'bg-yellow-100 text-yellow-800';
-      case 'error': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'success': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'warning': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'error': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
   };
 
@@ -190,14 +193,18 @@ const DataManagement = () => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Data Management</h1>
-        <p className="text-gray-600">Import and export silo readings data in various formats</p>
+        <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          Data Management
+        </h1>
+        <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          Import and export silo readings data in various formats
+        </p>
       </div>
 
       {/* Import Section */}
-      <Card className="mb-6">
+      <Card className={`mb-6 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
             <Upload className="h-5 w-5" />
             Import Data
           </CardTitle>
@@ -205,10 +212,12 @@ const DataManagement = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label htmlFor="file-upload" className="block text-sm font-medium mb-2">
+              <Label htmlFor="file-upload" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                 Upload File
               </Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <div className={`border-2 border-dashed rounded-lg p-6 text-center ${
+                isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300'
+              }`}>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -217,25 +226,28 @@ const DataManagement = () => {
                   onChange={handleFileUpload}
                   className="hidden"
                 />
-                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 mb-2">
+                <Upload className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
+                <p className={`text-sm mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                   Drag and drop files here, or click to browse
                 </p>
                 <Button 
                   variant="outline" 
                   onClick={() => fileInputRef.current?.click()}
+                  className={isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}
                 >
                   Choose File
                 </Button>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className={`text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   Supported formats: Excel (.xlsx, .xls), PDF (.pdf)
                 </p>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium mb-3">Import Guidelines</h3>
-              <ul className="text-sm text-gray-600 space-y-2">
+              <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                Import Guidelines
+              </h3>
+              <ul className={`text-sm space-y-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                 <li>• Excel files should have columns: SiloID, Temperature, Status, Timestamp</li>
                 <li>• PDF files should contain structured data tables</li>
                 <li>• Maximum file size: 10 MB</li>
@@ -248,9 +260,9 @@ const DataManagement = () => {
       </Card>
 
       {/* Export Section */}
-      <Card className="mb-6">
+      <Card className={`mb-6 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
             <Download className="h-5 w-5" />
             Export Data
           </CardTitle>
@@ -258,11 +270,13 @@ const DataManagement = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-medium mb-3">Quick Export</h3>
+              <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                Quick Export
+              </h3>
               <div className="space-y-3">
                 <Button 
                   onClick={exportToExcel}
-                  className="w-full justify-start"
+                  className={`w-full justify-start ${isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}`}
                   variant="outline"
                 >
                   <FileSpreadsheet className="h-4 w-4 mr-2" />
@@ -270,7 +284,7 @@ const DataManagement = () => {
                 </Button>
                 <Button 
                   onClick={exportToPDF}
-                  className="w-full justify-start"
+                  className={`w-full justify-start ${isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}`}
                   variant="outline"
                 >
                   <File className="h-4 w-4 mr-2" />
@@ -280,9 +294,11 @@ const DataManagement = () => {
             </div>
 
             <div>
-              <h3 className="text-sm font-medium mb-3">Export Templates</h3>
+              <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                Export Templates
+              </h3>
               <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                <SelectTrigger>
+                <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>
@@ -295,7 +311,7 @@ const DataManagement = () => {
               </Select>
               {selectedTemplate && (
                 <div className="mt-3">
-                  <Button className="w-full">
+                  <Button className={`w-full ${isDark ? 'bg-blue-600 hover:bg-blue-700' : ''}`}>
                     Export with Template
                   </Button>
                 </div>
@@ -306,9 +322,9 @@ const DataManagement = () => {
       </Card>
 
       {/* Imported Files */}
-      <Card>
+      <Card className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
             <Database className="h-5 w-5" />
             Imported Files
           </CardTitle>
@@ -316,12 +332,16 @@ const DataManagement = () => {
         <CardContent>
           <div className="space-y-4">
             {importedFiles.map((file) => (
-              <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={file.id} className={`flex items-center justify-between p-4 border rounded-lg ${
+                isDark ? 'border-gray-700 bg-gray-700' : 'border-gray-200'
+              }`}>
                 <div className="flex items-center space-x-3">
                   {getFileIcon(file.fileType)}
                   <div>
-                    <p className="text-sm font-medium">{file.fileName}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : ''}`}>
+                      {file.fileName}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       {file.uploadDate.toLocaleDateString()} • {file.size} • {file.recordCount} records
                     </p>
                   </div>
@@ -331,10 +351,10 @@ const DataManagement = () => {
                   <Badge className={getStatusColor(file.status)}>
                     {file.status}
                   </Badge>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className={isDark ? 'text-gray-300 hover:text-white' : ''}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className={isDark ? 'text-gray-300 hover:text-white' : ''}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

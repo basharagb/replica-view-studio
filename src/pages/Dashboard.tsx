@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/button';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   Activity,
   FileText,
@@ -14,6 +15,7 @@ import {
 const Dashboard = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { isDark } = useTheme();
 
   const navigation = [
     { name: 'Live Test', href: '/', icon: Activity, description: 'Real-time silo monitoring and testing' },
@@ -32,13 +34,17 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b">
-          <h1 className="text-xl font-bold text-gray-900">Silo Monitor</h1>
+      } ${isDark ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200'}`}>
+        <div className={`flex items-center justify-between h-16 px-6 border-b ${
+          isDark ? 'border-gray-700' : 'border-gray-200'
+        }`}>
+          <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Silo Monitor
+          </h1>
           <Button
             variant="ghost"
             size="sm"
@@ -57,14 +63,20 @@ const Dashboard = () => {
                 to={item.href}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   isActive(item.href)
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    ? isDark 
+                      ? 'bg-blue-900 text-blue-300 border-r-2 border-blue-500'
+                      : 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
+                    : isDark
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-gray-100'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
               >
                 <item.icon className="h-5 w-5 mr-3" />
                 <div>
                   <div className="font-medium">{item.name}</div>
-                  <div className="text-xs text-gray-500">{item.description}</div>
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {item.description}
+                  </div>
                 </div>
               </Link>
             ))}
@@ -74,7 +86,12 @@ const Dashboard = () => {
 
       {/* Mobile menu button */}
       <div className="md:hidden fixed top-4 left-4 z-50">
-        <Button variant="outline" size="sm" onClick={() => setSidebarOpen(true)}>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setSidebarOpen(true)}
+          className={isDark ? 'bg-gray-800 border-gray-600 text-white hover:bg-gray-700' : ''}
+        >
           ☰
         </Button>
       </div>
