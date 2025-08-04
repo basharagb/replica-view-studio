@@ -52,15 +52,15 @@ const EnhancedTemperatureDisplay: React.FC<EnhancedTemperatureDisplayProps> = ({
   };
 
   const getTemperatureStatus = (temp: number) => {
-    if (temp < TEMPERATURE_THRESHOLDS.NORMAL_MAX) return 'Normal';
-    if (temp <= TEMPERATURE_THRESHOLDS.WARNING_MAX) return 'Elevated';
-    return 'Critical';
+    if (temp >= TEMPERATURE_THRESHOLDS.RED_MIN) return 'Critical';
+    if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'Elevated';
+    return 'Normal';
   };
 
   const getStatusColor = (temp: number) => {
-    if (temp < TEMPERATURE_THRESHOLDS.NORMAL_MAX) return 'text-green-600';
-    if (temp <= TEMPERATURE_THRESHOLDS.WARNING_MAX) return 'text-yellow-600';
-    return 'text-red-600';
+    if (temp >= TEMPERATURE_THRESHOLDS.RED_MIN) return 'text-red-600';
+    if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'text-yellow-600';
+    return 'text-green-600';
   };
 
   return (

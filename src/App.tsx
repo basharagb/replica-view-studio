@@ -9,6 +9,7 @@ import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
 import DataManagement from "./pages/DataManagement";
 import Settings from "./pages/Settings";
+import SiloMonitoring from "./pages/SiloMonitoring";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Component, ErrorInfo, ReactNode } from "react";
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="data" element={<DataManagement />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="monitoring" element={<SiloMonitoring />} />
                 {/* Add more routes as needed */}
                 <Route path="*" element={<NotFound />} />
               </Route>

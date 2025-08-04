@@ -1,10 +1,12 @@
 import { Silo, SiloGroup, TemperatureColor, SensorReading, AlertLevel, TemperatureTrend, TemperatureMonitoringState } from '../types/silo';
 
-// Temperature threshold constants for enhanced monitoring
+// Temperature threshold constants for silo monitoring system
 export const TEMPERATURE_THRESHOLDS = {
-  NORMAL_MAX: 30.0,     // Green: Normal/Safe (<30°C)
-  WARNING_MAX: 40.0,    // Yellow: Warning/Elevated (30-40°C)
-  CRITICAL_MIN: 40.0,   // Red: Critical/Dangerous (>40°C)
+  GREEN_MIN: 20.0,      // Green: Low readings (20.0-34.99)
+  GREEN_MAX: 34.99,     // Green: Low readings (20.0-34.99)
+  YELLOW_MIN: 35.0,     // Yellow: Medium readings (35.0-39.99)
+  YELLOW_MAX: 39.99,    // Yellow: Medium readings (35.0-39.99)
+  RED_MIN: 40.0,        // Red: High readings (40.0+)
 } as const;
 
 // Temperature range for random generation (20-50°C)
@@ -186,121 +188,121 @@ const generateCylinderSilos = (): CylinderSilo[] => {
 
 // Mutable data structures that can be updated
 export let topSiloGroups: SiloGroup[] = [
-  // Group 1 (leftmost)
+  // Group 1 (leftmost) - Mixed temperatures for demonstration
   {
-    topRow: [{ num: 55, temp: 44.2 }, { num: 51, temp: 42.8 }, { num: 47, temp: 41.5 }],
-    middleRow: [{ num: 54, temp: 43.1 }, { num: 52, temp: 42.3 }, { num: 50, temp: 41.8 }, { num: 48, temp: 42.7 }, { num: 46, temp: 43.9 }],
-    bottomRow: [{ num: 53, temp: 44.5 }, { num: 49, temp: 42.1 }, { num: 45, temp: 43.2 }]
+    topRow: [{ num: 55, temp: 42.5 }, { num: 51, temp: 28.3 }, { num: 47, temp: 37.2 }], // Red, Green, Yellow
+    middleRow: [{ num: 54, temp: 31.8 }, { num: 52, temp: 39.1 }, { num: 50, temp: 25.4 }, { num: 48, temp: 44.2 }, { num: 46, temp: 33.7 }], // Green, Yellow, Green, Red, Green
+    bottomRow: [{ num: 53, temp: 41.8 }, { num: 49, temp: 29.6 }, { num: 45, temp: 36.5 }] // Red, Green, Yellow
   },
-  // Group 2
+  // Group 2 - More mixed distribution
   {
-    topRow: [{ num: 44, temp: 43.8 }, { num: 40, temp: 44.1 }, { num: 36, temp: 42.9 }],
-    middleRow: [{ num: 43, temp: 44.3 }, { num: 41, temp: 44.5 }, { num: 39, temp: 41.2 }, { num: 37, temp: 42.1 }, { num: 35, temp: 43.8 }],
-    bottomRow: [{ num: 42, temp: 44.7 }, { num: 38, temp: 44.2 }, { num: 34, temp: 43.1 }]
+    topRow: [{ num: 44, temp: 22.1 }, { num: 40, temp: 45.3 }, { num: 36, temp: 38.7 }], // Green, Red, Yellow
+    middleRow: [{ num: 43, temp: 34.2 }, { num: 41, temp: 40.8 }, { num: 39, temp: 27.9 }, { num: 37, temp: 35.5 }, { num: 35, temp: 43.1 }], // Green, Red, Green, Yellow, Red
+    bottomRow: [{ num: 42, temp: 39.4 }, { num: 38, temp: 24.8 }, { num: 34, temp: 41.7 }] // Yellow, Green, Red
   },
-  // Group 3
+  // Group 3 - Balanced distribution
   {
-    topRow: [{ num: 33, temp: 44.8 }, { num: 29, temp: 44.3 }, { num: 25, temp: 42.9 }],
-    middleRow: [{ num: 32, temp: 43.9 }, { num: 30, temp: 43.8 }, { num: 28, temp: 43.2 }, { num: 26, temp: 43.7 }, { num: 24, temp: 44.1 }],
-    bottomRow: [{ num: 31, temp: 41.2 }, { num: 27, temp: 44.9 }, { num: 23, temp: 42.1 }]
+    topRow: [{ num: 33, temp: 26.3 }, { num: 29, temp: 37.8 }, { num: 25, temp: 42.4 }], // Green, Yellow, Red
+    middleRow: [{ num: 32, temp: 35.0 }, { num: 30, temp: 23.7 }, { num: 28, temp: 44.6 }, { num: 26, temp: 38.2 }, { num: 24, temp: 30.9 }], // Green, Green, Red, Yellow, Green
+    bottomRow: [{ num: 31, temp: 40.1 }, { num: 27, temp: 32.5 }, { num: 23, temp: 36.8 }] // Red, Green, Yellow
   },
-  // Group 4
+  // Group 4 - Temperature variety
   {
-    topRow: [{ num: 22, temp: 44.9 }, { num: 18, temp: 44.2 }, { num: 14, temp: 44.3 }],
-    middleRow: [{ num: 21, temp: 43.8 }, { num: 19, temp: 43.2 }, { num: 17, temp: 42.9 }, { num: 15, temp: 43.9 }, { num: 13, temp: 43.8 }],
-    bottomRow: [{ num: 20, temp: 43.1 }, { num: 16, temp: 42.1 }, { num: 12, temp: 44.3 }]
+    topRow: [{ num: 22, temp: 21.5 }, { num: 18, temp: 39.6 }, { num: 14, temp: 43.9 }], // Green, Yellow, Red
+    middleRow: [{ num: 21, temp: 37.4 }, { num: 19, temp: 29.8 }, { num: 17, temp: 41.3 }, { num: 15, temp: 34.6 }, { num: 13, temp: 38.9 }], // Yellow, Green, Red, Green, Yellow
+    bottomRow: [{ num: 20, temp: 45.2 }, { num: 16, temp: 26.7 }, { num: 12, temp: 35.8 }] // Red, Green, Yellow
   },
-  // Group 5 (rightmost)
+  // Group 5 (rightmost) - Final mixed group
   {
-    topRow: [{ num: 11, temp: 44.4 }, { num: 7, temp: 44.4 }, { num: 3, temp: 42.2 }],
-    middleRow: [{ num: 10, temp: 41.1 }, { num: 8, temp: 43.8 }, { num: 6, temp: 43.2 }, { num: 4, temp: 42.9 }, { num: 2, temp: 43.9 }],
-    bottomRow: [{ num: 9, temp: 44.5 }, { num: 5, temp: 44.6 }, { num: 1, temp: 43.8 }]
+    topRow: [{ num: 11, temp: 33.1 }, { num: 7, temp: 40.7 }, { num: 3, temp: 28.4 }], // Green, Red, Green
+    middleRow: [{ num: 10, temp: 36.3 }, { num: 8, temp: 24.9 }, { num: 6, temp: 42.8 }, { num: 4, temp: 39.2 }, { num: 2, temp: 31.6 }], // Yellow, Green, Red, Yellow, Green
+    bottomRow: [{ num: 9, temp: 44.1 }, { num: 5, temp: 27.3 }, { num: 1, temp: 37.9 }] // Red, Green, Yellow
   }
 ];
 
 export let bottomSiloGroups: SiloGroup[] = [
-  // Group 1 (leftmost)
+  // Group 1 (leftmost) - Mixed temperature demonstration
   {
-    row1: [{ num: 195, temp: 42.5 }, { num: 188, temp: 43.4 }, { num: 181, temp: 44.4 }],
-    row2: [{ num: 194, temp: 43.3 }, { num: 190, temp: 44.3 }, { num: 187, temp: 45.2 }, { num: 183, temp: 46.2 }, { num: 180, temp: 47.1 }],
-    row3: [{ num: 193, temp: 48.1 }, { num: 186, temp: 49.0 }, { num: 179, temp: 50.1 }],
-    row4: [{ num: 192, temp: 51.1 }, { num: 189, temp: 52.2 }, { num: 185, temp: 53.2 }, { num: 182, temp: 54.3 }, { num: 178, temp: 55.3 }],
-    row5: [{ num: 191, temp: 56.4 }, { num: 184, temp: 57.4 }, { num: 177, temp: 58.5 }]
+    row1: [{ num: 195, temp: 32.8 }, { num: 188, temp: 38.4 }, { num: 181, temp: 43.2 }], // Green, Yellow, Red
+    row2: [{ num: 194, temp: 41.6 }, { num: 190, temp: 26.9 }, { num: 187, temp: 35.7 }, { num: 183, temp: 44.8 }, { num: 180, temp: 29.3 }], // Red, Green, Yellow, Red, Green
+    row3: [{ num: 193, temp: 37.5 }, { num: 186, temp: 42.1 }, { num: 179, temp: 24.6 }], // Yellow, Red, Green
+    row4: [{ num: 192, temp: 33.4 }, { num: 189, temp: 39.8 }, { num: 185, temp: 45.3 }, { num: 182, temp: 28.7 }, { num: 178, temp: 36.2 }], // Green, Yellow, Red, Green, Yellow
+    row5: [{ num: 191, temp: 40.9 }, { num: 184, temp: 31.5 }, { num: 177, temp: 43.7 }] // Red, Green, Red
   },
-  // Group 2
+  // Group 2 - Balanced color distribution
   {
-    row1: [{ num: 176, temp: 41.5 }, { num: 169, temp: 42.4 }, { num: 162, temp: 43.4 }],
-    row2: [{ num: 175, temp: 44.3 }, { num: 171, temp: 45.3 }, { num: 168, temp: 46.2 }, { num: 164, temp: 47.2 }, { num: 161, temp: 48.1 }],
-    row3: [{ num: 174, temp: 49.1 }, { num: 167, temp: 50.0 }, { num: 160, temp: 51.1 }],
-    row4: [{ num: 173, temp: 52.1 }, { num: 170, temp: 53.2 }, { num: 166, temp: 54.2 }, { num: 163, temp: 55.3 }, { num: 159, temp: 56.3 }],
-    row5: [{ num: 172, temp: 57.4 }, { num: 165, temp: 58.4 }, { num: 158, temp: 59.5 }]
+    row1: [{ num: 176, temp: 27.2 }, { num: 169, temp: 41.8 }, { num: 162, temp: 38.1 }], // Green, Red, Yellow
+    row2: [{ num: 175, temp: 34.9 }, { num: 171, temp: 39.3 }, { num: 168, temp: 25.8 }, { num: 164, temp: 42.4 }, { num: 161, temp: 37.6 }], // Green, Yellow, Green, Red, Yellow
+    row3: [{ num: 174, temp: 44.5 }, { num: 167, temp: 30.1 }, { num: 160, temp: 36.9 }], // Red, Green, Yellow
+    row4: [{ num: 173, temp: 23.7 }, { num: 170, temp: 40.6 }, { num: 166, temp: 35.2 }, { num: 163, temp: 43.8 }, { num: 159, temp: 28.4 }], // Green, Red, Green, Red, Green
+    row5: [{ num: 172, temp: 38.8 }, { num: 165, temp: 41.3 }, { num: 158, temp: 32.6 }] // Yellow, Red, Green
   },
-  // Group 3
+  // Group 3 - Temperature variety showcase
   {
-    row1: [{ num: 157, temp: 40.5 }, { num: 150, temp: 41.4 }, { num: 143, temp: 42.4 }],
-    row2: [{ num: 156, temp: 43.3 }, { num: 152, temp: 44.3 }, { num: 149, temp: 45.2 }, { num: 145, temp: 46.2 }, { num: 142, temp: 47.1 }],
-    row3: [{ num: 155, temp: 48.1 }, { num: 148, temp: 49.0 }, { num: 141, temp: 50.1 }],
-    row4: [{ num: 154, temp: 51.1 }, { num: 151, temp: 52.2 }, { num: 147, temp: 53.2 }, { num: 144, temp: 54.3 }, { num: 140, temp: 55.3 }],
-    row5: [{ num: 153, temp: 56.4 }, { num: 146, temp: 57.4 }, { num: 139, temp: 58.5 }]
+    row1: [{ num: 157, temp: 35.4 }, { num: 150, temp: 42.7 }, { num: 143, temp: 29.8 }], // Yellow, Red, Green
+    row2: [{ num: 156, temp: 39.7 }, { num: 152, temp: 26.3 }, { num: 149, temp: 44.1 }, { num: 145, temp: 33.9 }, { num: 142, temp: 37.3 }], // Yellow, Green, Red, Green, Yellow
+    row3: [{ num: 155, temp: 41.9 }, { num: 148, temp: 31.2 }, { num: 141, temp: 38.6 }], // Red, Green, Yellow
+    row4: [{ num: 154, temp: 24.5 }, { num: 151, temp: 43.4 }, { num: 147, temp: 36.7 }, { num: 144, temp: 40.2 }, { num: 140, temp: 27.9 }], // Green, Red, Yellow, Red, Green
+    row5: [{ num: 153, temp: 35.8 }, { num: 146, temp: 42.3 }, { num: 139, temp: 30.4 }] // Yellow, Red, Green
   },
-  // Group 4
+  // Group 4 - Mixed demonstration
   {
-    row1: [{ num: 138, temp: 39.5 }, { num: 131, temp: 40.4 }, { num: 124, temp: 41.4 }],
-    row2: [{ num: 137, temp: 42.3 }, { num: 133, temp: 43.3 }, { num: 130, temp: 44.2 }, { num: 126, temp: 45.2 }, { num: 123, temp: 46.1 }],
-    row3: [{ num: 136, temp: 47.1 }, { num: 129, temp: 48.0 }, { num: 122, temp: 49.1 }],
-    row4: [{ num: 135, temp: 50.1 }, { num: 132, temp: 51.2 }, { num: 128, temp: 52.2 }, { num: 125, temp: 53.3 }, { num: 121, temp: 54.3 }],
-    row5: [{ num: 134, temp: 55.4 }, { num: 127, temp: 56.4 }, { num: 120, temp: 57.5 }]
+    row1: [{ num: 138, temp: 28.6 }, { num: 131, temp: 39.1 }, { num: 124, temp: 44.9 }], // Green, Yellow, Red
+    row2: [{ num: 137, temp: 37.8 }, { num: 133, temp: 32.1 }, { num: 130, temp: 41.5 }, { num: 126, temp: 25.7 }, { num: 123, temp: 38.4 }], // Yellow, Green, Red, Green, Yellow
+    row3: [{ num: 136, temp: 43.6 }, { num: 129, temp: 29.3 }, { num: 122, temp: 36.1 }], // Red, Green, Yellow
+    row4: [{ num: 135, temp: 34.8 }, { num: 132, temp: 40.7 }, { num: 128, temp: 26.9 }, { num: 125, temp: 42.8 }, { num: 121, temp: 39.5 }], // Green, Red, Green, Red, Yellow
+    row5: [{ num: 134, temp: 37.2 }, { num: 127, temp: 44.3 }, { num: 120, temp: 31.6 }] // Yellow, Red, Green
   },
-  // Group 5 (rightmost) - contains selected silo 112
+  // Group 5 (rightmost) - contains selected silo 112 with mixed temps
   {
-    row1: [{ num: 119, temp: 38.5 }, { num: 112, temp: 40.2 }, { num: 105, temp: 44.7 }],
-    row2: [{ num: 118, temp: 39.4 }, { num: 114, temp: 40.3 }, { num: 111, temp: 44.8 }, { num: 107, temp: 41.2 }, { num: 104, temp: 42.2 }],
-    row3: [{ num: 117, temp: 44.9 }, { num: 110, temp: 45.0 }, { num: 103, temp: 43.1 }],
-    row4: [{ num: 116, temp: 39.4 }, { num: 113, temp: 44.1 }, { num: 109, temp: 45.0 }, { num: 106, temp: 46.1 }, { num: 102, temp: 47.1 }],
-    row5: [{ num: 115, temp: 44.3 }, { num: 108, temp: 44.3 }, { num: 101, temp: 44.4 }]
+    row1: [{ num: 119, temp: 33.7 }, { num: 112, temp: 38.9 }, { num: 105, temp: 41.4 }], // Green, Yellow, Red
+    row2: [{ num: 118, temp: 42.6 }, { num: 114, temp: 27.8 }, { num: 111, temp: 36.3 }, { num: 107, temp: 44.7 }, { num: 104, temp: 30.5 }], // Red, Green, Yellow, Red, Green
+    row3: [{ num: 117, temp: 39.2 }, { num: 110, temp: 43.9 }, { num: 103, temp: 25.1 }], // Yellow, Red, Green
+    row4: [{ num: 116, temp: 35.6 }, { num: 113, temp: 40.8 }, { num: 109, temp: 28.2 }, { num: 106, temp: 37.7 }, { num: 102, temp: 42.1 }], // Yellow, Red, Green, Yellow, Red
+    row5: [{ num: 115, temp: 34.3 }, { num: 108, temp: 41.2 }, { num: 101, temp: 29.7 }] // Green, Red, Green
   }
 ];
 
 export let cylinderSilos: CylinderSilo[] = [
   { 
-    num: 25, 
-    temp: 44.6, // MAX of sensors
-    sensors: [44.6, 43.7, 42.9, 42.8, 42.8, 42.1, 42.0, 41.2] // Sorted highest to lowest
+    num: 201, 
+    temp: 32.8, // MAX of sensors - GREEN
+    sensors: [32.8, 32.1, 31.7, 31.4, 31.2, 30.9, 30.6, 30.3] // Sorted highest to lowest
   },
   { 
-    num: 26, 
-    temp: 48.4, // MAX of sensors
-    sensors: [48.4, 47.6, 47.6, 46.8, 46.7, 46.5, 45.9, 45.0] // Sorted highest to lowest
+    num: 202, 
+    temp: 38.4, // MAX of sensors - YELLOW
+    sensors: [38.4, 37.9, 37.6, 37.2, 36.8, 36.5, 36.1, 35.8] // Sorted highest to lowest
   },
   { 
-    num: 27, 
-    temp: 44.9, // MAX of sensors
-    sensors: [44.9, 44.8, 44.7, 44.6, 44.5, 44.5, 44.4, 44.3] // Sorted highest to lowest
+    num: 203, 
+    temp: 43.2, // MAX of sensors - RED
+    sensors: [43.2, 42.8, 42.5, 42.1, 41.8, 41.4, 41.1, 40.7] // Sorted highest to lowest
   },
   { 
-    num: 29, 
-    temp: 43.5, // MAX of sensors
-    sensors: [43.5, 43.4, 43.3, 43.2, 43.1, 43.1, 43.0, 42.9] // Sorted highest to lowest
+    num: 204, 
+    temp: 29.6, // MAX of sensors - GREEN
+    sensors: [29.6, 29.2, 28.9, 28.5, 28.1, 27.8, 27.4, 27.1] // Sorted highest to lowest
   },
   { 
-    num: 32, 
-    temp: 43.6, // MAX of sensors
-    sensors: [43.6, 42.8, 42.8, 41.9, 41.7, 41.0, 40.1, 39.2] // Sorted highest to lowest
+    num: 205, 
+    temp: 39.1, // MAX of sensors - YELLOW
+    sensors: [39.1, 38.7, 38.3, 37.9, 37.5, 37.1, 36.8, 36.4] // Sorted highest to lowest
   },
   { 
-    num: 35, 
-    temp: 46.5, // MAX of sensors
-    sensors: [46.5, 45.7, 45.7, 44.9, 44.8, 44.6, 43.0, 42.1] // Sorted highest to lowest
+    num: 206, 
+    temp: 44.8, // MAX of sensors - RED
+    sensors: [44.8, 44.4, 44.1, 43.7, 43.3, 43.0, 42.6, 42.2] // Sorted highest to lowest
   },
   { 
-    num: 36, 
-    temp: 50.2, // MAX of sensors
-    sensors: [50.2, 50.1, 50.0, 49.9, 49.8, 49.8, 49.7, 49.6] // Sorted highest to lowest
+    num: 207, 
+    temp: 26.7, // MAX of sensors - GREEN
+    sensors: [26.7, 26.3, 25.9, 25.6, 25.2, 24.8, 24.5, 24.1] // Sorted highest to lowest
   },
   { 
-    num: 38, 
-    temp: 44.4, // MAX of sensors
-    sensors: [44.4, 44.3, 44.2, 44.1, 44.0, 43.9, 43.8, 43.8] // Sorted highest to lowest
+    num: 208, 
+    temp: 37.9, // MAX of sensors - YELLOW
+    sensors: [37.9, 37.5, 37.1, 36.8, 36.4, 36.0, 35.7, 35.3] // Sorted highest to lowest
   }
 ];
 
@@ -316,19 +318,19 @@ export const regenerateAllSiloData = (): void => {
   });
 };
 
-// Temperature color mapping - Enhanced thresholds based on MAX temperature
+// Temperature color mapping - Silo monitoring system with priority hierarchy
 export const getTemperatureColor = (temp: number): TemperatureColor => {
-  if (temp < TEMPERATURE_THRESHOLDS.NORMAL_MAX) return 'green';       // Green: Normal/Safe (<30°C)
-  if (temp <= TEMPERATURE_THRESHOLDS.WARNING_MAX) return 'yellow';    // Yellow: Warning/Elevated (30-40°C)
-  if (temp > TEMPERATURE_THRESHOLDS.CRITICAL_MIN) return 'pink';      // Red/Pink: Critical/Dangerous (>40°C)
-  return 'beige';                                                     // Default - Beige
+  if (temp >= TEMPERATURE_THRESHOLDS.RED_MIN) return 'pink';          // Red: High readings (40.0+) - Highest priority
+  if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'yellow';     // Yellow: Medium readings (35.0-39.99) - Medium priority
+  if (temp >= TEMPERATURE_THRESHOLDS.GREEN_MIN) return 'green';       // Green: Low readings (20.0-34.99) - Lowest priority
+  return 'beige';                                                     // Default - Below range
 };
 
-// Calculate alert level based on temperature
+// Calculate alert level based on temperature - Priority hierarchy
 export const getAlertLevel = (temp: number): AlertLevel => {
-  if (temp > TEMPERATURE_THRESHOLDS.CRITICAL_MIN) return 'critical';
-  if (temp >= TEMPERATURE_THRESHOLDS.NORMAL_MAX) return 'warning';
-  return 'none';
+  if (temp >= TEMPERATURE_THRESHOLDS.RED_MIN) return 'critical';      // Red: 40.0+ (Highest priority)
+  if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'warning';    // Yellow: 35.0-39.99 (Medium priority)
+  return 'none';                                                      // Green: 20.0-34.99 (Lowest priority)
 };
 
 // Calculate temperature trend (simplified version - would use historical data in real implementation)
@@ -425,5 +427,5 @@ export const getSensorReadings = (siloNum: number): number[] => {
   return readings;
 };
 
-// Cylinder measurements (from original LabCylinder) - kept for backward compatibility
-export const cylinderMeasurements = [25.0, 26.0, 27.0, 29.0, 32.0, 35.0, 36.0, 38.0];
+// Cylinder measurements (from original LabCylinder) - updated for three-tier color demonstration
+export const cylinderMeasurements = [23.5, 28.7, 33.2, 37.8, 39.4, 42.1, 44.6, 46.3]; // Green, Green, Green, Yellow, Yellow, Red, Red, Red
