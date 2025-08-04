@@ -1,10 +1,10 @@
 import { LabInterface } from "../components/LabInterface";
 
-const Index = () => {
+const LiveTest = () => {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Testing App Load</h1>
-      <p>If you can see this, the basic app is working.</p>
+      <h1>Live Test</h1>
+      <p>Real-time silo monitoring and testing interface.</p>
       <div style={{ border: '1px solid #ccc', padding: '10px', margin: '10px 0' }}>
         <LabInterface />
       </div>
@@ -12,4 +12,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default LiveTest;
