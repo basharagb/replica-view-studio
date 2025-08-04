@@ -88,7 +88,7 @@ export const useSiloSystem = () => {
     let timeoutCounter = 0;
     const maxTimeout = 100; // Maximum iterations to prevent infinite loop
 
-    console.log('Starting auto test with', allSilos.length, 'silos');
+    // Starting auto test
 
     // Validate silo data
     if (!allSilos || allSilos.length === 0) {
@@ -129,7 +129,7 @@ export const useSiloSystem = () => {
 
       if (currentIndex >= allSilos.length) {
         // Auto read complete
-        console.log('Auto test completed successfully');
+        // Auto test completed successfully
         clearInterval(interval);
         autoReadInterval.current = null;
         setIsReading(false);
@@ -141,7 +141,7 @@ export const useSiloSystem = () => {
       }
 
       const currentSilo = allSilos[currentIndex];
-      console.log('Reading silo:', currentSilo.num, 'progress:', currentIndex + 1, '/', allSilos.length);
+      // Reading silo progress
       
       setReadingSilo(currentSilo.num);
       setSelectedSilo(currentSilo.num);

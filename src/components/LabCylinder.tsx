@@ -21,8 +21,7 @@ const LabCylinderComponent = ({
   const currentSilo = findSiloByNumber(currentSiloNum);
   const sensorReadings = getSensorReadings(currentSiloNum);
 
-  // Debug logging to see what's changing
-  console.log('LabCylinder render:', { selectedSilo, readingSilo, currentSiloNum });
+  // Component render logic
 
   const handleClick = (silo: Silo) => {
     if (onSiloClick) {

@@ -1,13 +1,60 @@
-import { Silo, SiloGroup, TemperatureColor } from '../types/silo';
+import { Silo, SiloGroup, TemperatureColor, SensorReading, AlertLevel, TemperatureTrend, TemperatureMonitoringState } from '../types/silo';
 
-// Cylinder silo data with 8 sensor readings each
-export interface CylinderSilo extends Silo {
-  sensors: number[];  // 8 sensor readings
+// Temperature threshold constants for enhanced monitoring
+export const TEMPERATURE_THRESHOLDS = {
+  NORMAL_MAX: 30.0,     // Green: Normal/Safe (<30°C)
+  WARNING_MAX: 40.0,    // Yellow: Warning/Elevated (30-40°C)
+  CRITICAL_MIN: 40.0,   // Red: Critical/Dangerous (>40°C)
+} as const;
+
+// Temperature range for random generation (20-50°C)
+export const TEMP_RANGE = {
+  MIN: 20.0,
+  MAX: 50.0,
+} as const;
+
+// Cylinder silo data with 8 sensor readings each (backward compatibility)
+export interface CylinderSilo {
+  num: number;          // Silo number
+  temp: number;         // Maximum temperature from all sensors
+  sensors: number[];    // 8 sensor readings array (legacy format)
 }
 
-// Generate random temperature between 20-50°C
+// Enhanced cylinder silo with detailed sensor metadata (future use)
+export interface EnhancedCylinderSilo extends Silo {
+  sensorReadings: number[];  // Legacy sensor readings array
+  enhancedSensors?: SensorReading[];  // Optional enhanced sensor data
+}
+
+// Generate random temperature using defined range
 const generateRandomTemp = (): number => {
-  return Math.round((Math.random() * 30 + 20) * 10) / 10; // 20.0 to 50.0
+  const range = TEMP_RANGE.MAX - TEMP_RANGE.MIN;
+  return Math.round((Math.random() * range + TEMP_RANGE.MIN) * 10) / 10; // 20.0 to 50.0
+};
+
+// Sensor position descriptions for 8 sensors
+const SENSOR_POSITIONS = [
+  'Top-North', 'Top-East', 'Mid-North', 'Mid-East', 
+  'Mid-South', 'Mid-West', 'Bottom-South', 'Bottom-West'
+] as const;
+
+// Generate enhanced sensor reading with metadata
+const generateEnhancedSensorReading = (temperature: number, index: number): SensorReading => {
+  const now = new Date();
+  return {
+    id: `S${index + 1}`,
+    temperature,
+    position: SENSOR_POSITIONS[index],
+    calibrationStatus: Math.random() > 0.95 ? 'needs_calibration' : 'calibrated',
+    timestamp: new Date(now.getTime() - Math.random() * 300000), // Random time within last 5 minutes
+    isActive: Math.random() > 0.02 // 98% uptime
+  };
+};
+
+// Generate enhanced sensor readings array
+export const generateEnhancedSensorReadings = (baseTemp: number): SensorReading[] => {
+  const readings = generateSensorReadings(baseTemp);
+  return readings.map((temp, index) => generateEnhancedSensorReading(temp, index));
 };
 
 // Generate 8 sensor readings for any silo and return sorted (highest to lowest)
@@ -269,33 +316,54 @@ export const regenerateAllSiloData = (): void => {
   });
 };
 
-// Temperature color mapping - based on MAX temperature
+// Temperature color mapping - Enhanced thresholds based on MAX temperature
 export const getTemperatureColor = (temp: number): TemperatureColor => {
-  if (temp <= 35.0) return 'green';      // Green: 20-35°C
-  if (temp <= 40.0) return 'yellow';     // Yellow: 35-40°C
-  if (temp > 40.0) return 'pink';        // Red/Pink: over 40°C
-  return 'beige';                        // Default - Beige
+  if (temp < TEMPERATURE_THRESHOLDS.NORMAL_MAX) return 'green';       // Green: Normal/Safe (<30°C)
+  if (temp <= TEMPERATURE_THRESHOLDS.WARNING_MAX) return 'yellow';    // Yellow: Warning/Elevated (30-40°C)
+  if (temp > TEMPERATURE_THRESHOLDS.CRITICAL_MIN) return 'pink';      // Red/Pink: Critical/Dangerous (>40°C)
+  return 'beige';                                                     // Default - Beige
+};
+
+// Calculate alert level based on temperature
+export const getAlertLevel = (temp: number): AlertLevel => {
+  if (temp > TEMPERATURE_THRESHOLDS.CRITICAL_MIN) return 'critical';
+  if (temp >= TEMPERATURE_THRESHOLDS.NORMAL_MAX) return 'warning';
+  return 'none';
+};
+
+// Calculate temperature trend (simplified version - would use historical data in real implementation)
+export const getTemperatureTrend = (currentTemp: number, previousTemp?: number): TemperatureTrend => {
+  if (!previousTemp) return 'stable';
+  const difference = currentTemp - previousTemp;
+  if (Math.abs(difference) < 0.5) return 'stable';
+  return difference > 0 ? 'rising' : 'falling';
+};
+
+// Generate temperature monitoring state
+export const generateTemperatureMonitoringState = (currentTemp: number, previousTemp?: number): TemperatureMonitoringState => {
+  return {
+    currentTemp,
+    maxTemp: currentTemp, // In real implementation, this would be from historical data
+    minTemp: currentTemp, // In real implementation, this would be from historical data
+    trend: getTemperatureTrend(currentTemp, previousTemp),
+    alertLevel: getAlertLevel(currentTemp),
+    lastUpdated: new Date()
+  };
 };
 
 // Get all silos in order for auto-read functionality
 export const getAllSilos = (): Silo[] => {
   const allSilos: Silo[] = [];
 
-  console.log('Getting all silos - topSiloGroups:', topSiloGroups.length);
-  console.log('Getting all silos - bottomSiloGroups:', bottomSiloGroups.length);
-  console.log('Getting all silos - cylinderSilos:', cylinderSilos.length);
-
   // Add top section silos
-  topSiloGroups.forEach((group, groupIndex) => {
-    console.log(`Processing top group ${groupIndex}:`, group);
+  topSiloGroups.forEach((group) => {
     if (group.topRow) group.topRow.forEach(silo => allSilos.push(silo));
     if (group.middleRow) group.middleRow.forEach(silo => allSilos.push(silo));
     if (group.bottomRow) group.bottomRow.forEach(silo => allSilos.push(silo));
   });
 
   // Add bottom section silos
-  bottomSiloGroups.forEach((group, groupIndex) => {
-    console.log(`Processing bottom group ${groupIndex}:`, group);
+  bottomSiloGroups.forEach((group) => {
     if (group.row1) group.row1.forEach(silo => allSilos.push(silo));
     if (group.row2) group.row2.forEach(silo => allSilos.push(silo));
     if (group.row3) group.row3.forEach(silo => allSilos.push(silo));
@@ -303,14 +371,18 @@ export const getAllSilos = (): Silo[] => {
     if (group.row5) group.row5.forEach(silo => allSilos.push(silo));
   });
 
-  // Add cylinder silos
-  cylinderSilos.forEach(silo => allSilos.push(silo));
-
-  console.log('Total silos collected:', allSilos.length);
+  // Add cylinder silos (convert to Silo format)
+  cylinderSilos.forEach(silo => {
+    const siloData: Silo = {
+      num: silo.num,
+      temp: silo.temp
+      // sensors property is optional in Silo interface
+    };
+    allSilos.push(siloData);
+  });
 
   // Sort by silo number
   const sortedSilos = allSilos.sort((a, b) => a.num - b.num);
-  console.log('Sorted silos count:', sortedSilos.length);
   
   return sortedSilos;
 };

@@ -7,7 +7,6 @@ import {
   FileText,
   Settings,
   BarChart3,
-  Users,
   Database,
   Upload
 } from 'lucide-react';
@@ -22,8 +21,7 @@ const Dashboard = () => {
     { name: 'Reports', href: '/reports', icon: FileText, description: 'Test history and analytics' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Performance metrics and charts' },
     { name: 'Data Management', href: '/data', icon: Upload, description: 'Import and export data' },
-    { name: 'Settings', href: '/settings', icon: Settings, description: 'System configuration' },
-    { name: 'Users', href: '/users', icon: Users, description: 'User management' }
+    { name: 'Settings', href: '/settings', icon: Settings, description: 'System configuration' }
   ];
 
   const isActive = (href: string) => {
