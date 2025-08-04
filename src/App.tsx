@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import LiveTest from "./pages/Index";
 import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
+import DataManagement from "./pages/DataManagement";
 import NotFound from "./pages/NotFound";
 import { Component, ErrorInfo, ReactNode } from "react";
 
@@ -57,6 +58,7 @@ const App = () => (
               <Route index element={<LiveTest />} />
               <Route path="reports" element={<Reports />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="data" element={<DataManagement />} />
               {/* Add more routes as needed */}
               <Route path="*" element={<NotFound />} />
             </Route>
