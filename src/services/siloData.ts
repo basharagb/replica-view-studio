@@ -1,5 +1,10 @@
 import { Silo, SiloGroup, TemperatureColor } from '../types/silo';
 
+// Cylinder silo data with 8 sensor readings each
+export interface CylinderSilo extends Silo {
+  sensors: number[];  // 8 sensor readings
+}
+
 // Generate random temperature between 20-50°C
 const generateRandomTemp = (): number => {
   return Math.round((Math.random() * 30 + 20) * 10) / 10; // 20.0 to 50.0
@@ -198,11 +203,6 @@ export const getSensorReadings = (siloNum: number): number[] => {
   
   return predefinedReadings[siloNum] || generateSensorReadings(silo.temp);
 };
-
-// Cylinder silo data with 8 sensor readings each (kept for backward compatibility)
-export interface CylinderSilo extends Silo {
-  sensors: number[];  // 8 sensor readings
-}
 
 // Cylinder measurements (from original LabCylinder) - kept for backward compatibility
 export const cylinderMeasurements = [25.0, 26.0, 27.0, 29.0, 32.0, 35.0, 36.0, 38.0];
