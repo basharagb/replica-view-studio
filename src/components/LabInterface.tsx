@@ -54,12 +54,12 @@ export const LabInterface = () => {
   return (
     <div className="min-h-screen bg-background p-8" data-testid="lab-interface">
       <div className="max-w-7xl mx-auto">
-        <div className="flex gap-8">
+        <div className="flex gap-8 2xl:gap-12 3xl:gap-16">
           {/* Main lab area */}
-          <div className="flex-1 space-y-12">
+          <div className="flex-1 space-y-12 2xl:space-y-16 3xl:space-y-20">
             {/* Top section (1-55) - First 3 rows */}
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200" data-testid="top-silo-section" key={`top-${dataVersion}`}>
-              <div className="flex gap-6 justify-center">
+            <div className="bg-gray-50 p-6 2xl:p-8 3xl:p-10 rounded-lg border-2 border-gray-200" data-testid="top-silo-section" key={`top-${dataVersion}`}>
+              <div className="flex gap-6 2xl:gap-8 3xl:gap-10 justify-center">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative">
                     <LabGroup
@@ -86,8 +86,8 @@ export const LabInterface = () => {
             </div>
 
             {/* Bottom section (101-195) - All 5 rows */}
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
-              <div className="flex gap-6 justify-center">
+            <div className="bg-gray-50 p-6 2xl:p-8 3xl:p-10 rounded-lg border-2 border-gray-200" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
+              <div className="flex gap-6 2xl:gap-8 3xl:gap-10 justify-center">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative">
                     <div className="flex flex-col items-center gap-0">
@@ -190,7 +190,7 @@ export const LabInterface = () => {
           </div>
 
           {/* Right side with cylinder, input, and controls */}
-          <div className="flex flex-col items-center gap-4" data-testid="control-panel">
+          <div className="flex flex-col items-center gap-4 2xl:gap-6 3xl:gap-8" data-testid="control-panel">
             <LabCylinder
               key={`cylinder-${dataVersion}`}
               selectedSilo={selectedSilo}
@@ -199,7 +199,7 @@ export const LabInterface = () => {
               // LabCylinder is completely independent of hover state
               // Only shows readings for selected or reading silo
             />
-            <div className="w-20">
+            <div className="w-20 2xl:w-24 3xl:w-28">
               <Input
                 value={selectedSilo}
                 onChange={handleInputChange}
@@ -210,12 +210,12 @@ export const LabInterface = () => {
             </div>
             
             {/* Manual/Auto Test Controls */}
-            <div className="flex flex-col gap-2 items-center mt-4">
+            <div className="flex flex-col gap-2 items-center mt-4 2xl:mt-6 3xl:mt-8">
               <Button
                 variant={readingMode === 'manual' ? 'default' : 'outline'}
                 onClick={handleManualReadMode}
                 disabled={isReading && readingMode === 'auto'}
-                className="w-32"
+                className="w-32 2xl:w-36 3xl:w-40"
                 data-testid="manual-test-button"
               >
                 {readingMode === 'manual' ? 'Stop Manual' : 'Start Manual Test'}
@@ -224,7 +224,7 @@ export const LabInterface = () => {
                 variant={readingMode === 'auto' ? 'default' : 'outline'}
                 onClick={startAutoRead}
                 disabled={isReading && readingMode === 'manual'}
-                className="w-32"
+                className="w-32 2xl:w-36 3xl:w-40"
                 data-testid="auto-test-button"
               >
                 {autoReadCompleted ? 'Auto Test Completed' : readingMode === 'auto' ? 'Stop Auto Test' : 'Start Auto Test'}
@@ -232,7 +232,7 @@ export const LabInterface = () => {
               
               {/* Auto Read Progress */}
               {readingMode === 'auto' && (
-                <div className="w-48 mt-2" data-testid="auto-test-progress">
+                <div className="w-48 2xl:w-56 3xl:w-64 mt-2" data-testid="auto-test-progress">
                   <div className="bg-gray-200 h-3 rounded">
                     <div
                       className="bg-green-500 h-3 rounded transition-all duration-300"

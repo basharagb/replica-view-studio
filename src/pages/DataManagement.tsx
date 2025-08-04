@@ -455,489 +455,463 @@ const DataManagement = () => {
   });
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Comprehensive Sensor Data Management
-        </h1>
-        <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          Import, view, and manage comprehensive sensor data including temperature, humidity, pressure, vibration, level, and flow rate
-        </p>
-      </div>
-
-      {/* Import Section */}
-      <Card className={`mb-6 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
-        <CardHeader>
-          <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
-            <Upload className="h-5 w-5" />
-            Import Sensor Data
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="file-upload" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Upload Sensor Data File
-              </Label>
-              <div className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300'
-              }`}>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  id="file-upload"
-                  accept=".xlsx,.xls,.pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <Upload className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
-                <p className={`text-sm mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Drag and drop sensor data files here, or click to browse
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => fileInputRef.current?.click()}
-                  className={isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}
-                >
-                  Choose File
-                </Button>
-                <p className={`text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Supported formats: Excel (.xlsx, .xls), PDF (.pdf)
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Sensor Data Guidelines
-              </h3>
-              <ul className={`text-sm space-y-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                <li>• Excel files should include: SiloID, Temperature, Humidity, Pressure, Vibration, Level, Flow Rate</li>
-                <li>• PDF files should contain structured sensor data tables</li>
-                <li>• Maximum file size: 50 MB for comprehensive sensor data</li>
-                <li>• Supported date formats: YYYY-MM-DD HH:MM:SS</li>
-                <li>• Temperature in Celsius, Humidity in %, Pressure in kPa</li>
-                <li>• Vibration in mm/s, Level in %, Flow Rate in L/min</li>
-              </ul>
-            </div>
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              Data Management
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Import, export, and manage silo monitoring data
+            </p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Export Section */}
-      <Card className={`mb-6 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
-        <CardHeader>
-          <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
-            <Download className="h-5 w-5" />
-            Export Sensor Data
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Quick Export
-              </h3>
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => exportToExcel()}
-                  className={`w-full justify-start ${isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}`}
-                  variant="outline"
-                >
-                  <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  Export All Sensor Data to Excel
-                </Button>
-                <Button 
-                  onClick={() => exportToPDF()}
-                  className={`w-full justify-start ${isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}`}
-                  variant="outline"
-                >
-                  <File className="h-4 w-4 mr-2" />
-                  Export All Sensor Data to PDF
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Export Templates
-              </h3>
-              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
-                  <SelectValue placeholder="Select a template" />
-                </SelectTrigger>
-                <SelectContent>
-                  {exportTemplates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedTemplate && (
-                <div className="mt-3">
-                  <Button className={`w-full ${isDark ? 'bg-blue-600 hover:bg-blue-700' : ''}`}>
-                    Export with Template
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* File Management Section */}
-      <Card className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
-              <Database className="h-5 w-5" />
-              Sensor Data Files ({filteredFiles.length})
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className={isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}
-              >
-                {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Filters and Search */}
-          <div className="mb-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="md:col-span-2">
-                <Input
-                  placeholder="Search sensor data files..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={isDark ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : ''}
-                />
-              </div>
-              <div>
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="temperature">Temperature</SelectItem>
-                    <SelectItem value="humidity">Humidity</SelectItem>
-                    <SelectItem value="pressure">Pressure</SelectItem>
-                    <SelectItem value="vibration">Vibration</SelectItem>
-                    <SelectItem value="level">Level</SelectItem>
-                    <SelectItem value="flow">Flow Rate</SelectItem>
-                    <SelectItem value="comprehensive">Comprehensive</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="success">Success</SelectItem>
-                    <SelectItem value="warning">Warning</SelectItem>
-                    <SelectItem value="error">Error</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Select value={filterSensorType} onValueChange={setFilterSensorType}>
-                  <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
-                    <SelectValue placeholder="Sensor Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sensors</SelectItem>
-                    <SelectItem value="temperature">Temperature</SelectItem>
-                    <SelectItem value="humidity">Humidity</SelectItem>
-                    <SelectItem value="pressure">Pressure</SelectItem>
-                    <SelectItem value="vibration">Vibration</SelectItem>
-                    <SelectItem value="level">Level</SelectItem>
-                    <SelectItem value="flow">Flow Rate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Button
-                variant={showFavorites ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowFavorites(!showFavorites)}
-                className={isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}
-              >
-                <Star className="h-4 w-4 mr-2" />
-                Favorites
-              </Button>
-            </div>
-          </div>
-
-          {/* Files Grid */}
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
-            {filteredFiles.map((file) => (
-              <div key={file.id} className={`border rounded-lg p-4 ${
-                isDark ? 'border-gray-700 bg-gray-700' : 'border-gray-200'
-              }`}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    {getFileIcon(file.fileType)}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : ''}`}>
-                        {file.fileName}
-                      </p>
-                      <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {file.size} • {file.recordCount} records • {file.dataRange.totalSilos} silos
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFileFavorite(file.id)}
-                      className={isDark ? 'text-gray-300 hover:text-white' : ''}
-                    >
-                      {file.isFavorite ? <Star className="h-4 w-4 fill-yellow-400" /> : <StarOff className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2 mb-3">
-                  <div className="flex items-center justify-between">
-                    <Badge className={getStatusColor(file.status)}>
-                      {file.status}
-                    </Badge>
-                    <Badge className={getPriorityColor(file.priority)}>
-                      {file.priority}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>
-                      {file.category}
-                    </span>
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>
-                      {file.uploadDate.toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-                
-                {file.description && (
-                  <p className={`text-xs mb-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {file.description}
-                  </p>
-                )}
-                
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {file.sensorTypes.slice(0, 3).map((sensorType, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
-                      {getSensorTypeIcon(sensorType)}
-                      {sensorType}
-                    </Badge>
-                  ))}
-                  {file.sensorTypes.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{file.sensorTypes.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFileView(file)}
-                      className={isDark ? 'text-gray-300 hover:text-white' : ''}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFileDownload(file)}
-                      className={isDark ? 'text-gray-300 hover:text-white' : ''}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFileDelete(file.id)}
-                      className={isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    {file.isEncrypted && <Lock className="h-4 w-4 text-blue-500" />}
-                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      v{file.version}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredFiles.length === 0 && (
-            <div className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              <p>No sensor data files found matching your criteria.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* File Viewer Dialog */}
-      <Dialog open={isViewerOpen} onOpenChange={setIsViewerOpen}>
-        <DialogContent className={`max-w-6xl ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
-          <DialogHeader>
-            <DialogTitle className={isDark ? 'text-white' : ''}>
-              {selectedFile?.fileName}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {viewerData && (
-            <Tabs defaultValue="preview" className="w-full">
-              <TabsList className={isDark ? 'bg-gray-700' : ''}>
-                <TabsTrigger value="preview">Sensor Data Preview</TabsTrigger>
-                <TabsTrigger value="metadata">File Metadata</TabsTrigger>
-                <TabsTrigger value="sensors">Sensor Types</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="preview" className="mt-4">
-                <div className={`border rounded-lg ${isDark ? 'border-gray-600' : 'border-gray-200'}`}>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
-                        <tr>
-                          {viewerData.headers.map((header, index) => (
-                            <th key={index} className={`px-4 py-2 text-left text-sm font-medium ${
-                              isDark ? 'text-gray-200 border-gray-600' : 'text-gray-700 border-gray-200'
-                            } border-b`}>
-                              {header}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {viewerData.data.map((row, rowIndex) => (
-                          <tr key={rowIndex} className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                            {row.map((cell, cellIndex) => (
-                              <td key={cellIndex} className={`px-4 py-2 text-sm border-b ${
-                                isDark ? 'text-gray-300 border-gray-600' : 'text-gray-700 border-gray-200'
-                              }`}>
-                                {cell}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="metadata" className="mt-4">
-                <div className={`border rounded-lg p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                        Total Rows
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {viewerData.metadata.totalRows}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                        Total Columns
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {viewerData.metadata.totalColumns}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                        File Size
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {viewerData.metadata.fileSize}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                        Created By
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {viewerData.metadata.createdBy}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                        Data Range
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {viewerData.metadata.dataRange.startDate.toLocaleDateString()} - {viewerData.metadata.dataRange.endDate.toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                        Total Silos
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {viewerData.metadata.dataRange.totalSilos}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="sensors" className="mt-4">
-                <div className={`border rounded-lg p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
-                  <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                    Sensor Types in this File
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {viewerData.metadata.sensorTypes.map((sensorType, index) => (
-                      <div key={index} className={`flex items-center space-x-2 p-2 rounded ${
-                        isDark ? 'bg-gray-600' : 'bg-gray-100'
-                      }`}>
-                        {getSensorTypeIcon(sensorType)}
-                        <span className={`text-sm capitalize ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                          {sensorType}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
-          
-          <div className="mt-4 flex justify-between items-center">
-            <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              Total Rows: {viewerData?.metadata.totalRows} | 
-              Total Columns: {viewerData?.metadata.totalColumns} | 
-              File Size: {viewerData?.metadata.fileSize}
-            </div>
-            <Button
-              onClick={() => selectedFile && handleFileDownload(selectedFile)}
-              className={isDark ? 'bg-blue-600 hover:bg-blue-700' : ''}
-            >
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => exportToExcel()}>
               <Download className="h-4 w-4 mr-2" />
-              Download
+              Export Excel
+            </Button>
+            <Button variant="outline" onClick={() => exportToPDF()}>
+              <FileText className="h-4 w-4 mr-2" />
+              Export PDF
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+
+        <Tabs defaultValue="import" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="import">Import Data</TabsTrigger>
+            <TabsTrigger value="files">Imported Files</TabsTrigger>
+            <TabsTrigger value="export">Export Templates</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="import" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* File Upload */}
+              <Card className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+                <CardHeader>
+                  <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>Upload Files</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                    <Upload className="h-8 w-8 mx-auto mb-4 text-gray-400" />
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      Drag and drop files here, or click to browse
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      Supports Excel (.xlsx, .xls) and PDF files
+                    </p>
+                    <input
+                      type="file"
+                      multiple
+                      accept=".xlsx,.xls,.pdf"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                    >
+                      Choose Files
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Upload Settings */}
+              <Card className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+                <CardHeader>
+                  <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>Upload Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>Data Category</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="temperature">Temperature Data</SelectItem>
+                        <SelectItem value="humidity">Humidity Data</SelectItem>
+                        <SelectItem value="pressure">Pressure Data</SelectItem>
+                        <SelectItem value="vibration">Vibration Data</SelectItem>
+                        <SelectItem value="level">Level Data</SelectItem>
+                        <SelectItem value="flow">Flow Rate Data</SelectItem>
+                        <SelectItem value="comprehensive">Comprehensive Data</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>Priority Level</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="critical">Critical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>Tags</Label>
+                    <Input placeholder="Enter tags separated by commas" />
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="encrypt" className="rounded" />
+                    <Label htmlFor="encrypt" className={isDark ? 'text-gray-300' : 'text-gray-700'}>
+                      Encrypt uploaded files
+                    </Label>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="files" className="space-y-6">
+            {/* Filters */}
+            <Card className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+              <CardHeader>
+                <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>Filters</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                  <div>
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>File Type</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="excel">Excel</SelectItem>
+                        <SelectItem value="pdf">PDF</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>Status</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="success">Success</SelectItem>
+                        <SelectItem value="warning">Warning</SelectItem>
+                        <SelectItem value="error">Error</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>Category</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="temperature">Temperature</SelectItem>
+                        <SelectItem value="humidity">Humidity</SelectItem>
+                        <SelectItem value="pressure">Pressure</SelectItem>
+                        <SelectItem value="vibration">Vibration</SelectItem>
+                        <SelectItem value="level">Level</SelectItem>
+                        <SelectItem value="flow">Flow Rate</SelectItem>
+                        <SelectItem value="comprehensive">Comprehensive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>Search</Label>
+                    <Input placeholder="Search files..." />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Files Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+              {importedFiles.map((file) => (
+                <Card key={file.id} className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-2">
+                        {getFileIcon(file.fileType)}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {file.fileName}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {file.size} • {file.recordCount} records
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        {file.isFavorite && <Star className="h-4 w-4 text-yellow-500" />}
+                        {file.isEncrypted && <Lock className="h-4 w-4 text-blue-500" />}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Badge className={getStatusColor(file.status)}>
+                          {getStatusIcon(file.status)}
+                          {file.status}
+                        </Badge>
+                        <Badge className={getPriorityColor(file.priority)}>
+                          {file.priority}
+                        </Badge>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                        <p>Category: {file.category}</p>
+                        <p>Uploaded: {file.uploadDate.toLocaleDateString()}</p>
+                        <p>Last accessed: {file.lastAccessed.toLocaleDateString()}</p>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-1">
+                        {file.tags.slice(0, 3).map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {file.tags.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{file.tags.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-1 pt-2">
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => handleFileView(file)}>
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => handleFileDownload(file)}>
+                          <Download className="h-3 w-3 mr-1" />
+                          Download
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleFileFavorite(file.id)}>
+                          {file.isFavorite ? <StarOff className="h-3 w-3" /> : <Star className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="export" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+              {exportTemplates.map((template) => (
+                <Card key={template.id} className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className={`text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {template.name}
+                      </CardTitle>
+                      {template.isDefault && (
+                        <Badge variant="secondary">Default</Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {template.description}
+                    </p>
+                    
+                    <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                      <p>Format: {template.format.toUpperCase()}</p>
+                      <p>Category: {template.category}</p>
+                      <p>Last used: {template.lastUsed.toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1">
+                      {template.sensorTypes.slice(0, 3).map((sensorType, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {getSensorTypeIcon(sensorType)}
+                          {sensorType}
+                        </Badge>
+                      ))}
+                      {template.sensorTypes.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{template.sensorTypes.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2 pt-2">
+                      <Button size="sm" variant="outline" className="flex-1">
+                        Use Template
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* File Viewer Dialog */}
+        <Dialog open={isViewerOpen} onOpenChange={setIsViewerOpen}>
+          <DialogContent className={`max-w-6xl ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
+            <DialogHeader>
+              <DialogTitle className={isDark ? 'text-white' : ''}>
+                {selectedFile?.fileName}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {viewerData && (
+              <Tabs defaultValue="preview" className="w-full">
+                <TabsList className={isDark ? 'bg-gray-700' : ''}>
+                  <TabsTrigger value="preview">Sensor Data Preview</TabsTrigger>
+                  <TabsTrigger value="metadata">File Metadata</TabsTrigger>
+                  <TabsTrigger value="sensors">Sensor Types</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="preview" className="mt-4">
+                  <div className={`border rounded-lg ${isDark ? 'border-gray-600' : 'border-gray-200'}`}>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
+                          <tr>
+                            {viewerData.headers.map((header, index) => (
+                              <th key={index} className={`px-4 py-2 text-left text-sm font-medium ${
+                                isDark ? 'text-gray-200 border-gray-600' : 'text-gray-700 border-gray-200'
+                              } border-b`}>
+                                {header}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {viewerData.data.map((row, rowIndex) => (
+                            <tr key={rowIndex} className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                              {row.map((cell, cellIndex) => (
+                                <td key={cellIndex} className={`px-4 py-2 text-sm border-b ${
+                                  isDark ? 'text-gray-300 border-gray-600' : 'text-gray-700 border-gray-200'
+                                }`}>
+                                  {cell}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="metadata" className="mt-4">
+                  <div className={`border rounded-lg p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Total Rows
+                        </p>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {viewerData.metadata.totalRows}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Total Columns
+                        </p>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {viewerData.metadata.totalColumns}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                          File Size
+                        </p>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {viewerData.metadata.fileSize}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Created By
+                        </p>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {viewerData.metadata.createdBy}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Data Range
+                        </p>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {viewerData.metadata.dataRange.startDate.toLocaleDateString()} - {viewerData.metadata.dataRange.endDate.toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Total Silos
+                        </p>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {viewerData.metadata.dataRange.totalSilos}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="sensors" className="mt-4">
+                  <div className={`border rounded-lg p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
+                    <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                      Sensor Types in this File
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {viewerData.metadata.sensorTypes.map((sensorType, index) => (
+                        <div key={index} className={`flex items-center space-x-2 p-2 rounded ${
+                          isDark ? 'bg-gray-600' : 'bg-gray-100'
+                        }`}>
+                          {getSensorTypeIcon(sensorType)}
+                          <span className={`text-sm capitalize ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                            {sensorType}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
+            
+            <div className="mt-4 flex justify-between items-center">
+              <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                Total Rows: {viewerData?.metadata.totalRows} | 
+                Total Columns: {viewerData?.metadata.totalColumns} | 
+                File Size: {viewerData?.metadata.fileSize}
+              </div>
+              <Button
+                onClick={() => selectedFile && handleFileDownload(selectedFile)}
+                className={isDark ? 'bg-blue-600 hover:bg-blue-700' : ''}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

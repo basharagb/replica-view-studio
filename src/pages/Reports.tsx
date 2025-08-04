@@ -113,166 +113,163 @@ const Reports = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Test Reports
-        </h1>
-        <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          View and filter test history and results
-        </p>
-      </div>
-
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            Test Type
-          </label>
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
-              <SelectValue placeholder="All types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="manual">Manual</SelectItem>
-              <SelectItem value="auto">Auto</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            Status
-          </label>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            Search
-          </label>
-          <Input
-            placeholder="Search reports..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={isDark ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : ''}
-          />
-        </div>
-
-        <div className="flex items-end">
-          <Button 
-            variant="outline" 
-            className={isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}
-          >
-            Export Reports
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              Test Reports
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              View and analyze test history and performance metrics
+            </p>
+          </div>
+          <Button className="w-full sm:w-auto">
+            Export All Reports
           </Button>
         </div>
-      </div>
 
-      {/* Reports List */}
-      <div className="space-y-4">
-        {filteredReports.map((report) => (
-          <Card key={report.id} className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className={isDark ? 'text-white' : ''}>
-                  {report.id}
-                </CardTitle>
-                <Badge className={getStatusColor(report.status)}>
-                  {report.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                    Test Type
-                  </p>
-                  <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                    Duration
-                  </p>
-                  <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {formatDuration(report.duration)}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                    Silos Tested
-                  </p>
-                  <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {report.silosTested}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                    Temperature Range
-                  </p>
-                  <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {report.temperatureRange.min}°C - {report.temperatureRange.max}°C
-                  </p>
-                </div>
+        {/* Filters */}
+        <Card className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+          <CardHeader>
+            <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Test Type
+                </label>
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="auto">Auto</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
-              <div className="mt-4 space-y-2">
-                <div>
-                  <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                    Start Time
-                  </p>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {formatDate(report.startTime)}
-                  </p>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Status
+                </label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="sm:col-span-2 lg:col-span-1">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Search
+                </label>
+                <Input
+                  placeholder="Search reports..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              <div className="sm:col-span-2 lg:col-span-1">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Date Range
+                </label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Last 7 days" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">Last 7 days</SelectItem>
+                    <SelectItem value="month">Last 30 days</SelectItem>
+                    <SelectItem value="quarter">Last 3 months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Reports Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+          {filteredReports.map((report) => (
+            <Card key={report.id} className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className={`text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {report.id}
+                  </CardTitle>
+                  <Badge className={getStatusColor(report.status)}>
+                    {report.status}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                    <span className="ml-2 font-medium capitalize">{report.type}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Duration:</span>
+                    <span className="ml-2 font-medium">{formatDuration(report.duration)}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Silos:</span>
+                    <span className="ml-2 font-medium">{report.silosTested}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Start:</span>
+                    <span className="ml-2 font-medium">{formatDate(report.startTime)}</span>
+                  </div>
                 </div>
                 
-                <div>
-                  <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                    End Time
-                  </p>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {formatDate(report.endTime)}
-                  </p>
+                <div className="text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">Temperature Range:</span>
+                  <span className="ml-2 font-medium">
+                    {report.temperatureRange.min}°C - {report.temperatureRange.max}°C
+                  </span>
                 </div>
                 
                 {report.notes && (
-                  <div>
-                    <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                      Notes
-                    </p>
-                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                      {report.notes}
-                    </p>
+                  <div className="text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Notes:</span>
+                    <span className="ml-2">{report.notes}</span>
                   </div>
                 )}
-              </div>
+                
+                <div className="flex gap-2 pt-2">
+                  <Button size="sm" variant="outline" className="flex-1">
+                    View Details
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1">
+                    Export
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredReports.length === 0 && (
+          <Card className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+            <CardContent className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400">No reports found matching your criteria.</p>
             </CardContent>
           </Card>
-        ))}
+        )}
       </div>
-
-      {filteredReports.length === 0 && (
-        <div className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-          <p>No reports found matching your criteria.</p>
-        </div>
-      )}
     </div>
   );
 };
