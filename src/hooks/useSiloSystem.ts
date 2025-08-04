@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Silo, SiloSystemState, ReadingMode, TooltipPosition } from '../types/silo';
-import { getAllSilos, findSiloByNumber } from '../services/siloData';
+import { getAllSilos, findSiloByNumber, regenerateAllSiloData } from '../services/siloData';
 
 export const useSiloSystem = () => {
   // Core state
@@ -15,6 +15,7 @@ export const useSiloSystem = () => {
   const [readingSilo, setReadingSilo] = useState<number | null>(null);
   const [autoReadProgress, setAutoReadProgress] = useState<number>(0);
   const [autoReadCompleted, setAutoReadCompleted] = useState<boolean>(false);
+  const [dataVersion, setDataVersion] = useState<number>(0);
   const autoReadInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Handle silo click
@@ -73,6 +74,10 @@ export const useSiloSystem = () => {
       return;
     }
 
+    // Generate new random data for this auto test
+    regenerateAllSiloData();
+    setDataVersion(prev => prev + 1);
+    
     setReadingMode('auto');
     setIsReading(true);
     setAutoReadProgress(0);
@@ -157,6 +162,7 @@ export const useSiloSystem = () => {
     readingSilo,
     autoReadProgress,
     autoReadCompleted,
+    dataVersion,
 
     // Actions
     handleSiloClick,

@@ -19,6 +19,7 @@ export const LabInterface = () => {
     readingSilo,
     autoReadProgress,
     autoReadCompleted,
+    dataVersion,
     handleSiloClick,
     handleSiloHover,
     handleSiloMouseMove,
@@ -57,7 +58,7 @@ export const LabInterface = () => {
           {/* Main lab area */}
           <div className="flex-1 space-y-12">
             {/* Top section (1-55) - First 3 rows */}
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200" data-testid="top-silo-section">
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200" data-testid="top-silo-section" key={`top-${dataVersion}`}>
               <div className="flex gap-6 justify-center">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative">
@@ -85,7 +86,7 @@ export const LabInterface = () => {
             </div>
 
             {/* Bottom section (101-195) - All 5 rows */}
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200" data-testid="bottom-silo-section">
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
               <div className="flex gap-6 justify-center">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative">
@@ -191,6 +192,7 @@ export const LabInterface = () => {
           {/* Right side with cylinder, input, and controls */}
           <div className="flex flex-col items-center gap-4" data-testid="control-panel">
             <LabCylinder
+              key={`cylinder-${dataVersion}`}
               selectedSilo={selectedSilo}
               readingSilo={readingSilo}
               onSiloClick={handleSiloClick}
