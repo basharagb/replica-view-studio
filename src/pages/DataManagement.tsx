@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   Upload, 
@@ -30,7 +31,13 @@ import {
   Edit,
   MoreHorizontal,
   Grid,
-  List
+  List,
+  Thermometer,
+  Gauge,
+  Activity,
+  Zap,
+  Droplets,
+  Wind
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -60,8 +67,15 @@ interface ImportedData {
   lastAccessed: Date;
   checksum: string;
   version: string;
-  category: 'temperature' | 'performance' | 'maintenance' | 'reports' | 'other';
+  category: 'temperature' | 'humidity' | 'pressure' | 'vibration' | 'level' | 'flow' | 'comprehensive' | 'other';
   priority: 'low' | 'medium' | 'high' | 'critical';
+  sensorTypes: string[];
+  dataRange: {
+    startDate: Date;
+    endDate: Date;
+    totalSilos: number;
+    totalSensors: number;
+  };
 }
 
 interface ExportTemplate {
@@ -72,6 +86,7 @@ interface ExportTemplate {
   lastUsed: Date;
   isDefault: boolean;
   category: string;
+  sensorTypes: string[];
 }
 
 interface FileViewerData {
@@ -83,6 +98,13 @@ interface FileViewerData {
     fileSize: string;
     lastModified: Date;
     createdBy: string;
+    sensorTypes: string[];
+    dataRange: {
+      startDate: Date;
+      endDate: Date;
+      totalSilos: number;
+      totalSensors: number;
+    };
   };
 }
 
@@ -92,60 +114,111 @@ const DataManagement = () => {
   const [importedFiles, setImportedFiles] = useState<ImportedData[]>([
     {
       id: '1',
-      fileName: 'silo_readings_2024_08_04.xlsx',
+      fileName: 'comprehensive_sensor_data_2024_08_04.xlsx',
       fileType: 'excel',
       uploadDate: new Date('2024-08-04T10:30:00'),
-      recordCount: 150,
+      recordCount: 1500,
       status: 'success',
-      size: '2.3 MB',
-      tags: ['temperature', 'daily', 'automated'],
-      description: 'Daily temperature readings from all silos',
+      size: '4.2 MB',
+      tags: ['comprehensive', 'all-sensors', 'daily', 'automated'],
+      description: 'Complete sensor data including temperature, humidity, pressure, vibration, level, and flow rate from all silos',
       isFavorite: true,
       isEncrypted: false,
       lastAccessed: new Date('2024-08-04T15:30:00'),
       checksum: 'a1b2c3d4e5f6',
-      version: '1.0',
-      category: 'temperature',
-      priority: 'high'
+      version: '2.0',
+      category: 'comprehensive',
+      priority: 'high',
+      sensorTypes: ['temperature', 'humidity', 'pressure', 'vibration', 'level', 'flow'],
+      dataRange: {
+        startDate: new Date('2024-08-04T00:00:00'),
+        endDate: new Date('2024-08-04T23:59:59'),
+        totalSilos: 150,
+        totalSensors: 900
+      }
     },
     {
       id: '2',
-      fileName: 'temperature_report.pdf',
+      fileName: 'temperature_humidity_report.pdf',
       fileType: 'pdf',
       uploadDate: new Date('2024-08-04T09:15:00'),
-      recordCount: 75,
+      recordCount: 300,
       status: 'warning',
-      size: '1.8 MB',
-      tags: ['report', 'monthly', 'analysis'],
-      description: 'Monthly temperature analysis report',
+      size: '2.1 MB',
+      tags: ['temperature', 'humidity', 'monthly', 'analysis'],
+      description: 'Monthly temperature and humidity analysis report',
       isFavorite: false,
       isEncrypted: true,
       lastAccessed: new Date('2024-08-04T12:15:00'),
       checksum: 'b2c3d4e5f6g7',
-      version: '2.1',
-      category: 'reports',
-      priority: 'medium'
+      version: '1.5',
+      category: 'temperature',
+      priority: 'medium',
+      sensorTypes: ['temperature', 'humidity'],
+      dataRange: {
+        startDate: new Date('2024-08-01T00:00:00'),
+        endDate: new Date('2024-08-31T23:59:59'),
+        totalSilos: 75,
+        totalSensors: 150
+      }
+    },
+    {
+      id: '3',
+      fileName: 'pressure_vibration_data.xlsx',
+      fileType: 'excel',
+      uploadDate: new Date('2024-08-03T14:20:00'),
+      recordCount: 800,
+      status: 'success',
+      size: '3.8 MB',
+      tags: ['pressure', 'vibration', 'quarterly', 'maintenance'],
+      description: 'Pressure and vibration sensor data for maintenance analysis',
+      isFavorite: true,
+      isEncrypted: false,
+      lastAccessed: new Date('2024-08-04T09:45:00'),
+      checksum: 'c3d4e5f6g7h8',
+      version: '1.8',
+      category: 'pressure',
+      priority: 'high',
+      sensorTypes: ['pressure', 'vibration'],
+      dataRange: {
+        startDate: new Date('2024-08-01T00:00:00'),
+        endDate: new Date('2024-08-03T23:59:59'),
+        totalSilos: 100,
+        totalSensors: 200
+      }
     }
   ]);
 
   const [exportTemplates] = useState<ExportTemplate[]>([
     {
       id: '1',
-      name: 'Silo Temperature Report',
-      description: 'Complete temperature readings for all silos',
+      name: 'Comprehensive Sensor Report',
+      description: 'All sensor data including temperature, humidity, pressure, vibration, level, and flow',
       format: 'excel',
       lastUsed: new Date('2024-08-04T11:00:00'),
       isDefault: true,
-      category: 'temperature'
+      category: 'comprehensive',
+      sensorTypes: ['temperature', 'humidity', 'pressure', 'vibration', 'level', 'flow']
     },
     {
       id: '2',
-      name: 'Test Results Summary',
-      description: 'Auto and manual test results with statistics',
+      name: 'Temperature & Humidity Summary',
+      description: 'Temperature and humidity sensor data with analysis',
       format: 'pdf',
       lastUsed: new Date('2024-08-03T14:30:00'),
       isDefault: false,
-      category: 'reports'
+      category: 'temperature',
+      sensorTypes: ['temperature', 'humidity']
+    },
+    {
+      id: '3',
+      name: 'Pressure & Vibration Analysis',
+      description: 'Pressure and vibration data for maintenance planning',
+      format: 'excel',
+      lastUsed: new Date('2024-08-02T16:15:00'),
+      isDefault: false,
+      category: 'pressure',
+      sensorTypes: ['pressure', 'vibration']
     }
   ]);
 
@@ -155,6 +228,7 @@ const DataManagement = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterSensorType, setFilterSensorType] = useState<string>('all');
   const [showFavorites, setShowFavorites] = useState<boolean>(false);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerData, setViewerData] = useState<FileViewerData | null>(null);
@@ -173,18 +247,25 @@ const DataManagement = () => {
       fileName: file.name,
       fileType,
       uploadDate: new Date(),
-      recordCount: Math.floor(Math.random() * 200) + 50,
+      recordCount: Math.floor(Math.random() * 2000) + 500,
       status: Math.random() > 0.2 ? 'success' : 'warning',
       size: fileSize,
-      tags: ['new', 'uploaded'],
-      description: `Uploaded ${file.name}`,
+      tags: ['new', 'uploaded', 'sensor-data'],
+      description: `Uploaded ${file.name} with comprehensive sensor data`,
       isFavorite: false,
       isEncrypted: false,
       lastAccessed: new Date(),
       checksum: Math.random().toString(36).substring(2, 8),
       version: '1.0',
-      category: 'other',
-      priority: 'medium'
+      category: 'comprehensive',
+      priority: 'medium',
+      sensorTypes: ['temperature', 'humidity', 'pressure', 'vibration', 'level', 'flow'],
+      dataRange: {
+        startDate: new Date(),
+        endDate: new Date(),
+        totalSilos: Math.floor(Math.random() * 200) + 50,
+        totalSensors: Math.floor(Math.random() * 1000) + 200
+      }
     };
 
     setImportedFiles(prev => [newFile, ...prev]);
@@ -193,25 +274,27 @@ const DataManagement = () => {
   const handleFileView = (file: ImportedData) => {
     setSelectedFile(file);
     
-    // Simulate file data loading
+    // Simulate comprehensive sensor data loading
     const mockData: FileViewerData = {
-      headers: ['Silo ID', 'Temperature (°C)', 'Status', 'Timestamp', 'Location'],
+      headers: ['Silo ID', 'Temperature (°C)', 'Humidity (%)', 'Pressure (kPa)', 'Vibration (mm/s)', 'Level (%)', 'Flow Rate (L/min)', 'Status', 'Location', 'Timestamp'],
       data: [
-        ['S001', '32.5', 'Normal', '2024-08-04 12:30:00', 'Zone A'],
-        ['S002', '28.9', 'Normal', '2024-08-04 12:30:00', 'Zone B'],
-        ['S003', '35.2', 'Warning', '2024-08-04 12:30:00', 'Zone C'],
-        ['S004', '42.1', 'Critical', '2024-08-04 12:30:00', 'Zone D'],
-        ['S005', '31.8', 'Normal', '2024-08-04 12:30:00', 'Zone A'],
-        ['S006', '29.4', 'Normal', '2024-08-04 12:30:00', 'Zone B'],
-        ['S007', '38.7', 'Warning', '2024-08-04 12:30:00', 'Zone C'],
-        ['S008', '33.2', 'Normal', '2024-08-04 12:30:00', 'Zone D']
+        ['S001', '32.5', '65.2', '101.3', '2.1', '85.3', '45.2', 'Normal', 'Zone A', '2024-08-04 12:30:00'],
+        ['S002', '28.9', '58.7', '100.8', '1.8', '92.1', '38.7', 'Normal', 'Zone B', '2024-08-04 12:30:00'],
+        ['S003', '35.2', '72.4', '102.1', '3.5', '78.9', '52.1', 'Warning', 'Zone C', '2024-08-04 12:30:00'],
+        ['S004', '42.1', '85.6', '103.8', '4.2', '45.2', '28.9', 'Critical', 'Zone D', '2024-08-04 12:30:00'],
+        ['S005', '31.8', '61.3', '101.1', '2.3', '88.7', '42.8', 'Normal', 'Zone A', '2024-08-04 12:30:00'],
+        ['S006', '29.4', '55.9', '100.5', '1.6', '94.2', '35.4', 'Normal', 'Zone B', '2024-08-04 12:30:00'],
+        ['S007', '38.7', '78.2', '102.8', '3.8', '67.3', '48.9', 'Warning', 'Zone C', '2024-08-04 12:30:00'],
+        ['S008', '33.2', '63.8', '101.4', '2.4', '91.5', '39.6', 'Normal', 'Zone D', '2024-08-04 12:30:00']
       ],
       metadata: {
         totalRows: 8,
-        totalColumns: 5,
+        totalColumns: 10,
         fileSize: file.size,
         lastModified: file.uploadDate,
-        createdBy: 'System User'
+        createdBy: 'System User',
+        sensorTypes: file.sensorTypes,
+        dataRange: file.dataRange
       }
     };
     
@@ -221,9 +304,9 @@ const DataManagement = () => {
 
   const handleFileDownload = (file: ImportedData) => {
     if (file.fileType === 'excel') {
-      exportToExcel(file.fileName);
+      exportToExcel(file.fileName, file.sensorTypes);
     } else {
-      exportToPDF(file.fileName);
+      exportToPDF(file.fileName, file.sensorTypes);
     }
   };
 
@@ -237,51 +320,79 @@ const DataManagement = () => {
     ));
   };
 
-  const exportToExcel = (filename?: string) => {
+  const exportToExcel = (filename?: string, sensorTypes?: string[]) => {
     const data = [
-      { SiloID: 'S001', Temperature: 32.5, Status: 'Normal', Timestamp: '2024-08-04 12:30:00' },
-      { SiloID: 'S002', Temperature: 28.9, Status: 'Normal', Timestamp: '2024-08-04 12:30:00' },
-      { SiloID: 'S003', Temperature: 35.2, Status: 'Warning', Timestamp: '2024-08-04 12:30:00' },
-      { SiloID: 'S004', Temperature: 42.1, Status: 'Critical', Timestamp: '2024-08-04 12:30:00' },
-      { SiloID: 'S005', Temperature: 31.8, Status: 'Normal', Timestamp: '2024-08-04 12:30:00' }
+      { 
+        SiloID: 'S001', 
+        Temperature: 32.5, 
+        Humidity: 65.2, 
+        Pressure: 101.3, 
+        Vibration: 2.1, 
+        Level: 85.3, 
+        FlowRate: 45.2, 
+        Status: 'Normal', 
+        Timestamp: '2024-08-04 12:30:00' 
+      },
+      { 
+        SiloID: 'S002', 
+        Temperature: 28.9, 
+        Humidity: 58.7, 
+        Pressure: 100.8, 
+        Vibration: 1.8, 
+        Level: 92.1, 
+        FlowRate: 38.7, 
+        Status: 'Normal', 
+        Timestamp: '2024-08-04 12:30:00' 
+      },
+      { 
+        SiloID: 'S003', 
+        Temperature: 35.2, 
+        Humidity: 72.4, 
+        Pressure: 102.1, 
+        Vibration: 3.5, 
+        Level: 78.9, 
+        FlowRate: 52.1, 
+        Status: 'Warning', 
+        Timestamp: '2024-08-04 12:30:00' 
+      }
     ];
 
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Silo Readings');
+    XLSX.utils.book_append_sheet(wb, ws, 'Sensor Data');
     
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(dataBlob, filename || 'silo_readings_export.xlsx');
+    saveAs(dataBlob, filename || 'comprehensive_sensor_data.xlsx');
   };
 
-  const exportToPDF = (filename?: string) => {
+  const exportToPDF = (filename?: string, sensorTypes?: string[]) => {
     const pdf = new jsPDF();
     
     pdf.setFontSize(20);
-    pdf.text('Silo Monitoring System - Data Report', 20, 20);
+    pdf.text('Silo Monitoring System - Comprehensive Sensor Report', 20, 20);
     
     pdf.setFontSize(12);
     pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+    pdf.text(`Sensor Types: ${sensorTypes?.join(', ') || 'All sensors'}`, 20, 40);
     
     pdf.setFontSize(10);
     const data = [
-      ['Silo ID', 'Temperature (°C)', 'Status', 'Timestamp'],
-      ['S001', '32.5', 'Normal', '2024-08-04 12:30:00'],
-      ['S002', '28.9', 'Normal', '2024-08-04 12:30:00'],
-      ['S003', '35.2', 'Warning', '2024-08-04 12:30:00'],
-      ['S004', '42.1', 'Critical', '2024-08-04 12:30:00'],
-      ['S005', '31.8', 'Normal', '2024-08-04 12:30:00']
+      ['Silo ID', 'Temperature (°C)', 'Humidity (%)', 'Pressure (kPa)', 'Vibration (mm/s)', 'Level (%)', 'Flow Rate (L/min)', 'Status'],
+      ['S001', '32.5', '65.2', '101.3', '2.1', '85.3', '45.2', 'Normal'],
+      ['S002', '28.9', '58.7', '100.8', '1.8', '92.1', '38.7', 'Normal'],
+      ['S003', '35.2', '72.4', '102.1', '3.5', '78.9', '52.1', 'Warning'],
+      ['S004', '42.1', '85.6', '103.8', '4.2', '45.2', '28.9', 'Critical']
     ];
     
     pdf.autoTable({
       head: [data[0]],
       body: data.slice(1),
-      startY: 40,
+      startY: 50,
       styles: { fontSize: 8 }
     });
     
-    pdf.save(filename || 'silo_readings_report.pdf');
+    pdf.save(filename || 'comprehensive_sensor_report.pdf');
   };
 
   const getStatusIcon = (status: string) => {
@@ -312,6 +423,18 @@ const DataManagement = () => {
     }
   };
 
+  const getSensorTypeIcon = (sensorType: string) => {
+    switch (sensorType) {
+      case 'temperature': return <Thermometer className="h-4 w-4 text-red-500" />;
+      case 'humidity': return <Droplets className="h-4 w-4 text-blue-500" />;
+      case 'pressure': return <Gauge className="h-4 w-4 text-purple-500" />;
+      case 'vibration': return <Activity className="h-4 w-4 text-orange-500" />;
+      case 'level': return <Zap className="h-4 w-4 text-yellow-500" />;
+      case 'flow': return <Wind className="h-4 w-4 text-green-500" />;
+      default: return <Database className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
   const getFileIcon = (fileType: string) => {
     return fileType === 'excel' ? 
       <FileSpreadsheet className="h-5 w-5 text-green-600" /> : 
@@ -321,23 +444,24 @@ const DataManagement = () => {
   const filteredFiles = importedFiles.filter(file => {
     const matchesCategory = filterCategory === 'all' || file.category === filterCategory;
     const matchesStatus = filterStatus === 'all' || file.status === filterStatus;
+    const matchesSensorType = filterSensorType === 'all' || file.sensorTypes.includes(filterSensorType);
     const matchesSearch = searchTerm === '' || 
       file.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       file.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesFavorites = !showFavorites || file.isFavorite;
     
-    return matchesCategory && matchesStatus && matchesSearch && matchesFavorites;
+    return matchesCategory && matchesStatus && matchesSensorType && matchesSearch && matchesFavorites;
   });
 
   return (
     <div className="p-6">
       <div className="mb-6">
         <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Data Management
+          Comprehensive Sensor Data Management
         </h1>
         <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          Import, view, and manage silo readings data in various formats
+          Import, view, and manage comprehensive sensor data including temperature, humidity, pressure, vibration, level, and flow rate
         </p>
       </div>
 
@@ -346,14 +470,14 @@ const DataManagement = () => {
         <CardHeader>
           <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
             <Upload className="h-5 w-5" />
-            Import Data
+            Import Sensor Data
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="file-upload" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Upload File
+                Upload Sensor Data File
               </Label>
               <div className={`border-2 border-dashed rounded-lg p-6 text-center ${
                 isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300'
@@ -368,7 +492,7 @@ const DataManagement = () => {
                 />
                 <Upload className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
                 <p className={`text-sm mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Drag and drop files here, or click to browse
+                  Drag and drop sensor data files here, or click to browse
                 </p>
                 <Button 
                   variant="outline" 
@@ -385,14 +509,15 @@ const DataManagement = () => {
 
             <div>
               <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Import Guidelines
+                Sensor Data Guidelines
               </h3>
               <ul className={`text-sm space-y-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                <li>• Excel files should have columns: SiloID, Temperature, Status, Timestamp</li>
-                <li>• PDF files should contain structured data tables</li>
-                <li>• Maximum file size: 10 MB</li>
+                <li>• Excel files should include: SiloID, Temperature, Humidity, Pressure, Vibration, Level, Flow Rate</li>
+                <li>• PDF files should contain structured sensor data tables</li>
+                <li>• Maximum file size: 50 MB for comprehensive sensor data</li>
                 <li>• Supported date formats: YYYY-MM-DD HH:MM:SS</li>
-                <li>• Temperature values should be in Celsius (°C)</li>
+                <li>• Temperature in Celsius, Humidity in %, Pressure in kPa</li>
+                <li>• Vibration in mm/s, Level in %, Flow Rate in L/min</li>
               </ul>
             </div>
           </div>
@@ -404,7 +529,7 @@ const DataManagement = () => {
         <CardHeader>
           <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
             <Download className="h-5 w-5" />
-            Export Data
+            Export Sensor Data
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -420,7 +545,7 @@ const DataManagement = () => {
                   variant="outline"
                 >
                   <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  Export to Excel
+                  Export All Sensor Data to Excel
                 </Button>
                 <Button 
                   onClick={() => exportToPDF()}
@@ -428,7 +553,7 @@ const DataManagement = () => {
                   variant="outline"
                 >
                   <File className="h-4 w-4 mr-2" />
-                  Export to PDF
+                  Export All Sensor Data to PDF
                 </Button>
               </div>
             </div>
@@ -467,7 +592,7 @@ const DataManagement = () => {
           <div className="flex items-center justify-between">
             <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
               <Database className="h-5 w-5" />
-              Imported Files ({filteredFiles.length})
+              Sensor Data Files ({filteredFiles.length})
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button
@@ -484,10 +609,10 @@ const DataManagement = () => {
         <CardContent>
           {/* Filters and Search */}
           <div className="mb-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="md:col-span-2">
                 <Input
-                  placeholder="Search files..."
+                  placeholder="Search sensor data files..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className={isDark ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : ''}
@@ -501,9 +626,12 @@ const DataManagement = () => {
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
                     <SelectItem value="temperature">Temperature</SelectItem>
-                    <SelectItem value="performance">Performance</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="reports">Reports</SelectItem>
+                    <SelectItem value="humidity">Humidity</SelectItem>
+                    <SelectItem value="pressure">Pressure</SelectItem>
+                    <SelectItem value="vibration">Vibration</SelectItem>
+                    <SelectItem value="level">Level</SelectItem>
+                    <SelectItem value="flow">Flow Rate</SelectItem>
+                    <SelectItem value="comprehensive">Comprehensive</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
@@ -518,6 +646,22 @@ const DataManagement = () => {
                     <SelectItem value="success">Success</SelectItem>
                     <SelectItem value="warning">Warning</SelectItem>
                     <SelectItem value="error">Error</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Select value={filterSensorType} onValueChange={setFilterSensorType}>
+                  <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
+                    <SelectValue placeholder="Sensor Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sensors</SelectItem>
+                    <SelectItem value="temperature">Temperature</SelectItem>
+                    <SelectItem value="humidity">Humidity</SelectItem>
+                    <SelectItem value="pressure">Pressure</SelectItem>
+                    <SelectItem value="vibration">Vibration</SelectItem>
+                    <SelectItem value="level">Level</SelectItem>
+                    <SelectItem value="flow">Flow Rate</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -550,7 +694,7 @@ const DataManagement = () => {
                         {file.fileName}
                       </p>
                       <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {file.size} • {file.recordCount} records
+                        {file.size} • {file.recordCount} records • {file.dataRange.totalSilos} silos
                       </p>
                     </div>
                   </div>
@@ -592,14 +736,15 @@ const DataManagement = () => {
                 )}
                 
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {file.tags.slice(0, 3).map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {tag}
+                  {file.sensorTypes.slice(0, 3).map((sensorType, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
+                      {getSensorTypeIcon(sensorType)}
+                      {sensorType}
                     </Badge>
                   ))}
-                  {file.tags.length > 3 && (
+                  {file.sensorTypes.length > 3 && (
                     <Badge variant="secondary" className="text-xs">
-                      +{file.tags.length - 3}
+                      +{file.sensorTypes.length - 3} more
                     </Badge>
                   )}
                 </div>
@@ -644,7 +789,7 @@ const DataManagement = () => {
 
           {filteredFiles.length === 0 && (
             <div className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              <p>No files found matching your criteria.</p>
+              <p>No sensor data files found matching your criteria.</p>
             </div>
           )}
         </CardContent>
@@ -652,7 +797,7 @@ const DataManagement = () => {
 
       {/* File Viewer Dialog */}
       <Dialog open={isViewerOpen} onOpenChange={setIsViewerOpen}>
-        <DialogContent className={`max-w-4xl ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
+        <DialogContent className={`max-w-6xl ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
           <DialogHeader>
             <DialogTitle className={isDark ? 'text-white' : ''}>
               {selectedFile?.fileName}
@@ -660,54 +805,137 @@ const DataManagement = () => {
           </DialogHeader>
           
           {viewerData && (
-            <div className="mt-4">
-              <div className={`border rounded-lg ${isDark ? 'border-gray-600' : 'border-gray-200'}`}>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
-                      <tr>
-                        {viewerData.headers.map((header, index) => (
-                          <th key={index} className={`px-4 py-2 text-left text-sm font-medium ${
-                            isDark ? 'text-gray-200 border-gray-600' : 'text-gray-700 border-gray-200'
-                          } border-b`}>
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {viewerData.data.map((row, rowIndex) => (
-                        <tr key={rowIndex} className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                          {row.map((cell, cellIndex) => (
-                            <td key={cellIndex} className={`px-4 py-2 text-sm border-b ${
-                              isDark ? 'text-gray-300 border-gray-600' : 'text-gray-700 border-gray-200'
-                            }`}>
-                              {cell}
-                            </td>
+            <Tabs defaultValue="preview" className="w-full">
+              <TabsList className={isDark ? 'bg-gray-700' : ''}>
+                <TabsTrigger value="preview">Sensor Data Preview</TabsTrigger>
+                <TabsTrigger value="metadata">File Metadata</TabsTrigger>
+                <TabsTrigger value="sensors">Sensor Types</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="preview" className="mt-4">
+                <div className={`border rounded-lg ${isDark ? 'border-gray-600' : 'border-gray-200'}`}>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
+                        <tr>
+                          {viewerData.headers.map((header, index) => (
+                            <th key={index} className={`px-4 py-2 text-left text-sm font-medium ${
+                              isDark ? 'text-gray-200 border-gray-600' : 'text-gray-700 border-gray-200'
+                            } border-b`}>
+                              {header}
+                            </th>
                           ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {viewerData.data.map((row, rowIndex) => (
+                          <tr key={rowIndex} className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                            {row.map((cell, cellIndex) => (
+                              <td key={cellIndex} className={`px-4 py-2 text-sm border-b ${
+                                isDark ? 'text-gray-300 border-gray-600' : 'text-gray-700 border-gray-200'
+                              }`}>
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              </TabsContent>
               
-              <div className="mt-4 flex justify-between items-center">
-                <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Total Rows: {viewerData.metadata.totalRows} | 
-                  Total Columns: {viewerData.metadata.totalColumns} | 
-                  File Size: {viewerData.metadata.fileSize}
+              <TabsContent value="metadata" className="mt-4">
+                <div className={`border rounded-lg p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Total Rows
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {viewerData.metadata.totalRows}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Total Columns
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {viewerData.metadata.totalColumns}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                        File Size
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {viewerData.metadata.fileSize}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Created By
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {viewerData.metadata.createdBy}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Data Range
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {viewerData.metadata.dataRange.startDate.toLocaleDateString()} - {viewerData.metadata.dataRange.endDate.toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Total Silos
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {viewerData.metadata.dataRange.totalSilos}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <Button
-                  onClick={() => selectedFile && handleFileDownload(selectedFile)}
-                  className={isDark ? 'bg-blue-600 hover:bg-blue-700' : ''}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              </div>
-            </div>
+              </TabsContent>
+              
+              <TabsContent value="sensors" className="mt-4">
+                <div className={`border rounded-lg p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
+                  <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                    Sensor Types in this File
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {viewerData.metadata.sensorTypes.map((sensorType, index) => (
+                      <div key={index} className={`flex items-center space-x-2 p-2 rounded ${
+                        isDark ? 'bg-gray-600' : 'bg-gray-100'
+                      }`}>
+                        {getSensorTypeIcon(sensorType)}
+                        <span className={`text-sm capitalize ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                          {sensorType}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
+          
+          <div className="mt-4 flex justify-between items-center">
+            <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              Total Rows: {viewerData?.metadata.totalRows} | 
+              Total Columns: {viewerData?.metadata.totalColumns} | 
+              File Size: {viewerData?.metadata.fileSize}
+            </div>
+            <Button
+              onClick={() => selectedFile && handleFileDownload(selectedFile)}
+              className={isDark ? 'bg-blue-600 hover:bg-blue-700' : ''}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
