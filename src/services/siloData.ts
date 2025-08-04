@@ -225,15 +225,21 @@ export const getTemperatureColor = (temp: number): TemperatureColor => {
 export const getAllSilos = (): Silo[] => {
   const allSilos: Silo[] = [];
 
+  console.log('Getting all silos - topSiloGroups:', topSiloGroups.length);
+  console.log('Getting all silos - bottomSiloGroups:', bottomSiloGroups.length);
+  console.log('Getting all silos - cylinderSilos:', cylinderSilos.length);
+
   // Add top section silos
-  topSiloGroups.forEach(group => {
+  topSiloGroups.forEach((group, groupIndex) => {
+    console.log(`Processing top group ${groupIndex}:`, group);
     if (group.topRow) group.topRow.forEach(silo => allSilos.push(silo));
     if (group.middleRow) group.middleRow.forEach(silo => allSilos.push(silo));
     if (group.bottomRow) group.bottomRow.forEach(silo => allSilos.push(silo));
   });
 
   // Add bottom section silos
-  bottomSiloGroups.forEach(group => {
+  bottomSiloGroups.forEach((group, groupIndex) => {
+    console.log(`Processing bottom group ${groupIndex}:`, group);
     if (group.row1) group.row1.forEach(silo => allSilos.push(silo));
     if (group.row2) group.row2.forEach(silo => allSilos.push(silo));
     if (group.row3) group.row3.forEach(silo => allSilos.push(silo));
@@ -244,8 +250,13 @@ export const getAllSilos = (): Silo[] => {
   // Add cylinder silos
   cylinderSilos.forEach(silo => allSilos.push(silo));
 
+  console.log('Total silos collected:', allSilos.length);
+
   // Sort by silo number
-  return allSilos.sort((a, b) => a.num - b.num);
+  const sortedSilos = allSilos.sort((a, b) => a.num - b.num);
+  console.log('Sorted silos count:', sortedSilos.length);
+  
+  return sortedSilos;
 };
 
 // Find silo by number

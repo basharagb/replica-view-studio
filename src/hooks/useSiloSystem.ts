@@ -85,21 +85,64 @@ export const useSiloSystem = () => {
 
     const allSilos = getAllSilos();
     let currentIndex = 0;
+    let timeoutCounter = 0;
+    const maxTimeout = 100; // Maximum iterations to prevent infinite loop
+
+    console.log('Starting auto test with', allSilos.length, 'silos');
+
+    // Validate silo data
+    if (!allSilos || allSilos.length === 0) {
+      console.error('No silos found - cannot start auto test');
+      setIsReading(false);
+      setReadingSilo(null);
+      setAutoReadProgress(0);
+      setReadingMode('none');
+      return;
+    }
+
+    // Validate each silo has required properties
+    const invalidSilos = allSilos.filter(silo => !silo.num || typeof silo.temp !== 'number');
+    if (invalidSilos.length > 0) {
+      console.error('Invalid silos found:', invalidSilos);
+      setIsReading(false);
+      setReadingSilo(null);
+      setAutoReadProgress(0);
+      setReadingMode('none');
+      return;
+    }
 
     const interval = setInterval(() => {
-      if (currentIndex >= allSilos.length) {
-        // Auto read complete
+      timeoutCounter++;
+      
+      // Safety timeout to prevent infinite loops
+      if (timeoutCounter > maxTimeout) {
+        console.error('Auto test timeout - forcing completion');
         clearInterval(interval);
         autoReadInterval.current = null;
         setIsReading(false);
         setReadingSilo(null);
-        setAutoReadProgress(0);
+        setAutoReadProgress(100);
+        setReadingMode('none');
+        setAutoReadCompleted(true);
+        return;
+      }
+
+      if (currentIndex >= allSilos.length) {
+        // Auto read complete
+        console.log('Auto test completed successfully');
+        clearInterval(interval);
+        autoReadInterval.current = null;
+        setIsReading(false);
+        setReadingSilo(null);
+        setAutoReadProgress(100);
         setReadingMode('none');
         setAutoReadCompleted(true);
         return;
       }
 
       const currentSilo = allSilos[currentIndex];
+      console.log('Reading silo:', currentSilo.num, 'progress:', currentIndex + 1, '/', allSilos.length);
+      
       setReadingSilo(currentSilo.num);
       setSelectedSilo(currentSilo.num);
       setSelectedTemp(currentSilo.temp);
