@@ -5,6 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   Upload, 
@@ -17,7 +18,19 @@ import {
   AlertTriangle,
   XCircle,
   Trash2,
-  Eye
+  Eye,
+  Search,
+  Filter,
+  Star,
+  StarOff,
+  Lock,
+  Unlock,
+  Share,
+  Copy,
+  Edit,
+  MoreHorizontal,
+  Grid,
+  List
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -40,6 +53,15 @@ interface ImportedData {
   recordCount: number;
   status: 'success' | 'warning' | 'error';
   size: string;
+  tags: string[];
+  description?: string;
+  isFavorite: boolean;
+  isEncrypted: boolean;
+  lastAccessed: Date;
+  checksum: string;
+  version: string;
+  category: 'temperature' | 'performance' | 'maintenance' | 'reports' | 'other';
+  priority: 'low' | 'medium' | 'high' | 'critical';
 }
 
 interface ExportTemplate {
@@ -48,6 +70,20 @@ interface ExportTemplate {
   description: string;
   format: 'excel' | 'pdf';
   lastUsed: Date;
+  isDefault: boolean;
+  category: string;
+}
+
+interface FileViewerData {
+  headers: string[];
+  data: any[][];
+  metadata: {
+    totalRows: number;
+    totalColumns: number;
+    fileSize: string;
+    lastModified: Date;
+    createdBy: string;
+  };
 }
 
 const DataManagement = () => {
@@ -61,7 +97,16 @@ const DataManagement = () => {
       uploadDate: new Date('2024-08-04T10:30:00'),
       recordCount: 150,
       status: 'success',
-      size: '2.3 MB'
+      size: '2.3 MB',
+      tags: ['temperature', 'daily', 'automated'],
+      description: 'Daily temperature readings from all silos',
+      isFavorite: true,
+      isEncrypted: false,
+      lastAccessed: new Date('2024-08-04T15:30:00'),
+      checksum: 'a1b2c3d4e5f6',
+      version: '1.0',
+      category: 'temperature',
+      priority: 'high'
     },
     {
       id: '2',
@@ -70,7 +115,16 @@ const DataManagement = () => {
       uploadDate: new Date('2024-08-04T09:15:00'),
       recordCount: 75,
       status: 'warning',
-      size: '1.8 MB'
+      size: '1.8 MB',
+      tags: ['report', 'monthly', 'analysis'],
+      description: 'Monthly temperature analysis report',
+      isFavorite: false,
+      isEncrypted: true,
+      lastAccessed: new Date('2024-08-04T12:15:00'),
+      checksum: 'b2c3d4e5f6g7',
+      version: '2.1',
+      category: 'reports',
+      priority: 'medium'
     }
   ]);
 
@@ -80,18 +134,30 @@ const DataManagement = () => {
       name: 'Silo Temperature Report',
       description: 'Complete temperature readings for all silos',
       format: 'excel',
-      lastUsed: new Date('2024-08-04T11:00:00')
+      lastUsed: new Date('2024-08-04T11:00:00'),
+      isDefault: true,
+      category: 'temperature'
     },
     {
       id: '2',
       name: 'Test Results Summary',
       description: 'Auto and manual test results with statistics',
       format: 'pdf',
-      lastUsed: new Date('2024-08-03T14:30:00')
+      lastUsed: new Date('2024-08-03T14:30:00'),
+      isDefault: false,
+      category: 'reports'
     }
   ]);
 
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<ImportedData | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [showFavorites, setShowFavorites] = useState<boolean>(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerData, setViewerData] = useState<FileViewerData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,14 +175,69 @@ const DataManagement = () => {
       uploadDate: new Date(),
       recordCount: Math.floor(Math.random() * 200) + 50,
       status: Math.random() > 0.2 ? 'success' : 'warning',
-      size: fileSize
+      size: fileSize,
+      tags: ['new', 'uploaded'],
+      description: `Uploaded ${file.name}`,
+      isFavorite: false,
+      isEncrypted: false,
+      lastAccessed: new Date(),
+      checksum: Math.random().toString(36).substring(2, 8),
+      version: '1.0',
+      category: 'other',
+      priority: 'medium'
     };
 
     setImportedFiles(prev => [newFile, ...prev]);
   };
 
-  const exportToExcel = () => {
-    // Create sample data for Excel export
+  const handleFileView = (file: ImportedData) => {
+    setSelectedFile(file);
+    
+    // Simulate file data loading
+    const mockData: FileViewerData = {
+      headers: ['Silo ID', 'Temperature (°C)', 'Status', 'Timestamp', 'Location'],
+      data: [
+        ['S001', '32.5', 'Normal', '2024-08-04 12:30:00', 'Zone A'],
+        ['S002', '28.9', 'Normal', '2024-08-04 12:30:00', 'Zone B'],
+        ['S003', '35.2', 'Warning', '2024-08-04 12:30:00', 'Zone C'],
+        ['S004', '42.1', 'Critical', '2024-08-04 12:30:00', 'Zone D'],
+        ['S005', '31.8', 'Normal', '2024-08-04 12:30:00', 'Zone A'],
+        ['S006', '29.4', 'Normal', '2024-08-04 12:30:00', 'Zone B'],
+        ['S007', '38.7', 'Warning', '2024-08-04 12:30:00', 'Zone C'],
+        ['S008', '33.2', 'Normal', '2024-08-04 12:30:00', 'Zone D']
+      ],
+      metadata: {
+        totalRows: 8,
+        totalColumns: 5,
+        fileSize: file.size,
+        lastModified: file.uploadDate,
+        createdBy: 'System User'
+      }
+    };
+    
+    setViewerData(mockData);
+    setIsViewerOpen(true);
+  };
+
+  const handleFileDownload = (file: ImportedData) => {
+    if (file.fileType === 'excel') {
+      exportToExcel(file.fileName);
+    } else {
+      exportToPDF(file.fileName);
+    }
+  };
+
+  const handleFileDelete = (fileId: string) => {
+    setImportedFiles(prev => prev.filter(f => f.id !== fileId));
+  };
+
+  const handleFileFavorite = (fileId: string) => {
+    setImportedFiles(prev => prev.map(f => 
+      f.id === fileId ? { ...f, isFavorite: !f.isFavorite } : f
+    ));
+  };
+
+  const exportToExcel = (filename?: string) => {
     const data = [
       { SiloID: 'S001', Temperature: 32.5, Status: 'Normal', Timestamp: '2024-08-04 12:30:00' },
       { SiloID: 'S002', Temperature: 28.9, Status: 'Normal', Timestamp: '2024-08-04 12:30:00' },
@@ -131,21 +252,18 @@ const DataManagement = () => {
     
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(dataBlob, 'silo_readings_export.xlsx');
+    saveAs(dataBlob, filename || 'silo_readings_export.xlsx');
   };
 
-  const exportToPDF = async () => {
+  const exportToPDF = (filename?: string) => {
     const pdf = new jsPDF();
     
-    // Add title
     pdf.setFontSize(20);
     pdf.text('Silo Monitoring System - Data Report', 20, 20);
     
-    // Add date
     pdf.setFontSize(12);
     pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
     
-    // Add sample data
     pdf.setFontSize(10);
     const data = [
       ['Silo ID', 'Temperature (°C)', 'Status', 'Timestamp'],
@@ -163,7 +281,7 @@ const DataManagement = () => {
       styles: { fontSize: 8 }
     });
     
-    pdf.save('silo_readings_report.pdf');
+    pdf.save(filename || 'silo_readings_report.pdf');
   };
 
   const getStatusIcon = (status: string) => {
@@ -184,11 +302,33 @@ const DataManagement = () => {
     }
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }
+  };
+
   const getFileIcon = (fileType: string) => {
     return fileType === 'excel' ? 
       <FileSpreadsheet className="h-5 w-5 text-green-600" /> : 
       <File className="h-5 w-5 text-red-600" />;
   };
+
+  const filteredFiles = importedFiles.filter(file => {
+    const matchesCategory = filterCategory === 'all' || file.category === filterCategory;
+    const matchesStatus = filterStatus === 'all' || file.status === filterStatus;
+    const matchesSearch = searchTerm === '' || 
+      file.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      file.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      file.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesFavorites = !showFavorites || file.isFavorite;
+    
+    return matchesCategory && matchesStatus && matchesSearch && matchesFavorites;
+  });
 
   return (
     <div className="p-6">
@@ -197,7 +337,7 @@ const DataManagement = () => {
           Data Management
         </h1>
         <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          Import and export silo readings data in various formats
+          Import, view, and manage silo readings data in various formats
         </p>
       </div>
 
@@ -275,7 +415,7 @@ const DataManagement = () => {
               </h3>
               <div className="space-y-3">
                 <Button 
-                  onClick={exportToExcel}
+                  onClick={() => exportToExcel()}
                   className={`w-full justify-start ${isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}`}
                   variant="outline"
                 >
@@ -283,7 +423,7 @@ const DataManagement = () => {
                   Export to Excel
                 </Button>
                 <Button 
-                  onClick={exportToPDF}
+                  onClick={() => exportToPDF()}
                   className={`w-full justify-start ${isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}`}
                   variant="outline"
                 >
@@ -321,48 +461,255 @@ const DataManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Imported Files */}
+      {/* File Management Section */}
       <Card className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
         <CardHeader>
-          <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
-            <Database className="h-5 w-5" />
-            Imported Files
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
+              <Database className="h-5 w-5" />
+              Imported Files ({filteredFiles.length})
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                className={isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}
+              >
+                {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {importedFiles.map((file) => (
-              <div key={file.id} className={`flex items-center justify-between p-4 border rounded-lg ${
+          {/* Filters and Search */}
+          <div className="mb-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <Input
+                  placeholder="Search files..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={isDark ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : ''}
+                />
+              </div>
+              <div>
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="temperature">Temperature</SelectItem>
+                    <SelectItem value="performance">Performance</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="reports">Reports</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="success">Success</SelectItem>
+                    <SelectItem value="warning">Warning</SelectItem>
+                    <SelectItem value="error">Error</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <Button
+                variant={showFavorites ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowFavorites(!showFavorites)}
+                className={isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}
+              >
+                <Star className="h-4 w-4 mr-2" />
+                Favorites
+              </Button>
+            </div>
+          </div>
+
+          {/* Files Grid */}
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
+            {filteredFiles.map((file) => (
+              <div key={file.id} className={`border rounded-lg p-4 ${
                 isDark ? 'border-gray-700 bg-gray-700' : 'border-gray-200'
               }`}>
-                <div className="flex items-center space-x-3">
-                  {getFileIcon(file.fileType)}
-                  <div>
-                    <p className={`text-sm font-medium ${isDark ? 'text-white' : ''}`}>
-                      {file.fileName}
-                    </p>
-                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {file.uploadDate.toLocaleDateString()} • {file.size} • {file.recordCount} records
-                    </p>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    {getFileIcon(file.fileType)}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : ''}`}>
+                        {file.fileName}
+                      </p>
+                      <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {file.size} • {file.recordCount} records
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFileFavorite(file.id)}
+                      className={isDark ? 'text-gray-300 hover:text-white' : ''}
+                    >
+                      {file.isFavorite ? <Star className="h-4 w-4 fill-yellow-400" /> : <StarOff className="h-4 w-4" />}
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {getStatusIcon(file.status)}
-                  <Badge className={getStatusColor(file.status)}>
-                    {file.status}
-                  </Badge>
-                  <Button variant="ghost" size="sm" className={isDark ? 'text-gray-300 hover:text-white' : ''}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className={isDark ? 'text-gray-300 hover:text-white' : ''}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center justify-between">
+                    <Badge className={getStatusColor(file.status)}>
+                      {file.status}
+                    </Badge>
+                    <Badge className={getPriorityColor(file.priority)}>
+                      {file.priority}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+                      {file.category}
+                    </span>
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+                      {file.uploadDate.toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                
+                {file.description && (
+                  <p className={`text-xs mb-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    {file.description}
+                  </p>
+                )}
+                
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {file.tags.slice(0, 3).map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {file.tags.length > 3 && (
+                    <Badge variant="secondary" className="text-xs">
+                      +{file.tags.length - 3}
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFileView(file)}
+                      className={isDark ? 'text-gray-300 hover:text-white' : ''}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFileDownload(file)}
+                      className={isDark ? 'text-gray-300 hover:text-white' : ''}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFileDelete(file.id)}
+                      className={isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    {file.isEncrypted && <Lock className="h-4 w-4 text-blue-500" />}
+                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      v{file.version}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {filteredFiles.length === 0 && (
+            <div className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p>No files found matching your criteria.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* File Viewer Dialog */}
+      <Dialog open={isViewerOpen} onOpenChange={setIsViewerOpen}>
+        <DialogContent className={`max-w-4xl ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
+          <DialogHeader>
+            <DialogTitle className={isDark ? 'text-white' : ''}>
+              {selectedFile?.fileName}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {viewerData && (
+            <div className="mt-4">
+              <div className={`border rounded-lg ${isDark ? 'border-gray-600' : 'border-gray-200'}`}>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
+                      <tr>
+                        {viewerData.headers.map((header, index) => (
+                          <th key={index} className={`px-4 py-2 text-left text-sm font-medium ${
+                            isDark ? 'text-gray-200 border-gray-600' : 'text-gray-700 border-gray-200'
+                          } border-b`}>
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {viewerData.data.map((row, rowIndex) => (
+                        <tr key={rowIndex} className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                          {row.map((cell, cellIndex) => (
+                            <td key={cellIndex} className={`px-4 py-2 text-sm border-b ${
+                              isDark ? 'text-gray-300 border-gray-600' : 'text-gray-700 border-gray-200'
+                            }`}>
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div className="mt-4 flex justify-between items-center">
+                <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Total Rows: {viewerData.metadata.totalRows} | 
+                  Total Columns: {viewerData.metadata.totalColumns} | 
+                  File Size: {viewerData.metadata.fileSize}
+                </div>
+                <Button
+                  onClick={() => selectedFile && handleFileDownload(selectedFile)}
+                  className={isDark ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
