@@ -14,6 +14,7 @@ export const useSiloSystem = () => {
   const [isReading, setIsReading] = useState<boolean>(false);
   const [readingSilo, setReadingSilo] = useState<number | null>(null);
   const [autoReadProgress, setAutoReadProgress] = useState<number>(0);
+  const [autoReadCompleted, setAutoReadCompleted] = useState<boolean>(false);
   const autoReadInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Handle silo click
@@ -68,12 +69,14 @@ export const useSiloSystem = () => {
       setReadingSilo(null);
       setAutoReadProgress(0);
       setReadingMode('none');
+      setAutoReadCompleted(false);
       return;
     }
 
     setReadingMode('auto');
     setIsReading(true);
     setAutoReadProgress(0);
+    setAutoReadCompleted(false);
 
     const allSilos = getAllSilos();
     let currentIndex = 0;
@@ -87,6 +90,7 @@ export const useSiloSystem = () => {
         setReadingSilo(null);
         setAutoReadProgress(0);
         setReadingMode('none');
+        setAutoReadCompleted(true);
         return;
       }
 
@@ -100,7 +104,7 @@ export const useSiloSystem = () => {
     }, 800); // 800ms per silo reading
 
     autoReadInterval.current = interval;
-  }, [readingMode]);
+  }, [readingMode, isReading, autoReadCompleted]);
 
   // Handle manual read mode toggle
   const handleManualReadMode = useCallback(() => {
@@ -152,6 +156,7 @@ export const useSiloSystem = () => {
     isReading,
     readingSilo,
     autoReadProgress,
+    autoReadCompleted,
 
     // Actions
     handleSiloClick,

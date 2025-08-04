@@ -18,6 +18,7 @@ export const LabInterface = () => {
     isReading,
     readingSilo,
     autoReadProgress,
+    autoReadCompleted,
     handleSiloClick,
     handleSiloHover,
     handleSiloMouseMove,
@@ -224,7 +225,7 @@ export const LabInterface = () => {
                 className="w-32"
                 data-testid="auto-test-button"
               >
-                {readingMode === 'auto' ? 'Stop Auto Test' : 'Start Auto Test'}
+                {autoReadCompleted ? 'Auto Test Completed' : readingMode === 'auto' ? 'Stop Auto Test' : 'Start Auto Test'}
               </Button>
               
               {/* Auto Read Progress */}
@@ -239,6 +240,13 @@ export const LabInterface = () => {
                   <div className="text-xs mt-1 text-center">
                     {Math.round(autoReadProgress)}% complete
                   </div>
+                </div>
+              )}
+
+              {/* Auto Read Completion Message */}
+              {autoReadCompleted && readingMode === 'none' && (
+                <div className="mt-2 text-sm text-green-600 font-medium">
+                  ✓ Auto test completed successfully
                 </div>
               )}
 
