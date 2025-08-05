@@ -61,7 +61,11 @@
 
 ## Current Task: Update Life Test Functionality
 
-**Status: ✅ COMPLETED**
+**Status: ✅ COMPLETED & COMMITTED**
+
+**Branch:** `feature/life-test-enhancements`
+**Commit:** `65d2323`
+**GitHub:** https://github.com/basharagb/replica-view-studio/tree/feature/life-test-enhancements
 
 ### Requirements:
 1. **Manual test should be default** when opening Life Test
