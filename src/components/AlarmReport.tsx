@@ -88,46 +88,197 @@ export const AlarmReport: React.FC = () => {
   const handlePrintPDF = () => {
     if (!isPrintEnabled) return;
     
-    const printContent = document.getElementById('alarm-report-content');
-    if (printContent) {
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Alarm Report - ${filters.selectedSilos?.length} Silos</title>
-              <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
-                .header { text-align: center; margin-bottom: 20px; }
-                .alarm-normal { color: green; }
-                .alarm-warning { color: orange; }
-                .alarm-critical { color: red; }
-                .silo-number { font-weight: bold; color: #1f2937; }
-              </style>
-            </head>
-            <body>
-              ${printContent.innerHTML}
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-      }
+    // Create print content with ALL data (not paginated)
+    const generatePrintContent = () => {
+      const header = `
+        <div class="header">
+          <h2>Alarm Report - ${filters.selectedSilos?.length} Silos</h2>
+          <p>Period: ${format(filters.startDate!, 'MMM dd, yyyy HH:mm')} - ${format(filters.endDate!, 'MMM dd, yyyy HH:mm')}</p>
+          <p>Selected Silos: ${filters.selectedSilos?.join(', ')}</p>
+          <p>Total Records: ${reportData.length}</p>
+        </div>
+      `;
+      
+      const tableRows = reportData.map(record => `
+        <tr>
+          <td class="silo-number">#${record.siloNumber}</td>
+          <td>${format(record.dateTime, 'MMM dd, yyyy HH:mm:ss')}</td>
+          <td>${record.sensorReadings.sensor1.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor2.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor3.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor4.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor5.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor6.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor7.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor8.toFixed(1)}°C</td>
+          <td class="alarm-${record.alarmStatus.toLowerCase()}">${record.alarmStatus}</td>
+          <td>${record.siloTemperature.toFixed(1)}°C</td>
+        </tr>
+      `).join('');
+      
+      return `
+        ${header}
+        <table>
+          <thead>
+            <tr>
+              <th>Silo#</th>
+              <th>Date Time</th>
+              <th>Sensor 1</th>
+              <th>Sensor 2</th>
+              <th>Sensor 3</th>
+              <th>Sensor 4</th>
+              <th>Sensor 5</th>
+              <th>Sensor 6</th>
+              <th>Sensor 7</th>
+              <th>Sensor 8</th>
+              <th>Alarm Status</th>
+              <th>Max Temp</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      `;
+    };
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Alarm Report - ${filters.selectedSilos?.length} Silos</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+              th { background-color: #f2f2f2; font-weight: bold; }
+              .header { text-align: center; margin-bottom: 20px; }
+              .header h2 { margin: 0; color: #333; }
+              .header p { margin: 5px 0; color: #666; }
+              .alarm-normal { color: green; font-weight: bold; }
+              .alarm-warning { color: #f59e0b; font-weight: bold; }
+              .alarm-critical { color: red; font-weight: bold; }
+              .silo-number { font-weight: bold; color: #1f2937; }
+              @media print {
+                body { margin: 10px; }
+                th, td { padding: 4px; font-size: 10px; }
+              }
+            </style>
+          </head>
+          <body>
+            ${generatePrintContent()}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
     }
   };
 
   const handlePrintPrinter = () => {
     if (!isPrintEnabled) return;
+    
+    // Create print content with ALL data (not paginated)
+    const generatePrintContent = () => {
+      const header = `
+        <div class="header">
+          <h2>Alarm Report - ${filters.selectedSilos?.length} Silos</h2>
+          <p>Period: ${format(filters.startDate!, 'MMM dd, yyyy HH:mm')} - ${format(filters.endDate!, 'MMM dd, yyyy HH:mm')}</p>
+          <p>Selected Silos: ${filters.selectedSilos?.join(', ')}</p>
+          <p>Total Records: ${reportData.length}</p>
+        </div>
+      `;
+      
+      const tableRows = reportData.map(record => `
+        <tr>
+          <td class="silo-number">#${record.siloNumber}</td>
+          <td>${format(record.dateTime, 'MMM dd, yyyy HH:mm:ss')}</td>
+          <td>${record.sensorReadings.sensor1.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor2.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor3.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor4.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor5.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor6.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor7.toFixed(1)}°C</td>
+          <td>${record.sensorReadings.sensor8.toFixed(1)}°C</td>
+          <td class="alarm-${record.alarmStatus.toLowerCase()}">${record.alarmStatus}</td>
+          <td>${record.siloTemperature.toFixed(1)}°C</td>
+        </tr>
+      `).join('');
+      
+      return `
+        <html>
+          <head>
+            <title>Alarm Report - ${filters.selectedSilos?.length} Silos</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+              th { background-color: #f2f2f2; font-weight: bold; }
+              .header { text-align: center; margin-bottom: 20px; }
+              .header h2 { margin: 0; color: #333; }
+              .header p { margin: 5px 0; color: #666; }
+              .alarm-normal { color: green; font-weight: bold; }
+              .alarm-warning { color: #f59e0b; font-weight: bold; }
+              .alarm-critical { color: red; font-weight: bold; }
+              .silo-number { font-weight: bold; color: #1f2937; }
+              @media print {
+                body { margin: 10px; }
+                th, td { padding: 4px; font-size: 10px; }
+              }
+            </style>
+          </head>
+          <body>
+            ${header}
+            <table>
+              <thead>
+                <tr>
+                  <th>Silo#</th>
+                  <th>Date Time</th>
+                  <th>Sensor 1</th>
+                  <th>Sensor 2</th>
+                  <th>Sensor 3</th>
+                  <th>Sensor 4</th>
+                  <th>Sensor 5</th>
+                  <th>Sensor 6</th>
+                  <th>Sensor 7</th>
+                  <th>Sensor 8</th>
+                  <th>Alarm Status</th>
+                  <th>Max Temp</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRows}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `;
+    };
+    
+    // Store original content
+    const originalContent = document.body.innerHTML;
+    
+    // Replace body content with print content
+    document.body.innerHTML = generatePrintContent();
+    
+    // Trigger print
     window.print();
+    
+    // Restore original content and reload to reattach React event listeners
+    document.body.innerHTML = originalContent;
+    window.location.reload();
   };
 
   const getAlarmStatusBadge = (status: string) => {
-    const variant = status === 'Critical' ? 'destructive' : 
-                   status === 'Warning' ? 'secondary' : 'default';
-    return <Badge variant={variant}>{status}</Badge>;
+    if (status === 'Critical') {
+      return <Badge variant="destructive">{status}</Badge>;
+    }
+    if (status === 'Warning') {
+      return <Badge className="bg-yellow-500 text-white hover:bg-yellow-600">{status}</Badge>;
+    }
+    return <Badge variant="default">{status}</Badge>;
   };
 
   const getSiloNumberBadge = (siloNumber: number) => {
@@ -194,7 +345,7 @@ export const AlarmReport: React.FC = () => {
             <Button
               onClick={handleGenerateReport}
               disabled={!isGenerateEnabled || isGenerating}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md"
             >
               <FileText className="h-4 w-4" />
               {isGenerating ? 'Generating...' : 'Generate Report'}
@@ -204,7 +355,7 @@ export const AlarmReport: React.FC = () => {
               onClick={handlePrintPDF}
               disabled={!isPrintEnabled}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md"
             >
               <Download className="h-4 w-4" />
               Print as PDF
@@ -214,7 +365,7 @@ export const AlarmReport: React.FC = () => {
               onClick={handlePrintPrinter}
               disabled={!isPrintEnabled}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md"
             >
               <Printer className="h-4 w-4" />
               Print via Printer
@@ -258,7 +409,7 @@ export const AlarmReport: React.FC = () => {
                       <th>Sensor 7</th>
                       <th>Sensor 8</th>
                       <th>Alarm Status</th>
-                      <th>Silo Temp</th>
+                      <th>Max Temp</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -1,6 +1,53 @@
 # Scratchpad - Jarvis
 
-## Current Task: Implement Report System
+## Current Task: Enhance Report System
+
+**Status: 🔄 IN PROGRESS**
+
+### Report System Enhancements - TODO List
+
+**Requirements:**
+- [x] Make the background color for the warning in alarm status yellow
+- [x] Make Silo Reports View have pagination 24 rows per page
+- [x] Change the silo temp to max temp in Report table
+- [x] Enhance the UI for reports section with smooth animations
+- [x] Modify print via printer: Print only report table not the whole page
+- [x] Modify print as PDF: Print the report table only not the whole page
+- [ ] Commit and push changes
+- [ ] Update the live deployment
+
+**✅ COMPLETED ENHANCEMENTS:**
+
+#### 1. Alarm Status Badge Styling ✅
+- Updated both SiloReport and AlarmReport components
+- Warning badges now show yellow background (#f59e0b) with white text
+- Critical badges remain red, Normal badges remain default
+
+#### 2. Pagination Implementation ✅
+- Added pagination to SiloReport with 24 rows per page
+- Pagination controls with previous/next buttons
+- Page numbers with ellipsis for large datasets
+- Pagination resets on filter changes
+
+#### 3. Column Header Update ✅
+- Changed "Silo Temp" to "Max Temp" in both report components
+- Confirmed max temperature calculation is correct in reportService
+
+#### 4. UI Animations ✅
+- Added smooth fade-in and slide-in animations to ReportSystem tabs
+- Enhanced report cards with hover scale and shadow effects
+- Added button hover animations with scale and shadow
+- Table rows have smooth hover transitions
+
+#### 5. Print Functionality Enhancement ✅
+- **SiloReport**: Both PDF and printer functions now print only table content
+- **AlarmReport**: Both PDF and printer functions now print only table content
+- Print includes header info (silo number, date range, total records)
+- Styled table with all sensor readings and alarm statuses
+- Printer function uses temporary body replacement with page reload
+- PDF function opens in new window with proper styling
+
+## Previous Task: Implement Report System
 
 **Status: ✅ COMPLETED**
 
