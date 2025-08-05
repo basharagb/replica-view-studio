@@ -33,7 +33,7 @@ const SiloMonitoringDemo: React.FC = () => {
             <h3 className="font-semibold text-blue-800 mb-2">System Specifications</h3>
             <div className="text-sm text-blue-700 space-y-1">
               <div>• <strong>8 sensors per silo</strong> - Continuous temperature monitoring</div>
-              <div>• <strong>Three-tier color coding:</strong> Green (20-34.99°C), Yellow (35-39.99°C), Red (40°C+)</div>
+              <div>• <strong>Three-tier color coding:</strong> Green (20-35°C), Yellow (35-40°C), Red (40°C+)</div>
               <div>• <strong>Priority hierarchy:</strong> Red (Critical) → Yellow (Warning) → Green (Normal)</div>
               <div>• <strong>Overall status:</strong> Determined by highest priority sensor reading</div>
               <div>• <strong>Real-time updates:</strong> Sensor readings refresh every 5 seconds</div>

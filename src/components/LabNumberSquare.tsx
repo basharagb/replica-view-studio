@@ -1,4 +1,4 @@
-import { getTemperatureColor, findSiloByNumber } from '../services/siloData';
+import { getSiloColorByNumber, findSiloByNumber } from '../services/siloData';
 
 interface LabNumberSquareProps {
   number: number;
@@ -24,7 +24,7 @@ export const LabNumberSquare = ({
   // Find the silo data to get temperature
   const silo = findSiloByNumber(number);
   const temp = silo?.temp || 0;
-  const temperatureColor = getTemperatureColor(temp);
+  const temperatureColor = getSiloColorByNumber(number);
   const colorClass = `temp-${temperatureColor}`;
 
   const handleClick = () => {

@@ -2,11 +2,11 @@ import { Silo, SiloGroup, TemperatureColor, SensorReading, AlertLevel, Temperatu
 
 // Temperature threshold constants for silo monitoring system
 export const TEMPERATURE_THRESHOLDS = {
-  GREEN_MIN: 20.0,      // Green: Low readings (20.0-34.99)
-  GREEN_MAX: 34.99,     // Green: Low readings (20.0-34.99)
-  YELLOW_MIN: 35.0,     // Yellow: Medium readings (35.0-39.99)
-  YELLOW_MAX: 39.99,    // Yellow: Medium readings (35.0-39.99)
-  RED_MIN: 40.0,        // Red: High readings (40.0+)
+  GREEN_MIN: 20.0,      // Green: Low readings (20 to <30)
+  GREEN_MAX: 29.99,     // Green: Low readings (20 to <30)
+  YELLOW_MIN: 30.0,     // Yellow: Medium readings (30 to 40)
+  YELLOW_MAX: 40.0,     // Yellow: Medium readings (30 to 40)
+  RED_MIN: 40.01,       // Red: High readings (>40)
 } as const;
 
 // Temperature range for random generation (20-50°C)
@@ -71,15 +71,15 @@ export const generateSensorReadings = (baseTemp: number): number[] => {
   return readings.sort((a, b) => b - a);
 };
 
-// Generate silo with 8 sensors and calculate MAX temperature
+// Generate silo with 8 sensors and calculate temperature using priority hierarchy
 const generateSiloWithSensors = (num: number): Silo => {
   const baseTemp = generateRandomTemp();
   const sensors = generateSensorReadings(baseTemp);
-  const maxTemp = Math.max(...sensors); // Silo temp is MAX of all sensors
+  const siloStatus = calculateSiloStatus(sensors);
   
   return {
     num,
-    temp: maxTemp // Silo temperature is the MAX of all 8 sensors
+    temp: siloStatus.temperature // Silo temperature is the MAX of all 8 sensors
   };
 };
 
@@ -306,13 +306,26 @@ export let cylinderSilos: CylinderSilo[] = [
   }
 ];
 
+// Function to clear sensor readings cache
+export const clearSensorReadingsCache = (): void => {
+  // Clear all dynamically generated readings but keep the predefined ones
+  const keysToKeep = [18, 25, 26, 27, 29, 32, 35, 36, 38, 112];
+  Object.keys(predefinedReadings).forEach(key => {
+    const numKey = parseInt(key);
+    if (!keysToKeep.includes(numKey)) {
+      delete predefinedReadings[numKey];
+    }
+  });
+};
+
 // Function to regenerate all silo data
 export const regenerateAllSiloData = (): void => {
   topSiloGroups = generateTopSiloGroups();
   bottomSiloGroups = generateBottomSiloGroups();
   cylinderSilos = generateCylinderSilos();
   
-  // Update predefined readings for cylinder silos
+  // Clear cache and update predefined readings for cylinder silos
+  clearSensorReadingsCache();
   cylinderSilos.forEach(silo => {
     predefinedReadings[silo.num] = silo.sensors;
   });
@@ -320,25 +333,65 @@ export const regenerateAllSiloData = (): void => {
 
 // Temperature color mapping - Silo monitoring system with priority hierarchy
 export const getTemperatureColor = (temp: number): TemperatureColor => {
-  if (temp >= TEMPERATURE_THRESHOLDS.RED_MIN) return 'pink';          // Red: High readings (40.0+) - Highest priority
-  if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'yellow';     // Yellow: Medium readings (35.0-39.99) - Medium priority
-  if (temp >= TEMPERATURE_THRESHOLDS.GREEN_MIN) return 'green';       // Green: Low readings (20.0-34.99) - Lowest priority
+  if (temp > TEMPERATURE_THRESHOLDS.YELLOW_MAX) return 'pink';        // Red: >40°C - Highest priority
+  if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'yellow';     // Yellow: 30-40°C - Medium priority
+  if (temp >= TEMPERATURE_THRESHOLDS.GREEN_MIN) return 'green';       // Green: 20-30°C - Lowest priority
   return 'beige';                                                     // Default - Below range
 };
 
 // Calculate alert level based on temperature - Priority hierarchy
 export const getAlertLevel = (temp: number): AlertLevel => {
-  if (temp >= TEMPERATURE_THRESHOLDS.RED_MIN) return 'critical';      // Red: 40.0+ (Highest priority)
-  if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'warning';    // Yellow: 35.0-39.99 (Medium priority)
-  return 'none';                                                      // Green: 20.0-34.99 (Lowest priority)
+  if (temp > TEMPERATURE_THRESHOLDS.YELLOW_MAX) return 'critical';    // Red: >40°C (Highest priority)
+  if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'warning';    // Yellow: 30-40°C (Medium priority)
+  return 'none';                                                      // Green: <30°C (Lowest priority)
 };
 
 // Calculate temperature trend (simplified version - would use historical data in real implementation)
 export const getTemperatureTrend = (currentTemp: number, previousTemp?: number): TemperatureTrend => {
   if (!previousTemp) return 'stable';
-  const difference = currentTemp - previousTemp;
-  if (Math.abs(difference) < 0.5) return 'stable';
-  return difference > 0 ? 'rising' : 'falling';
+  const diff = currentTemp - previousTemp;
+  if (diff > 1) return 'rising';
+  if (diff < -1) return 'falling';
+  return 'stable';
+};
+
+// Determine silo color based on sensor priority hierarchy
+// Priority: Red (>40°C) > Yellow (30-40°C) > Green (<30°C)
+export const getSiloColorFromSensors = (sensorReadings: number[]): TemperatureColor => {
+  // Check for any red sensors (highest priority)
+  const hasRedSensor = sensorReadings.some(temp => temp > TEMPERATURE_THRESHOLDS.YELLOW_MAX);
+  if (hasRedSensor) {
+    return 'pink'; // Red color
+  }
+  
+  // Check for any yellow sensors (medium priority)
+  const hasYellowSensor = sensorReadings.some(temp => 
+    temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN && temp <= TEMPERATURE_THRESHOLDS.YELLOW_MAX
+  );
+  if (hasYellowSensor) {
+    return 'yellow'; // Yellow color
+  }
+  
+  // All sensors are green (lowest priority)
+  return 'green'; // Green color
+};
+
+// Calculate silo temperature and color based on sensor priority hierarchy
+export const calculateSiloStatus = (sensorReadings: number[]) => {
+  const maxTemp = Math.max(...sensorReadings);
+  const priorityColor = getSiloColorFromSensors(sensorReadings);
+  
+  return {
+    temperature: maxTemp,
+    color: priorityColor,
+    alertLevel: getAlertLevel(maxTemp)
+  };
+};
+
+// Get silo color based on silo number using sensor priority hierarchy
+export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
+  const sensorReadings = getSensorReadings(siloNum);
+  return getSiloColorFromSensors(sensorReadings);
 };
 
 // Generate temperature monitoring state
@@ -400,6 +453,7 @@ export const temperatureScaleValues = [20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0]
 
 // Predefined sensor readings for specific silos - SORTED from highest to lowest
 const predefinedReadings: { [key: number]: number[] } = {
+  18: [39.6, 39.2, 38.8, 38.4, 38.0, 37.6, 37.2, 36.8], // Sorted highest to lowest - YELLOW (max=39.6)
   25: [44.6, 43.7, 42.9, 42.8, 42.8, 42.1, 42.0, 41.2], // Sorted highest to lowest
   26: [48.4, 47.6, 47.6, 46.8, 46.7, 46.5, 45.9, 45.0], // Sorted highest to lowest
   27: [44.9, 44.8, 44.7, 44.6, 44.5, 44.5, 44.4, 44.3], // Sorted highest to lowest

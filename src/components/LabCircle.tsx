@@ -1,4 +1,4 @@
-import { getTemperatureColor } from '../services/siloData';
+import { getSiloColorByNumber } from '../services/siloData';
 import { TemperatureColor } from '../types/silo';
 
 interface LabCircleProps {
@@ -32,7 +32,7 @@ export const LabCircle = ({
     lg: 'w-16 h-16 text-base'
   };
 
-  const temperatureColor = getTemperatureColor(temp);
+  const temperatureColor = getSiloColorByNumber(number);
   const colorClass = `temp-${temperatureColor}`;
 
   const handleClick = () => {

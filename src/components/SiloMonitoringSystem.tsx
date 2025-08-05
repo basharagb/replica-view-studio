@@ -45,13 +45,14 @@ const SiloMonitoringSystem: React.FC<SiloMonitoringSystemProps> = ({
       const value = Math.round((Math.random() * 30 + 20) * 10) / 10;
       
       // Determine sensor status based on specifications
+      // Green: 20-35°C, Yellow: 35-40°C, Red: 40+°C
       let status: 'green' | 'yellow' | 'red';
       if (value >= TEMPERATURE_THRESHOLDS.RED_MIN) {
-        status = 'red';
+        status = 'red';    // 40+°C
       } else if (value >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) {
-        status = 'yellow';
+        status = 'yellow'; // 35-40°C
       } else {
-        status = 'green';
+        status = 'green';  // 20-35°C
       }
       
       readings.push({
@@ -204,15 +205,15 @@ const SiloMonitoringSystem: React.FC<SiloMonitoringSystemProps> = ({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span>Green: 20.0-34.99°C</span>
+            <span>Green: 20-35°C</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-            <span>Yellow: 35.0-39.99°C</span>
+            <span>Yellow: 35-40°C</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-red-500 rounded"></div>
-            <span>Red: 40.0°C+</span>
+            <span>Red: 40°C+</span>
           </div>
         </div>
       </div>
