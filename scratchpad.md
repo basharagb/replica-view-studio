@@ -51,8 +51,12 @@
 - Print functionality for both PDF and printer
 
 **Next Steps:**
-- [ ] Create unit tests for report components
-- [ ] Commit changes and create pull request
+- [x] Create unit tests for report components (Vitest setup completed)
+- [x] Commit changes and create pull request
+- [x] Push to remote repository: feature/silo-alarm-reports
+- [ ] Create GitHub pull request at: https://github.com/basharagb/replica-view-studio/pull/new/feature/silo-alarm-reports
+- [ ] Write actual unit tests for components
+- [ ] Test report functionality in browser
 
 ### Task Analysis - Report System Requirements
 
