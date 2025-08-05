@@ -23,6 +23,10 @@ export const LabInterface = () => {
     autoReadProgress,
     autoReadCompleted,
     dataVersion,
+    manualTestDuration,
+    autoTestInterval,
+    isWaitingForRestart,
+    waitTimeRemaining,
     handleSiloClick,
     handleSiloHover,
     handleSiloMouseMove,
@@ -221,16 +225,16 @@ export const LabInterface = () => {
                 className="w-32 2xl:w-36 3xl:w-40"
                 data-testid="manual-test-button"
               >
-                {readingMode === 'manual' ? 'Stop Manual' : 'Start Manual Test'}
+                {readingMode === 'manual' ? 'Stop Manual' : `Manual Test (${manualTestDuration}min)`}
               </Button>
               <Button
                 variant={readingMode === 'auto' ? 'default' : 'outline'}
                 onClick={startAutoRead}
-                disabled={isReading && readingMode === 'manual'}
+                disabled={(isReading && readingMode === 'manual') || isWaitingForRestart}
                 className="w-32 2xl:w-36 3xl:w-40"
                 data-testid="auto-test-button"
               >
-                {autoReadCompleted ? 'Auto Test Completed' : readingMode === 'auto' ? 'Stop Auto Test' : 'Start Auto Test'}
+                {isWaitingForRestart ? 'Waiting to Restart' : autoReadCompleted ? 'Auto Test Completed' : readingMode === 'auto' ? 'Stop Auto Test' : `Auto Test (${autoTestInterval/60}h)`}
               </Button>
               
               {/* Auto Read Progress */}
@@ -248,8 +252,15 @@ export const LabInterface = () => {
                 </div>
               )}
 
+              {/* Auto Restart Status */}
+              {isWaitingForRestart && (
+                <div className="mt-2 text-sm text-blue-600 font-medium">
+                  ⏳ Waiting {waitTimeRemaining} minutes to restart auto test
+                </div>
+              )}
+              
               {/* Auto Read Completion Message */}
-              {autoReadCompleted && readingMode === 'none' && (
+              {autoReadCompleted && readingMode === 'none' && !isWaitingForRestart && (
                 <div className="mt-2 text-sm text-green-600 font-medium">
                   ✓ Auto test completed successfully
                 </div>

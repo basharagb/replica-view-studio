@@ -54,9 +54,27 @@
 - [x] Create unit tests for report components (Vitest setup completed)
 - [x] Commit changes and create pull request
 - [x] Push to remote repository: feature/silo-alarm-reports
+- [x] Deploy to live site (in progress)
 - [ ] Create GitHub pull request at: https://github.com/basharagb/replica-view-studio/pull/new/feature/silo-alarm-reports
 - [ ] Write actual unit tests for components
 - [ ] Test report functionality in browser
+
+## Current Task: Update Life Test Functionality
+
+**Status: ✅ COMPLETED**
+
+### Requirements:
+1. **Manual test should be default** when opening Life Test
+2. **Manual test default duration**: 15 minutes
+3. **Auto Test Interval dropdown**: 1 hour, 2 hours, 3 hours (instead of input field)
+4. **Auto test cycle**: After completion, wait for interval then restart automatically
+
+### Implementation Plan:
+- [x] Update useSiloSystem hook to default to manual mode
+- [x] Add 15-minute default for manual test
+- [x] Replace Auto Test Interval input with dropdown in Settings
+- [x] Implement auto-restart functionality with interval waiting
+- [x] Update UI to show current test mode and timing
 
 ### Task Analysis - Report System Requirements
 

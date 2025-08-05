@@ -106,7 +106,7 @@ const Settings = () => {
     notificationSound: true,
     
     // System Settings
-    autoTestInterval: 30,
+    autoTestInterval: 60,
     dataRetentionDays: 90,
     maxConcurrentTests: 5,
     temperatureUnit: 'celsius',
@@ -169,7 +169,7 @@ const Settings = () => {
       pushNotifications: true,
       alertThreshold: 40,
       notificationSound: true,
-      autoTestInterval: 30,
+      autoTestInterval: 60,
       dataRetentionDays: 90,
       maxConcurrentTests: 5,
       temperatureUnit: 'celsius',
@@ -287,13 +287,19 @@ const Settings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Auto Test Interval (minutes)</Label>
-                    <Input
-                      type="number"
-                      value={settings.autoTestInterval}
-                      onChange={(e) => handleSettingChange('autoTestInterval', parseInt(e.target.value))}
-                      min="1"
-                      max="1440"
-                    />
+                    <Select
+                      value={settings.autoTestInterval.toString()}
+                      onValueChange={(value) => handleSettingChange('autoTestInterval', parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select interval" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="60">1 hour</SelectItem>
+                        <SelectItem value="120">2 hours</SelectItem>
+                        <SelectItem value="180">3 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label>Data Retention (days)</Label>
