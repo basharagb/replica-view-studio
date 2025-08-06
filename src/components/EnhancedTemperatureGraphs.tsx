@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MultiSelectDropdown } from './MultiSelectDropdown';
+import AdvancedSiloVisualization from './AdvancedSiloVisualization';
+import AlertAnalyticsSystem from './AlertAnalyticsSystem';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getAllSiloNumbers, getAlarmedSilos } from '@/services/reportService';
-import { generateTemperatureHistory } from '@/services/reportService';
+import { getAllSiloNumbers, getAlarmedSilos, generateTemperatureHistory } from '@/services/reportService';
 import { format, differenceInDays, differenceInHours } from 'date-fns';
 
 interface TemperatureDataPoint {
@@ -25,7 +27,7 @@ interface EnhancedTemperatureGraphsProps {
 
 const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ className }) => {
   // State management
-  const [activeTab, setActiveTab] = useState<'silo' | 'alerts'>('silo');
+  const [activeTab, setActiveTab] = useState<'silo' | 'alerts' | 'advanced' | 'analytics'>('silo');
   const [selectedSilo, setSelectedSilo] = useState<number | null>(null);
   const [selectedAlertSilos, setSelectedAlertSilos] = useState<number[]>([]);
   const [startDate, setStartDate] = useState<string>('');
@@ -318,10 +320,12 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'silo' | 'alerts')}>
-              <TabsList className="grid w-full grid-cols-2">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'silo' | 'alerts' | 'advanced' | 'analytics')}>
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="silo">Silo Graph</TabsTrigger>
                 <TabsTrigger value="alerts">Alert Silos Graph</TabsTrigger>
+                <TabsTrigger value="advanced">Advanced Visualization</TabsTrigger>
+                <TabsTrigger value="analytics">Alert Analytics</TabsTrigger>
               </TabsList>
 
               <TabsContent value="silo" className="space-y-4">
@@ -530,6 +534,14 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     </Button>
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="advanced" className="space-y-4">
+                <AdvancedSiloVisualization className="mt-6" />
+              </TabsContent>
+
+              <TabsContent value="analytics" className="space-y-4">
+                <AlertAnalyticsSystem className="mt-6" />
               </TabsContent>
             </Tabs>
 
