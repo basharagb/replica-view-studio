@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReportSystem } from '../components/ReportSystem';
+import ReportSystem from '../components/ReportSystem';
 
 const Reports: React.FC = () => {
   return (

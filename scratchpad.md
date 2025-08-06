@@ -42,9 +42,9 @@
 - [x] Add searchable alarmed silos with checkboxes (like attachment 2)
 - [x] Dynamic horizontal axis (hours for single day, days for multiple days)
 - [x] Default general graphs shown on first open
-- [ ] Test functionality and fix any issues
-- [ ] Git add, commit, and push changes
-- [ ] Deploy live link
+- [x] Test functionality and fix any issues
+- [x] Git add, commit, and push changes
+- [x] Deploy live link: https://replica-view-studio-enhanced.windsurf.build
 
 ### Report System Enhancements - TODO List
 
