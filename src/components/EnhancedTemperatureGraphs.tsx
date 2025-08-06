@@ -1,24 +1,30 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { Calendar, Download, Printer, RefreshCw, TrendingUp, AlertTriangle, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MultiSelectDropdown } from './MultiSelectDropdown';
-import AdvancedSiloVisualization from './AdvancedSiloVisualization';
-import AlertAnalyticsSystem from './AlertAnalyticsSystem';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getAllSiloNumbers, getAlarmedSilos, generateTemperatureHistory } from '@/services/reportService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TrendingUp, Search, Calendar, AlertTriangle, Download, Printer, RefreshCw } from 'lucide-react';
+import { generateTemperatureHistory } from '@/services/reportService';
+import { getAllSiloNumbers, getAlarmedSilos } from '@/services/reportService';
 import { format, differenceInDays, differenceInHours } from 'date-fns';
+
+// Color palette for different silos
+const SILO_COLORS = [
+  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+  '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+  '#14b8a6', '#eab308', '#dc2626', '#059669', '#7c3aed'
+];
 
 interface TemperatureDataPoint {
   time: string;
   temperature: number;
   status: 'normal' | 'warning' | 'critical';
+  [key: string]: string | number;
 }
 
 interface EnhancedTemperatureGraphsProps {
@@ -27,7 +33,7 @@ interface EnhancedTemperatureGraphsProps {
 
 const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ className }) => {
   // State management
-  const [activeTab, setActiveTab] = useState<'silo' | 'alerts' | 'advanced' | 'analytics'>('silo');
+  const [activeTab, setActiveTab] = useState<'silo' | 'alerts'>('silo');
   const [selectedSilo, setSelectedSilo] = useState<number | null>(null);
   const [selectedAlertSilos, setSelectedAlertSilos] = useState<number[]>([]);
   const [startDate, setStartDate] = useState<string>('');
@@ -37,7 +43,6 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
   const [isGenerating, setIsGenerating] = useState(false);
   const [canGenerate, setCanGenerate] = useState(false);
   const [hasGeneralGraph, setHasGeneralGraph] = useState(false);
-  const [siloSearchTerm, setSiloSearchTerm] = useState('');
   const [alertSearchTerm, setAlertSearchTerm] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -45,10 +50,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
   const allSilos = getAllSiloNumbers();
   const alertSilos = getAlarmedSilos();
   
-  // Filter silos based on search terms
-  const filteredSilos = allSilos.filter(silo => 
-    silo.toString().includes(siloSearchTerm)
-  );
+  // Filter alert silos based on search terms
   
   const filteredAlertSilos = alertSilos.filter(silo => 
     silo.number.toString().includes(alertSearchTerm)
@@ -145,27 +147,54 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
         ? [selectedSilo!] 
         : selectedAlertSilos;
       
-      // Determine if it's a single day or multiple days
+      // Enhanced dynamic time scale based on date range
       const daysDiff = differenceInDays(end, start);
       const hoursDiff = differenceInHours(end, start);
       const isSingleDay = daysDiff === 0;
+      const isVeryShortPeriod = daysDiff <= 1; // Same day or next day
+      const isShortPeriod = daysDiff <= 3; // 1-3 days
+      const isMediumPeriod = daysDiff <= 7; // 1 week
+      const isLongPeriod = daysDiff <= 30; // 1 month
       
-      // Set data points and time format based on date range
+      // Dynamic data points and time format based on date range
       let dataPoints: number;
       let timeFormat: string;
+      let timeInterval: number; // milliseconds between data points
       
       if (isSingleDay) {
-        // Single day: show hours, max 24 data points (hourly)
+        // Same day: show hours with minutes for precision
         dataPoints = Math.min(hoursDiff + 1, 24);
         timeFormat = 'HH:mm';
-      } else {
-        // Multiple days: show days, one point per day
+        timeInterval = 60 * 60 * 1000; // 1 hour
+      } else if (isVeryShortPeriod) {
+        // 1-2 days: show hours with date and time
+        dataPoints = Math.min(hoursDiff + 1, 48);
+        timeFormat = 'MMM dd HH:mm';
+        timeInterval = 60 * 60 * 1000; // 1 hour
+      } else if (isShortPeriod) {
+        // 2-3 days: show hours with date for better granularity
+        dataPoints = Math.min(hoursDiff + 1, 72);
+        timeFormat = 'MMM dd HH:mm';
+        timeInterval = 60 * 60 * 1000; // 1 hour
+      } else if (isMediumPeriod) {
+        // 4-7 days: show daily readings with date
         dataPoints = daysDiff + 1;
         timeFormat = 'MMM dd';
+        timeInterval = 24 * 60 * 60 * 1000; // 1 day
+      } else if (isLongPeriod) {
+        // 1-4 weeks: show daily readings
+        dataPoints = daysDiff + 1;
+        timeFormat = 'MMM dd';
+        timeInterval = 24 * 60 * 60 * 1000; // 1 day
+      } else {
+        // More than 1 month: show weekly aggregation
+        dataPoints = Math.ceil(daysDiff / 7);
+        timeFormat = 'MMM dd';
+        timeInterval = 7 * 24 * 60 * 60 * 1000; // 1 week
       }
 
       for (let i = 0; i < dataPoints; i++) {
-        const currentTime = new Date(start.getTime() + (i * (end.getTime() - start.getTime()) / (dataPoints - 1)));
+        const currentTime = new Date(start.getTime() + (i * timeInterval));
         
         if (activeTab === 'silo') {
           // Single silo data
@@ -178,26 +207,34 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
             status: dataPoint.maxTemp > 40 ? 'critical' : dataPoint.maxTemp >= 30 ? 'warning' : 'normal'
           });
         } else {
-          // Multiple silos - average temperature
+          // Multiple silos - create data point with individual silo temperatures
+          const dataPoint: TemperatureDataPoint = {
+            time: format(currentTime, timeFormat),
+            temperature: 0, // Will be average
+            status: 'normal' as 'normal' | 'warning' | 'critical'
+          };
+          
           let totalTemp = 0;
           let maxStatus: 'normal' | 'warning' | 'critical' = 'normal';
           
           silosToProcess.forEach(siloNum => {
             const history = generateTemperatureHistory(siloNum, start, end);
-            const dataPoint = history[Math.floor((i / dataPoints) * history.length)] || history[0];
-            totalTemp += dataPoint.maxTemp;
+            const historyPoint = history[Math.floor((i / dataPoints) * history.length)] || history[0];
+            const temp = historyPoint.maxTemp;
             
-            const status = dataPoint.maxTemp > 40 ? 'critical' : dataPoint.maxTemp >= 30 ? 'warning' : 'normal';
+            // Add individual silo temperature to data point
+            dataPoint[`silo_${siloNum}`] = temp;
+            totalTemp += temp;
+            
+            const status = temp > 40 ? 'critical' : temp >= 30 ? 'warning' : 'normal';
             if (status === 'critical' || (status === 'warning' && maxStatus === 'normal')) {
               maxStatus = status;
             }
           });
           
-          combinedData.push({
-            time: format(currentTime, timeFormat),
-            temperature: totalTemp / silosToProcess.length,
-            status: maxStatus
-          });
+          dataPoint.temperature = totalTemp / silosToProcess.length;
+          dataPoint.status = maxStatus;
+          combinedData.push(dataPoint);
         }
       }
 
@@ -250,8 +287,12 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
             .info { margin-bottom: 15px; }
             .graph-container { width: 100%; height: 400px; }
             @media print {
+              @page { size: landscape; margin: 0.5in; }
               body { margin: 0; }
               .no-print { display: none; }
+              .graph-container { height: 500px; }
+              .header { margin-bottom: 10px; }
+              .info { margin-bottom: 10px; font-size: 12px; }
             }
           </style>
         </head>
@@ -306,7 +347,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-4 lg:space-y-6 px-2 sm:px-4 lg:px-6 ${className}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -320,57 +361,32 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'silo' | 'alerts' | 'advanced' | 'analytics')}>
-              <TabsList className="grid w-full grid-cols-4">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'silo' | 'alerts')}>
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="silo">Silo Graph</TabsTrigger>
                 <TabsTrigger value="alerts">Alert Silos Graph</TabsTrigger>
-                <TabsTrigger value="advanced">Advanced Visualization</TabsTrigger>
-                <TabsTrigger value="analytics">Alert Analytics</TabsTrigger>
               </TabsList>
 
               <TabsContent value="silo" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {/* Silo Selection with Search */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+                  {/* Silo Selection Dropdown */}
                   <div className="space-y-2">
                     <Label htmlFor="silo-select">Select Silo</Label>
-                    <div className="relative">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          placeholder="Search silo number..."
-                          value={siloSearchTerm}
-                          onChange={(e) => setSiloSearchTerm(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                      {siloSearchTerm && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                          {filteredSilos.length > 0 ? (
-                            filteredSilos.map(silo => (
-                              <div
-                                key={silo}
-                                className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                                onClick={() => {
-                                  setSelectedSilo(silo);
-                                  setSiloSearchTerm(`Silo ${silo}`);
-                                }}
-                              >
-                                Silo {silo}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="px-3 py-2 text-sm text-gray-500">
-                              No silos found
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    {selectedSilo && (
-                      <div className="text-sm text-green-600">
-                        Selected: Silo {selectedSilo}
-                      </div>
-                    )}
+                    <Select
+                      value={selectedSilo ? selectedSilo.toString() : ""}
+                      onValueChange={(value) => setSelectedSilo(parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a silo..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-48">
+                        {allSilos.map(silo => (
+                          <SelectItem key={silo} value={silo.toString()}>
+                            Silo {silo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Start Date */}
@@ -422,7 +438,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
               </TabsContent>
 
               <TabsContent value="alerts" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
                   {/* Alert Silos Selection with Search */}
                   <div className="space-y-2">
                     <Label>Alert Silos</Label>
@@ -535,14 +551,6 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                   </div>
                 </div>
               </TabsContent>
-
-              <TabsContent value="advanced" className="space-y-4">
-                <AdvancedSiloVisualization className="mt-6" />
-              </TabsContent>
-
-              <TabsContent value="analytics" className="space-y-4">
-                <AlertAnalyticsSystem className="mt-6" />
-              </TabsContent>
             </Tabs>
 
             {/* Graph Display */}
@@ -588,8 +596,8 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div ref={printRef} className="w-full h-80">
+                    <CardContent className="p-2 sm:p-4 lg:p-6">
+                      <div ref={printRef} className="w-full h-72 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px]">
                         {isLoading ? (
                           <div className="flex items-center justify-center h-full">
                             <motion.div
@@ -601,40 +609,64 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                           </div>
                         ) : (
                           <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={graphData}>
-                              <defs>
-                                <linearGradient id="temperatureGradient" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                                </linearGradient>
-                              </defs>
+                            <LineChart data={graphData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                               <XAxis 
                                 dataKey="time" 
                                 stroke="#64748b"
-                                fontSize={12}
+                                fontSize={10}
+                                className="text-xs sm:text-sm"
+                                tick={{ fontSize: 10 }}
+                                interval="preserveStartEnd"
                               />
                               <YAxis 
                                 stroke="#64748b"
-                                fontSize={12}
-                                label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft' }}
+                                fontSize={10}
+                                className="text-xs sm:text-sm"
+                                tick={{ fontSize: 10 }}
+                                label={{ 
+                                  value: 'Temperature (°C)', 
+                                  angle: -90, 
+                                  position: 'insideLeft',
+                                  style: { textAnchor: 'middle', fontSize: '12px' }
+                                }}
                               />
                               <Tooltip content={<CustomTooltip />} />
+                              <Legend />
                               
                               {/* Temperature threshold lines */}
                               <ReferenceLine y={30} stroke="#f59e0b" strokeDasharray="5 5" label="Warning (30°C)" />
                               <ReferenceLine y={40} stroke="#ef4444" strokeDasharray="5 5" label="Critical (40°C)" />
                               
-                              <Area
-                                type="monotone"
-                                dataKey="temperature"
-                                stroke="#3b82f6"
-                                strokeWidth={2}
-                                fill="url(#temperatureGradient)"
-                                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                                activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-                              />
-                            </AreaChart>
+                              {/* Render lines based on active tab */}
+                              {activeTab === 'silo' ? (
+                                <Line
+                                  type="monotone"
+                                  dataKey="temperature"
+                                  stroke="#3b82f6"
+                                  strokeWidth={3}
+                                  name={`Silo ${selectedSilo}`}
+                                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                                  activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+                                />
+                              ) : (
+                                selectedAlertSilos.map((siloNum, index) => {
+                                  const color = SILO_COLORS[index % SILO_COLORS.length];
+                                  return (
+                                    <Line
+                                      key={siloNum}
+                                      type="monotone"
+                                      dataKey={`silo_${siloNum}`}
+                                      stroke={color}
+                                      strokeWidth={3}
+                                      name={`Silo ${siloNum}`}
+                                      dot={{ fill: color, strokeWidth: 2, r: 3 }}
+                                      activeDot={{ r: 5, stroke: color, strokeWidth: 2 }}
+                                    />
+                                  );
+                                })
+                              )}
+                            </LineChart>
                           </ResponsiveContainer>
                         )}
                       </div>
@@ -642,7 +674,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                       {/* Graph Info */}
                       {graphData.length > 0 && !isLoading && (
                         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-sm">
                             <div>
                               <span className="font-medium">Date Range:</span> {startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified'}
                             </div>

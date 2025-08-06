@@ -95,7 +95,7 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
   const [dataPointLimit, setDataPointLimit] = useState(1000);
   
   // Performance optimization
-  const chartRef = useRef<any>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   const realTimeIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize data
@@ -347,7 +347,7 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
     if (!chartRef.current || graphData.length === 0) return;
     
     try {
-      const chartElement = chartRef.current.container;
+      const chartElement = chartRef.current;
       const exportData: ChartExportData = {
         title: 'Advanced Silo Temperature Visualization',
         dateRange: startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified',
@@ -382,7 +382,7 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
     if (!chartRef.current || graphData.length === 0) return;
     
     try {
-      const chartElement = chartRef.current.container;
+      const chartElement = chartRef.current;
       const exportData: ChartExportData = {
         title: 'Advanced Silo Temperature Visualization',
         dateRange: startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified',
@@ -417,7 +417,7 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
     
-    const chartElement = chartRef.current.container;
+    const chartElement = chartRef.current;
     const chartHTML = chartElement.outerHTML;
     
     printWindow.document.write(`

@@ -16,12 +16,15 @@ export const useSiloSystem = () => {
   const [autoReadProgress, setAutoReadProgress] = useState<number>(0);
   const [autoReadCompleted, setAutoReadCompleted] = useState<boolean>(false);
   const [dataVersion, setDataVersion] = useState<number>(0);
-  const [manualTestDuration, setManualTestDuration] = useState<number>(0.083); // 5 seconds per silo (5/60 = 0.083 minutes)
+  const [manualTestDuration, setManualTestDuration] = useState<number>(0.05); // 3 seconds per silo (3/60 = 0.05 minutes) - optimized for speed
   const [autoTestInterval, setAutoTestInterval] = useState<number>(60); // 1 hour default
   const [isWaitingForRestart, setIsWaitingForRestart] = useState<boolean>(false);
   const [waitTimeRemaining, setWaitTimeRemaining] = useState<number>(0);
+  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
+  const [isIdleDetectionActive, setIsIdleDetectionActive] = useState<boolean>(false);
   const autoReadInterval = useRef<NodeJS.Timeout | null>(null);
   const restartWaitInterval = useRef<NodeJS.Timeout | null>(null);
+  const idleDetectionInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Handle silo click
   const handleSiloClick = useCallback((siloNum: number, temp: number) => {
@@ -203,22 +206,58 @@ export const useSiloSystem = () => {
     restartWaitInterval.current = countdownInterval;
   }, [autoTestInterval]);
 
+  // Start idle detection after manual test stops
+  const startIdleDetection = useCallback(() => {
+    setIsIdleDetectionActive(true);
+    setLastActivityTime(Date.now());
+    
+    // Check for idle every minute
+    const idleCheckInterval = setInterval(() => {
+      const now = Date.now();
+      const idleTime = now - lastActivityTime;
+      const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
+      
+      if (idleTime >= fifteenMinutes && readingMode === 'none') {
+        // Auto start test after 15 minutes of idle
+        clearInterval(idleCheckInterval);
+        setIsIdleDetectionActive(false);
+        setReadingMode('auto');
+        startAutoRead();
+      }
+    }, 60000); // Check every minute
+    
+    idleDetectionInterval.current = idleCheckInterval;
+  }, [lastActivityTime, readingMode]);
+
+  // Update activity time (call this on user interactions)
+  const updateActivityTime = useCallback(() => {
+    setLastActivityTime(Date.now());
+  }, []);
+
   // Handle manual read mode toggle
   const handleManualReadMode = useCallback(() => {
     if (readingMode === 'manual') {
       setReadingMode('none');
+      // Start idle detection when stopping manual mode
+      startIdleDetection();
     } else {
       // Stop any auto read first
       if (autoReadInterval.current) {
         clearInterval(autoReadInterval.current);
         autoReadInterval.current = null;
       }
+      // Stop idle detection when starting manual mode
+      if (idleDetectionInterval.current) {
+        clearInterval(idleDetectionInterval.current);
+        idleDetectionInterval.current = null;
+        setIsIdleDetectionActive(false);
+      }
       setReadingMode('manual');
       setIsReading(false);
       setReadingSilo(null);
       setAutoReadProgress(0);
     }
-  }, [readingMode]);
+  }, [readingMode, startIdleDetection]);
 
   // Check if a silo is currently being read
   const isSiloReading = useCallback((siloNum: number): boolean => {
@@ -263,6 +302,8 @@ export const useSiloSystem = () => {
     autoTestInterval,
     isWaitingForRestart,
     waitTimeRemaining,
+    lastActivityTime,
+    isIdleDetectionActive,
 
     // Actions
     handleSiloClick,
@@ -271,6 +312,8 @@ export const useSiloSystem = () => {
     handleSiloLeave,
     startAutoRead,
     handleManualReadMode,
+    startIdleDetection,
+    updateActivityTime,
 
     // Utilities
     isSiloReading,

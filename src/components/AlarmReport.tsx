@@ -31,9 +31,9 @@ export const AlarmReport: React.FC = () => {
   // Progressive enabling logic
   const isEndDateEnabled = filters.startDate !== null;
   const isGenerateEnabled = filters.startDate !== null && 
-                           filters.endDate !== null && 
-                           filters.selectedSilos && 
-                           filters.selectedSilos.length > 0;
+                            filters.endDate !== null && 
+                            filters.selectedSilos && 
+                            filters.selectedSilos.length > 0;
   const isPrintEnabled = isGenerated && reportData.length > 0;
 
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
