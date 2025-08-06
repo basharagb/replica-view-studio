@@ -647,7 +647,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                                   dataKey="temperature"
                                   stroke="#3b82f6"
                                   strokeWidth={3}
-                                  name={`Silo ${selectedSilo}`}
+                                  name={selectedSilo ? `Silo ${selectedSilo}` : 'General'}
                                   dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                                   activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
                                 />
