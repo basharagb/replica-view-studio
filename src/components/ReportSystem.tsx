@@ -1,67 +1,50 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { FileText, AlertTriangle, TrendingUp } from 'lucide-react';
 import { SiloReport } from './SiloReport';
 import { AlarmReport } from './AlarmReport';
-import AnimatedTemperatureGraph from './AnimatedTemperatureGraph';
+import EnhancedTemperatureGraphs from './EnhancedTemperatureGraphs';
 
-export const ReportSystem: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('silo-report');
+const ReportSystem: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('graphs');
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-6 animate-in fade-in-0 duration-500">
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Report System
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Reports & Analytics
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg transition-all duration-300">
-              <TabsTrigger 
-                value="silo-report" 
-                className="transition-all duration-300 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:scale-[0.98]"
-              >
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="graphs" className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Temperature Graphs
+              </TabsTrigger>
+              <TabsTrigger value="silo" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
                 Silo Report
               </TabsTrigger>
-              <TabsTrigger 
-                value="alarm-report"
-                className="transition-all duration-300 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:scale-[0.98]"
-              >
+              <TabsTrigger value="alarm" className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
                 Alarm Report
               </TabsTrigger>
             </TabsList>
-            
-            <TabsContent 
-              value="silo-report" 
-              className="mt-6 animate-in slide-in-from-right-4 fade-in-0 duration-500"
-            >
-              <div className="space-y-6">
-                {/* Silo Report Graph */}
-                <AnimatedTemperatureGraph 
-                  title="Silo Temperature Trends"
-                  className="mb-6"
-                />
-                {/* Silo Report Table */}
-                <SiloReport />
-              </div>
+
+            <TabsContent value="graphs" className="space-y-6">
+              <EnhancedTemperatureGraphs />
             </TabsContent>
-            
-            <TabsContent 
-              value="alarm-report" 
-              className="mt-6 animate-in slide-in-from-left-4 fade-in-0 duration-500"
-            >
-              <div className="space-y-6">
-                {/* Alarm Report Graph */}
-                <AnimatedTemperatureGraph 
-                  title="Alert Temperature Analysis"
-                  isAlarmReport={true}
-                  className="mb-6"
-                />
-                {/* Alarm Report Table */}
-                <AlarmReport />
-              </div>
+
+            <TabsContent value="silo" className="space-y-6">
+              <SiloReport />
+            </TabsContent>
+
+            <TabsContent value="alarm" className="space-y-6">
+              <AlarmReport />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -69,3 +52,5 @@ export const ReportSystem: React.FC = () => {
     </div>
   );
 };
+
+export default ReportSystem;

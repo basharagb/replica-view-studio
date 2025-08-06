@@ -16,7 +16,7 @@ export const useSiloSystem = () => {
   const [autoReadProgress, setAutoReadProgress] = useState<number>(0);
   const [autoReadCompleted, setAutoReadCompleted] = useState<boolean>(false);
   const [dataVersion, setDataVersion] = useState<number>(0);
-  const [manualTestDuration, setManualTestDuration] = useState<number>(15); // 15 minutes default
+  const [manualTestDuration, setManualTestDuration] = useState<number>(0.083); // 5 seconds per silo (5/60 = 0.083 minutes)
   const [autoTestInterval, setAutoTestInterval] = useState<number>(60); // 1 hour default
   const [isWaitingForRestart, setIsWaitingForRestart] = useState<boolean>(false);
   const [waitTimeRemaining, setWaitTimeRemaining] = useState<number>(0);

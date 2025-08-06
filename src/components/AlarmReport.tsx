@@ -8,6 +8,7 @@ import { MultiSelectDropdown } from './MultiSelectDropdown';
 import { AlarmReportData, ReportFilters } from '../types/reports';
 import { getAlarmedSilos, generateAlarmReportData } from '../services/reportService';
 import { format } from 'date-fns';
+import { clearCacheAndReload } from '../utils/cache';
 
 export const AlarmReport: React.FC = () => {
   const [filters, setFilters] = useState<ReportFilters>({
@@ -268,7 +269,7 @@ export const AlarmReport: React.FC = () => {
     
     // Restore original content and reload to reattach React event listeners
     document.body.innerHTML = originalContent;
-    window.location.reload();
+    clearCacheAndReload();
   };
 
   const getAlarmStatusBadge = (status: string) => {

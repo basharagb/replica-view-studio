@@ -8,6 +8,7 @@ import { SearchableDropdown } from './SearchableDropdown';
 import { SiloReportData, ReportFilters } from '../types/reports';
 import { getAllSiloNumbers, generateSiloReportData } from '../services/reportService';
 import { format } from 'date-fns';
+import { clearCacheAndReload } from '../utils/cache';
 
 export const SiloReport: React.FC = () => {
   const [filters, setFilters] = useState<ReportFilters>({
@@ -255,7 +256,7 @@ export const SiloReport: React.FC = () => {
     document.body.innerHTML = originalBody;
     
     // Re-attach event listeners (React will handle this automatically on next render)
-    window.location.reload();
+    clearCacheAndReload();
   };
 
   const getAlarmStatusBadge = (status: string) => {

@@ -25,8 +25,26 @@
 - [x] Create animated graph components
 - [x] Integrate graphs into reports
 - [x] Add loading animations
-- [ ] Test functionality
-- [ ] Deploy and provide live link
+- [x] Test functionality
+- [x] Deploy and provide live link
+
+### New Requirements - Graph Enhancements:
+- [x] Add silo selection dropdown for graphs with SEARCH functionality
+- [x] Add start/end date pickers for graphs
+- [x] Add PDF export functionality for graphs
+- [x] Add printer functionality for graphs
+- [x] Make graphs work like reports (progressive UI)
+- [x] Fix manual test to not require Auto Test Interval (5 seconds per silo)
+- [x] Keep Auto Test Interval only for auto tests
+- [x] Clear cache before reload
+- [x] Remove Data Management tab from navigation
+- [x] Add searchable silo selection (like attachment 1)
+- [x] Add searchable alarmed silos with checkboxes (like attachment 2)
+- [x] Dynamic horizontal axis (hours for single day, days for multiple days)
+- [x] Default general graphs shown on first open
+- [ ] Test functionality and fix any issues
+- [ ] Git add, commit, and push changes
+- [ ] Deploy live link
 
 ### Report System Enhancements - TODO List
 

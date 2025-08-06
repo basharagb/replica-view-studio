@@ -159,6 +159,40 @@ export const generateAlarmReportData = (
   });
 };
 
+// Generate temperature history for graphs
+export const generateTemperatureHistory = (
+  siloNumber: number,
+  startDate: Date,
+  endDate: Date
+): Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> => {
+  const history: Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> = [];
+  const timeDiff = endDate.getTime() - startDate.getTime();
+  const dataPoints = Math.min(Math.max(Math.floor(timeDiff / (1000 * 60 * 60)), 24), 168); // 24 to 168 data points
+  
+  for (let i = 0; i < dataPoints; i++) {
+    const currentTime = new Date(startDate.getTime() + (i * timeDiff / (dataPoints - 1)));
+    
+    // Generate realistic temperature variations
+    const baseSensorReadings = getSensorReadings(siloNumber);
+    const baseTemp = Math.max(...baseSensorReadings);
+    
+    // Add some historical variation (±5°C)
+    const variation = (Math.random() - 0.5) * 10;
+    const maxTemp = Math.max(20, Math.min(60, baseTemp + variation));
+    const avgTemp = maxTemp - (Math.random() * 3); // Average slightly lower
+    const minTemp = avgTemp - (Math.random() * 5); // Min lower than average
+    
+    history.push({
+      time: currentTime.toISOString(),
+      maxTemp: parseFloat(maxTemp.toFixed(1)),
+      avgTemp: parseFloat(avgTemp.toFixed(1)),
+      minTemp: parseFloat(minTemp.toFixed(1))
+    });
+  }
+  
+  return history;
+};
+
 // Export report data to CSV format (for future use)
 export const exportReportToCSV = (data: SiloReportData[] | AlarmReportData[], filename: string): void => {
   const isAlarmReport = data.length > 0 && 'siloNumber' in data[0];
