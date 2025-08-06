@@ -119,19 +119,29 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
 
     setIsGenerating(true);
     setIsLoading(true);
-
+    
     try {
+      // Validate dates before creating Date objects
+      if (!startDate || !endDate) {
+        throw new Error('Start date and end date are required');
+      }
+      
+      // Generate combined data for multiple silos or single silo
+      const combinedData: TemperatureDataPoint[] = [];
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Check if dates are valid
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new Error('Invalid date format');
+      }
+      
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       const silosToProcess = activeTab === 'silo' 
         ? [selectedSilo!] 
         : selectedAlertSilos;
-
-      // Generate combined data for multiple silos or single silo
-      const combinedData: TemperatureDataPoint[] = [];
-      const start = new Date(startDate);
-      const end = new Date(endDate);
       
       // Determine if it's a single day or multiple days
       const daysDiff = differenceInDays(end, start);
@@ -247,7 +257,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
           <div class="header">
             <h1>${title}</h1>
             <div class="info">
-              <p><strong>Date Range:</strong> ${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}</p>
+              <p><strong>Date Range:</strong> ${startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified'}</p>
               <p><strong>Generated:</strong> ${format(new Date(), 'MMM dd, yyyy HH:mm')}</p>
               ${activeTab === 'alerts' ? `<p><strong>Silos:</strong> ${selectedAlertSilos.join(', ')}</p>` : ''}
             </div>
@@ -622,7 +632,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
-                              <span className="font-medium">Date Range:</span> {format(new Date(startDate), 'MMM dd, yyyy')} - {format(new Date(endDate), 'MMM dd, yyyy')}
+                              <span className="font-medium">Date Range:</span> {startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified'}
                             </div>
                             <div>
                               <span className="font-medium">Data Points:</span> {graphData.length}
