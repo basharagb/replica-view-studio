@@ -377,7 +377,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                       onValueChange={(value) => setSelectedSilo(parseInt(value))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Choose a silo..." />
+                        <SelectValue placeholder="Select a silo..." />
                       </SelectTrigger>
                       <SelectContent className="max-h-48">
                         {allSilos.map(silo => (
@@ -389,27 +389,28 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     </Select>
                   </div>
 
-                  {/* Start Date */}
+                  {/* Start Date & Time */}
                   <div className="space-y-2">
-                    <Label htmlFor="start-date">Start Date</Label>
+                    <Label htmlFor="start-date">Start Date & Time</Label>
                     <Input
                       id="start-date"
-                      type="date"
+                      type="datetime-local"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       disabled={!selectedSilo}
                     />
                   </div>
 
-                  {/* End Date */}
+                  {/* End Date & Time */}
                   <div className="space-y-2">
-                    <Label htmlFor="end-date">End Date</Label>
+                    <Label htmlFor="end-date">End Date & Time</Label>
                     <Input
                       id="end-date"
-                      type="date"
+                      type="datetime-local"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       disabled={!selectedSilo || !startDate}
+                      min={startDate}
                     />
                   </div>
 
@@ -504,27 +505,28 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     </div>
                   </div>
 
-                  {/* Start Date */}
+                  {/* Start Date & Time */}
                   <div className="space-y-2">
-                    <Label htmlFor="alerts-start-date">Start Date</Label>
+                    <Label htmlFor="alerts-start-date">Start Date & Time</Label>
                     <Input
                       id="alerts-start-date"
-                      type="date"
+                      type="datetime-local"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       disabled={selectedAlertSilos.length === 0}
                     />
                   </div>
 
-                  {/* End Date */}
+                  {/* End Date & Time */}
                   <div className="space-y-2">
-                    <Label htmlFor="alerts-end-date">End Date</Label>
+                    <Label htmlFor="alerts-end-date">End Date & Time</Label>
                     <Input
                       id="alerts-end-date"
-                      type="date"
+                      type="datetime-local"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       disabled={selectedAlertSilos.length === 0 || !startDate}
+                      min={startDate}
                     />
                   </div>
 
