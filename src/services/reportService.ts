@@ -22,10 +22,8 @@ export const getAllSiloNumbers = (): number[] => {
     if (group.row5) group.row5.forEach(silo => allSilos.push(silo.num));
   });
   
-  // Add cylinder silos
-  cylinderSilos.forEach(silo => {
-    allSilos.push(silo.num);
-  });
+  // Note: Cylinder silos (201-208) are excluded from reports dropdown
+  // Only include regular silos (1-195) for reporting purposes
   
   return allSilos.sort((a, b) => a - b);
 };

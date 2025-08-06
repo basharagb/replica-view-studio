@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { SiloReport } from './SiloReport';
 import { AlarmReport } from './AlarmReport';
+import AnimatedTemperatureGraph from './AnimatedTemperatureGraph';
 
 export const ReportSystem: React.FC = () => {
   const [activeTab, setActiveTab] = useState('silo-report');
@@ -36,14 +37,31 @@ export const ReportSystem: React.FC = () => {
               value="silo-report" 
               className="mt-6 animate-in slide-in-from-right-4 fade-in-0 duration-500"
             >
-              <SiloReport />
+              <div className="space-y-6">
+                {/* Silo Report Graph */}
+                <AnimatedTemperatureGraph 
+                  title="Silo Temperature Trends"
+                  className="mb-6"
+                />
+                {/* Silo Report Table */}
+                <SiloReport />
+              </div>
             </TabsContent>
             
             <TabsContent 
               value="alarm-report" 
               className="mt-6 animate-in slide-in-from-left-4 fade-in-0 duration-500"
             >
-              <AlarmReport />
+              <div className="space-y-6">
+                {/* Alarm Report Graph */}
+                <AnimatedTemperatureGraph 
+                  title="Alert Temperature Analysis"
+                  isAlarmReport={true}
+                  className="mb-6"
+                />
+                {/* Alarm Report Table */}
+                <AlarmReport />
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

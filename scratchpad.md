@@ -1,8 +1,32 @@
 # Scratchpad - Jarvis
 
-## Current Task: Enhance Report System
+## Current Task: Enhanced Monitoring & Reports with Animated Graphs
 
-**Status: 🔄 IN PROGRESS**
+**Status: 🚧 IN PROGRESS**
+
+### Requirements:
+1. **Monitoring Tab Enhancement:**
+   - [ ] Show only alert silos (remove data management)
+   - [ ] Focus on alarmed/critical silos only
+
+2. **Reports Tab Enhancement:**
+   - [ ] Add beautiful animated graphs for both silo and alert reports
+   - [ ] Time/Date vs Temperature graphs
+   - [ ] Colored graphs with smooth animations
+   - [ ] Loading animations during graph generation
+
+3. **Deployment:**
+   - [ ] Git add and push changes
+   - [ ] Deploy to live environment
+   - [ ] Provide live link
+
+### Implementation Plan:
+- [x] Modify monitoring tab to show only alerts
+- [x] Create animated graph components
+- [x] Integrate graphs into reports
+- [x] Add loading animations
+- [ ] Test functionality
+- [ ] Deploy and provide live link
 
 ### Report System Enhancements - TODO List
 
