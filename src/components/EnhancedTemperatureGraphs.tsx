@@ -61,14 +61,6 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
     }
   }, [activeTab, selectedSilo, selectedAlertSilos, startDate, endDate]);
   
-  // Generate default general graph on first load
-  useEffect(() => {
-    if (!hasGeneralGraph) {
-      generateDefaultGraph();
-      setHasGeneralGraph(true);
-    }
-  }, [hasGeneralGraph, generateDefaultGraph]);
-  
   // Generate default general graph
   const generateDefaultGraph = useCallback(async () => {
     setIsLoading(true);
@@ -112,6 +104,14 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
       setIsLoading(false);
     }
   }, [allSilos]);
+
+  // Generate default general graph on first load
+  useEffect(() => {
+    if (!hasGeneralGraph) {
+      generateDefaultGraph();
+      setHasGeneralGraph(true);
+    }
+  }, [hasGeneralGraph, generateDefaultGraph]);
 
   // Generate temperature data
   const generateGraphData = useCallback(async () => {
