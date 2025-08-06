@@ -40,6 +40,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { getAllSiloNumbers, getAlarmedSilos, generateTemperatureHistory } from '@/services/reportService';
+import AdvancedExportService, { ExportOptions, ChartExportData } from '@/services/advancedExportService';
+import RealTimeService, { RealTimeUpdate } from '@/services/realTimeService';
 import { format, differenceInDays, differenceInHours, subDays, subHours } from 'date-fns';
 
 interface TemperatureDataPoint {
@@ -332,16 +334,129 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
     return siloConfigs.filter(config => config.visible);
   }, [siloConfigs]);
 
+  // Services
+  const exportService = AdvancedExportService.getInstance();
+  const realTimeService = RealTimeService.getInstance();
+  
+  // Real-time subscription
+  const [realTimeSubscriptionId, setRealTimeSubscriptionId] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState({ connected: false, lastUpdate: 0 });
+
   // Export functionality
-  const exportToPDF = useCallback(() => {
-    // Implementation for high-resolution PDF export
-    console.log('Exporting to PDF with 300 DPI...');
-  }, []);
+  const exportToPDF = useCallback(async () => {
+    if (!chartRef.current || graphData.length === 0) return;
+    
+    try {
+      const chartElement = chartRef.current.container;
+      const exportData: ChartExportData = {
+        title: 'Advanced Silo Temperature Visualization',
+        dateRange: startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified',
+        silos: selectedSilos,
+        dataPoints: graphData,
+        chartType: 'line',
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          totalDataPoints: graphData.length,
+          timeRange: `${graphData.length} data points`,
+          alertCount: siloConfigs.filter(c => c.alertLevel !== 'normal').length
+        }
+      };
+      
+      const options: ExportOptions = {
+        format: 'pdf',
+        resolution: 300,
+        orientation: 'landscape',
+        includeMetadata: true,
+        includeWatermark: true,
+        customTitle: 'Temperature Analytics Report'
+      };
+      
+      await exportService.exportToPDF(chartElement, exportData, options);
+    } catch (error) {
+      console.error('Export failed:', error);
+      setError('Failed to export PDF. Please try again.');
+    }
+  }, [chartRef, graphData, startDate, endDate, selectedSilos, siloConfigs, exportService]);
+
+  const exportToPNG = useCallback(async () => {
+    if (!chartRef.current || graphData.length === 0) return;
+    
+    try {
+      const chartElement = chartRef.current.container;
+      const exportData: ChartExportData = {
+        title: 'Advanced Silo Temperature Visualization',
+        dateRange: startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified',
+        silos: selectedSilos,
+        dataPoints: graphData,
+        chartType: 'line',
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          totalDataPoints: graphData.length,
+          timeRange: `${graphData.length} data points`
+        }
+      };
+      
+      const options: ExportOptions = {
+        format: 'png',
+        resolution: 300,
+        orientation: 'landscape',
+        includeMetadata: false,
+        includeWatermark: false
+      };
+      
+      await exportService.exportToPNG(chartElement, exportData, options);
+    } catch (error) {
+      console.error('PNG export failed:', error);
+      setError('Failed to export PNG. Please try again.');
+    }
+  }, [chartRef, graphData, startDate, endDate, selectedSilos, exportService]);
 
   const printChart = useCallback(() => {
-    // Implementation for print functionality
-    console.log('Printing chart...');
-  }, []);
+    if (!chartRef.current) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    const chartElement = chartRef.current.container;
+    const chartHTML = chartElement.outerHTML;
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Temperature Analytics Chart</title>
+          <style>
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .chart-container { width: 100%; height: 600px; }
+            @media print {
+              body { margin: 0; }
+              .chart-container { height: 500px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Advanced Silo Temperature Visualization</h1>
+            <p>Date Range: ${startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified'}</p>
+            <p>Silos: ${selectedSilos.join(', ')}</p>
+            <p>Generated: ${format(new Date(), 'MMM dd, yyyy HH:mm')}</p>
+          </div>
+          <div class="chart-container">
+            ${chartHTML}
+          </div>
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 1000);
+  }, [chartRef, startDate, endDate, selectedSilos]);
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -372,10 +487,22 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
             Export PDF
           </Button>
           
+          <Button onClick={exportToPNG} size="sm" variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Export PNG
+          </Button>
+          
           <Button onClick={printChart} size="sm" variant="outline">
             <Printer className="w-4 h-4 mr-2" />
             Print
           </Button>
+          
+          {isRealTimeEnabled && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-md">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-sm text-green-700">Live Updates</span>
+            </div>
+          )}
         </div>
       </motion.div>
 
