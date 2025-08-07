@@ -65,8 +65,8 @@ export const LabInterface = () => {
           {/* Main lab area - Enhanced for full screen */}
           <div className="flex-1 w-full max-w-full space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full">
             {/* Top section (1-55) - Enhanced size */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[35vh] flex items-center" data-testid="top-silo-section" key={`top-${dataVersion}`}>
-              <div className="flex gap-1 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[35vh] flex items-center" data-testid="top-silo-section" key={`top-${dataVersion}`}>
+              <div className="flex gap-1 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-110 hover:z-10">
                     <LabGroup
@@ -93,8 +93,8 @@ export const LabInterface = () => {
             </div>
 
             {/* Bottom section (101-195) - Enhanced size */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[45vh] flex items-center" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
-              <div className="flex gap-1 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[45vh] flex items-center" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
+              <div className="flex gap-1 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-110 hover:z-10">
                     <div className="flex flex-col items-center gap-1 sm:gap-2">
