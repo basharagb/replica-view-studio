@@ -28,8 +28,20 @@ export const getAllSiloNumbers = (): number[] => {
   return allSilos.sort((a, b) => a - b);
 };
 
+// Cache for consistent alarmed silos data across components
+let cachedAlarmedSilos: Array<{ number: number; status: string }> | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 30000; // 30 seconds
+
 // Get silos that currently have alarms
-export const getAlarmedSilos = (): Array<{ number: number; status: string }> => {
+export const getAlarmedSilos = (forceRefresh: boolean = false): Array<{ number: number; status: string }> => {
+  const now = Date.now();
+  
+  // Use cached data if available and not expired, unless force refresh
+  if (!forceRefresh && cachedAlarmedSilos && (now - cacheTimestamp) < CACHE_DURATION) {
+    return cachedAlarmedSilos;
+  }
+  
   const allSiloNumbers = getAllSiloNumbers();
   const alarmedSilos: Array<{ number: number; status: string }> = [];
   
@@ -47,7 +59,17 @@ export const getAlarmedSilos = (): Array<{ number: number; status: string }> => 
     }
   });
   
+  // Update cache
+  cachedAlarmedSilos = alarmedSilos;
+  cacheTimestamp = now;
+  
   return alarmedSilos;
+};
+
+// Clear the alarmed silos cache
+export const clearAlarmedSilosCache = (): void => {
+  cachedAlarmedSilos = null;
+  cacheTimestamp = 0;
 };
 
 // Generate historical sensor readings for a time period
