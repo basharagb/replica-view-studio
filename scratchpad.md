@@ -47,7 +47,19 @@
 - [x] Task 4: Enlarge Cylinder Silo Sensors 
 - [x] Task 5: Fix Alert Silo Count Correction (in progress) - User confirmed counts: Red=69, Yellow=61, Green=20, Total Alarmed=130
 - [x] Task 6: Enhanced Silo Sizing & Responsive Layout - COMPLETED ✅
-- [x] Task 6.1: MacBook 13.6-inch Screen Optimization - COMPLETED ✅
+- [x] Task 6.1: MacBook 13.6-inch Screen Optimization - REVERTED ❌
+- [x] Task 6.2: Ultra-Compact Sizing (No Horizontal Scroll) - REVERTED ❌
+
+### DEPLOYMENT STATUS 🚀
+- **Local Dev Server**: http://localhost:5173/
+- **Browser Preview**: http://127.0.0.1:54311
+- **Live Deployment**: https://replica-view-studio-macbook-optimized.windsurf.build
+- **Build Status**: UI modifications reverted to previous state
+- **GitHub Branch**: feature/comprehensive-system-enhancements
+- **Latest Commit**: a31543d - "Revert 'feat: Significantly reduce silo sizes for MacBook fit'"
+- **Deployment ID**: f9ac7c9b-c5d8-4fdb-b356-f11597259d34
+- **Project ID**: 5e8cf9e1-c24f-4c7d-aac0-39ecb4c5c7ef
+- **Status**: UI reverted to original sizing
 - [ ] Task 7: System Logic Verification and Final Deployment
 
 ### COMPREHENSIVE SYSTEM ENHANCEMENT REQUIREMENTS
