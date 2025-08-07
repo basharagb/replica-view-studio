@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, AlertCircle, TrendingUp } from 'lucide-react';
+import { AlertTriangle, AlertCircle, TrendingUp, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { TEMPERATURE_THRESHOLDS } from '../services/siloData';
@@ -169,7 +169,7 @@ const AlertSiloMonitoring: React.FC = () => {
           Alert Silo Monitoring
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Real-time monitoring of silos with critical temperature alerts. Only showing critical red alerts that require immediate attention.
+          Real-time monitoring of silos with temperature alerts. Showing all silos with warning or critical temperature conditions.
         </p>
       </div>
 
@@ -181,7 +181,7 @@ const AlertSiloMonitoring: React.FC = () => {
               <AlertCircle className="w-5 h-5 text-red-500" />
               <div>
                 <p className="text-sm text-red-600">Critical Alerts</p>
-                <p className="text-2xl font-bold text-red-700">
+                <p className="text-2xl font-bold text-red-600">
                   {alertSilos.filter(s => s.priority === 'critical').length}
                 </p>
               </div>
@@ -195,7 +195,7 @@ const AlertSiloMonitoring: React.FC = () => {
               <AlertTriangle className="w-5 h-5 text-yellow-500" />
               <div>
                 <p className="text-sm text-yellow-600">Warning Alerts</p>
-                <p className="text-2xl font-bold text-yellow-700">
+                <p className="text-2xl font-bold text-yellow-600">
                   {alertSilos.filter(s => s.priority === 'warning').length}
                 </p>
               </div>
@@ -208,8 +208,8 @@ const AlertSiloMonitoring: React.FC = () => {
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-500" />
               <div>
-                <p className="text-sm text-blue-600">Critical Alert Silos</p>
-                <p className="text-2xl font-bold text-blue-700">{alertSilos.filter(s => s.priority === 'critical').length}</p>
+                <p className="text-sm text-blue-600">Alert Silos</p>
+                <p className="text-2xl font-bold text-blue-600">{alertSilos.length}</p>
               </div>
             </div>
           </CardContent>
@@ -217,25 +217,25 @@ const AlertSiloMonitoring: React.FC = () => {
       </div>
 
       {/* Alert Silos Grid */}
-      {alertSilos.filter(s => s.priority === 'critical').length === 0 ? (
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-8 text-center">
-            <div className="text-green-600">
-              <TrendingUp className="w-12 h-12 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Critical Alerts</h3>
-              <p>No critical temperature alerts detected. All silos are operating safely.</p>
+      {alertSilos.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <div className="flex flex-col items-center gap-4">
+              <CheckCircle className="w-16 h-16 text-green-500" />
+              <h3 className="text-xl font-semibold text-gray-800">No Temperature Alerts</h3>
+              <p>No temperature alerts detected. All silos are operating within normal parameters.</p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {alertSilos.filter(silo => silo.priority === 'critical').map((silo) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {alertSilos.map((silo) => (
             <Card 
               key={silo.siloNumber} 
-              className={`shadow-lg hover:shadow-xl transition-all duration-300 border-2 ${
+              className={`border-2 transition-all duration-300 hover:shadow-lg ${
                 silo.priority === 'critical' 
-                  ? 'border-red-200 bg-red-50 hover:bg-red-100' 
-                  : 'border-yellow-200 bg-yellow-50 hover:bg-yellow-100'
+                  ? 'border-red-300 bg-red-50 hover:bg-red-100' 
+                  : 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100'
               }`}
             >
               <CardHeader className="pb-3">
@@ -285,8 +285,8 @@ const AlertSiloMonitoring: React.FC = () => {
                     : 'bg-yellow-100 text-yellow-800'
                 }`}>
                   {silo.priority === 'critical' 
-                    ? '🚨 Immediate attention required - Critical temperature detected'
-                    : '⚠️ Monitor closely - Temperature warning detected'
+                    ? `🚨 Critical Alert` 
+                    : `⚠️ Warning Alert`
                   }
                 </div>
               </CardContent>
@@ -298,7 +298,7 @@ const AlertSiloMonitoring: React.FC = () => {
       {/* Footer */}
       <div className="mt-8 text-center text-sm text-gray-500">
         <p>
-          Alert monitoring updates every 10 seconds. Only silos with temperature warnings or critical alerts are displayed.
+          Alert monitoring updates every 10 seconds. Showing all silos with temperature warnings or critical alerts.
         </p>
       </div>
     </div>

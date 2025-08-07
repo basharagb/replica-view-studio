@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { AlertTriangle, FileText, Printer, Download, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, FileText, Printer, Download, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MultiSelectDropdown } from './MultiSelectDropdown';
 import { AlarmReportData, ReportFilters } from '../types/reports';
 import { getAlarmedSilos, generateAlarmReportData, clearAlarmedSilosCache } from '../services/reportService';
@@ -21,6 +21,8 @@ export const AlarmReport: React.FC = () => {
   const [isGenerated, setIsGenerated] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage] = useState(50); // Show 50 records per page
 
   // Get all alarmed silos for dropdown with memoization for consistency
   const alarmedSilos = useMemo(() => {
@@ -90,6 +92,7 @@ export const AlarmReport: React.FC = () => {
       
       setReportData(data);
       setIsGenerated(true);
+      setCurrentPage(1);
     } catch (error) {
       console.error('Error generating report:', error);
     } finally {
@@ -102,6 +105,7 @@ export const AlarmReport: React.FC = () => {
     setRefreshKey(prev => prev + 1);
     setIsGenerated(false);
     setReportData([]);
+    setCurrentPage(1);
   };
 
   const handlePrintPDF = () => {
@@ -477,6 +481,7 @@ export const AlarmReport: React.FC = () => {
                 <p>Silos: {filters.selectedSilos?.join(', ')}</p>
                 <p>Period: {format(filters.startDate!, 'MMM dd, yyyy HH:mm')} - {format(filters.endDate!, 'MMM dd, yyyy HH:mm')}</p>
                 <p>Total Records: {reportData.length}</p>
+                <p>Showing {Math.min((currentPage - 1) * recordsPerPage + 1, reportData.length)} - {Math.min(currentPage * recordsPerPage, reportData.length)} of {reportData.length} records</p>
               </div>
               
               <div className="overflow-x-auto">
@@ -498,7 +503,9 @@ export const AlarmReport: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {reportData.map((record, index) => (
+                    {reportData
+                      .slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage)
+                      .map((record, index) => (
                       <tr key={index}>
                         <td className="silo-number">
                           {getSiloNumberBadge(record.siloNumber)}
@@ -521,6 +528,74 @@ export const AlarmReport: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+              
+              {/* Pagination Controls */}
+              {reportData.length > recordsPerPage && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                  <div className="text-sm text-gray-600">
+                    Showing {Math.min((currentPage - 1) * recordsPerPage + 1, reportData.length)} - {Math.min(currentPage * recordsPerPage, reportData.length)} of {reportData.length} records
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="flex items-center gap-1"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.ceil(reportData.length / recordsPerPage) }, (_, i) => i + 1)
+                        .filter(page => {
+                          const totalPages = Math.ceil(reportData.length / recordsPerPage);
+                          if (totalPages <= 7) return true;
+                          if (page === 1 || page === totalPages) return true;
+                          if (page >= currentPage - 1 && page <= currentPage + 1) return true;
+                          return false;
+                        })
+                        .map((page, index, array) => {
+                          const prevPage = array[index - 1];
+                          const showEllipsis = prevPage && page - prevPage > 1;
+                          
+                          return (
+                            <React.Fragment key={page}>
+                              {showEllipsis && (
+                                <span className="px-2 text-gray-400">...</span>
+                              )}
+                              <Button
+                                variant={currentPage === page ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setCurrentPage(page)}
+                                className="w-8 h-8 p-0"
+                              >
+                                {page}
+                              </Button>
+                            </React.Fragment>
+                          );
+                        })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(reportData.length / recordsPerPage)))}
+                      disabled={currentPage === Math.ceil(reportData.length / recordsPerPage)}
+                      className="flex items-center gap-1"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="text-sm text-gray-600">
+                    Page {currentPage} of {Math.ceil(reportData.length / recordsPerPage)}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
