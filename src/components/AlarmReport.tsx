@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { AlertTriangle, FileText, Printer, Download } from 'lucide-react';
+import { AlertTriangle, FileText, Printer, Download, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { MultiSelectDropdown } from './MultiSelectDropdown';
 import { AlarmReportData, ReportFilters } from '../types/reports';
-import { getAlarmedSilos, generateAlarmReportData } from '../services/reportService';
+import { getAlarmedSilos, generateAlarmReportData, clearAlarmedSilosCache } from '../services/reportService';
 import { format } from 'date-fns';
 import { clearCacheAndReload } from '../utils/cache';
 
@@ -20,13 +20,24 @@ export const AlarmReport: React.FC = () => {
   const [reportData, setReportData] = useState<AlarmReportData[]>([]);
   const [isGenerated, setIsGenerated] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Get all alarmed silos for dropdown
-  const alarmedSilos = getAlarmedSilos().map(silo => ({
-    value: silo.number.toString(),
-    label: `Silo ${silo.number}`,
-    isAlarmed: true
-  }));
+  // Get all alarmed silos for dropdown with memoization for consistency
+  const alarmedSilos = useMemo(() => {
+    return getAlarmedSilos(refreshKey > 0).map(silo => ({
+      value: silo.number.toString(),
+      label: `Silo ${silo.number}`,
+      isAlarmed: true
+    }));
+  }, [refreshKey]);
+
+  // Separate counts for better UI display
+  const totalAlarmedCount = alarmedSilos.length;
+  const selectedCount = filters.selectedSilos?.length || 0;
+  const criticalCount = useMemo(() => {
+    return getAlarmedSilos(refreshKey > 0).filter(silo => silo.status === 'Critical').length;
+  }, [refreshKey]);
+  const warningCount = totalAlarmedCount - criticalCount;
 
   // Progressive enabling logic
   const isEndDateEnabled = filters.startDate !== null;
@@ -80,10 +91,17 @@ export const AlarmReport: React.FC = () => {
       setReportData(data);
       setIsGenerated(true);
     } catch (error) {
-      console.error('Error generating alarm report:', error);
+      console.error('Error generating report:', error);
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleRefreshData = () => {
+    clearAlarmedSilosCache();
+    setRefreshKey(prev => prev + 1);
+    setIsGenerated(false);
+    setReportData([]);
   };
 
   const handlePrintPDF = () => {
@@ -290,66 +308,132 @@ export const AlarmReport: React.FC = () => {
     <div className="space-y-6">
       {/* Controls Section */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-500" />
-            Alarm Report Configuration
+        <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 border-b">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-6 w-6 text-orange-500" />
+              <span className="text-xl font-semibold">Alarm Report Configuration</span>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-1">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <span className="text-red-600 font-medium">{criticalCount} Critical</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                <span className="text-yellow-600 font-medium">{warningCount} Warning</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefreshData}
+                className="ml-2"
+              >
+                Refresh Data
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Alarmed Silos Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Select Alarmed Silos ({alarmedSilos.length} available)
-            </label>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Select Alarmed Silos
+              </label>
+              <div className="flex items-center gap-2 text-sm">
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  {totalAlarmedCount} Total Available
+                </Badge>
+                {selectedCount > 0 && (
+                  <Badge variant="default" className="bg-green-100 text-green-700 border-green-200">
+                    {selectedCount} Selected
+                  </Badge>
+                )}
+              </div>
+            </div>
             <MultiSelectDropdown
               options={alarmedSilos}
               selectedValues={filters.selectedSilos?.map(s => s.toString()) || []}
               onSelectionChange={handleSilosChange}
               placeholder="Select alarmed silos..."
               searchPlaceholder="Search alarmed silos..."
+              disabled={!isEndDateEnabled}
               showSelectAll={true}
             />
-            {filters.selectedSilos && filters.selectedSilos.length > 0 && (
-              <p className="text-xs text-gray-600">
-                {filters.selectedSilos.length} silo{filters.selectedSilos.length > 1 ? 's' : ''} selected
-              </p>
+            {!isEndDateEnabled && (
+              <p className="text-xs text-gray-500 italic">Complete date selection to enable silo selection</p>
+            )}
+            {selectedCount > 0 && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <p className="text-sm text-green-700 font-medium">
+                  Ready to generate report for {selectedCount} silo{selectedCount !== 1 ? 's' : ''}
+                </p>
+              </div>
             )}
           </div>
 
           {/* Date Range */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Start Date</label>
-              <Input
-                type="datetime-local"
-                value={filters.startDate ? format(filters.startDate, "yyyy-MM-dd'T'HH:mm") : ''}
-                onChange={handleStartDateChange}
-                className="w-full"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">End Date</label>
-              <Input
-                type="datetime-local"
-                value={filters.endDate ? format(filters.endDate, "yyyy-MM-dd'T'HH:mm") : ''}
-                onChange={handleEndDateChange}
-                disabled={!isEndDateEnabled}
-                className="w-full"
-                min={filters.startDate ? format(filters.startDate, "yyyy-MM-dd'T'HH:mm") : undefined}
-              />
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Start Date & Time
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={filters.startDate ? format(filters.startDate, "yyyy-MM-dd'T'HH:mm") : ''}
+                  onChange={handleStartDateChange}
+                  className="w-full border-2 focus:border-blue-500 transition-colors"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  End Date & Time
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={filters.endDate ? format(filters.endDate, "yyyy-MM-dd'T'HH:mm") : ''}
+                  onChange={handleEndDateChange}
+                  disabled={!isEndDateEnabled}
+                  min={filters.startDate ? format(filters.startDate, "yyyy-MM-dd'T'HH:mm") : undefined}
+                  className={`w-full border-2 transition-colors ${
+                    !isEndDateEnabled 
+                      ? 'bg-gray-50 cursor-not-allowed border-gray-200' 
+                      : 'focus:border-blue-500'
+                  }`}
+                />
+                {!isEndDateEnabled && (
+                  <p className="text-xs text-gray-500 italic">Select start date first</p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-6 border-t border-gray-200">
             <Button
               onClick={handleGenerateReport}
               disabled={!isGenerateEnabled || isGenerating}
-              className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 transition-all duration-200 shadow-lg hover:shadow-xl"
+              size="lg"
             >
-              <FileText className="h-4 w-4" />
-              {isGenerating ? 'Generating...' : 'Generate Report'}
+              {isGenerating ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Generating Report...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-5 w-5 mr-2" />
+                  Generate Alarm Report
+                </>
+              )}
             </Button>
             
             <Button
