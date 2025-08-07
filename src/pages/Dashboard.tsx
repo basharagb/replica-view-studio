@@ -17,10 +17,10 @@ const Dashboard = () => {
   const { isDark } = useTheme();
 
   const navigation = [
-    { name: 'Live Test', href: '/', icon: Activity, description: 'Real-time silo monitoring and testing' },
-    { name: 'Monitoring', href: '/monitoring', icon: Thermometer, description: 'Advanced silo temperature monitoring system' },
+    { name: 'Live Readings', href: '/', icon: Activity, description: 'Real-time silo monitoring and testing' },
+    { name: 'Alerts Synchronous System', href: '/monitoring', icon: Thermometer, description: 'Advanced silo temperature monitoring system' },
     { name: 'Reports', href: '/reports', icon: FileText, description: 'Test history and analytics' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Performance metrics and charts' },
+    { name: 'Maintenance', href: '/analytics', icon: BarChart3, description: 'Performance metrics and charts' },
     { name: 'Settings', href: '/settings', icon: Settings, description: 'System configuration' }
   ];
 
@@ -34,7 +34,7 @@ const Dashboard = () => {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform transition-transform duration-300 ease-in-out ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform transition-all duration-300 ease-in-out hover:shadow-2xl ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } ${isDark ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200'}`}>
         <div className={`flex items-center justify-between h-16 px-6 border-b ${
@@ -59,7 +59,7 @@ const Dashboard = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md ${
                   isActive(item.href)
                     ? isDark 
                       ? 'bg-blue-900 text-blue-300 border-r-2 border-blue-500'

@@ -150,7 +150,7 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState<string>('general');
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSettingChange = (key: keyof SettingsData, value: any) => {
+  const handleSettingChange = (key: keyof SettingsData, value: SettingsData[keyof SettingsData]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
@@ -213,16 +213,16 @@ const Settings = () => {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-6 animate-in fade-in-50 duration-500">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Settings</h1>
-        <p className="text-gray-600">Configure your system preferences and account settings</p>
+        <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white transition-colors duration-300">Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">Configure your system preferences and account settings</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar Navigation */}
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="transition-all duration-300 hover:shadow-lg">
             <CardContent className="p-4">
               <nav className="space-y-2">
                 {tabs.map((tab) => {
@@ -251,7 +251,7 @@ const Settings = () => {
         <div className="lg:col-span-3">
           {/* General Settings */}
           {activeTab === 'general' && (
-            <Card>
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <SettingsIcon className="h-5 w-5" />
@@ -322,7 +322,7 @@ const Settings = () => {
 
           {/* Appearance Settings */}
           {activeTab === 'appearance' && (
-            <Card>
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="h-5 w-5" />
@@ -438,7 +438,7 @@ const Settings = () => {
 
           {/* Notification Settings */}
           {activeTab === 'notifications' && (
-            <Card>
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="h-5 w-5" />
@@ -514,7 +514,7 @@ const Settings = () => {
 
           {/* System Settings */}
           {activeTab === 'system' && (
-            <Card>
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Monitor className="h-5 w-5" />
@@ -550,7 +550,7 @@ const Settings = () => {
 
           {/* Security Settings */}
           {activeTab === 'security' && (
-            <Card>
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
@@ -612,7 +612,7 @@ const Settings = () => {
 
           {/* Data Settings */}
           {activeTab === 'data' && (
-            <Card>
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Database className="h-5 w-5" />
@@ -667,7 +667,7 @@ const Settings = () => {
 
           {/* Network Settings */}
           {activeTab === 'network' && (
-            <Card>
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Wifi className="h-5 w-5" />
@@ -727,7 +727,7 @@ const Settings = () => {
 
           {/* Profile Settings */}
           {activeTab === 'profile' && (
-            <Card>
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />

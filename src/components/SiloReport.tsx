@@ -298,6 +298,7 @@ export const SiloReport: React.FC = () => {
               <label className="text-sm font-medium">Start Date</label>
               <Input
                 type="datetime-local"
+                step="3600"
                 value={filters.startDate ? format(filters.startDate, "yyyy-MM-dd'T'HH:mm") : ''}
                 onChange={handleStartDateChange}
                 className="w-full"
@@ -307,6 +308,7 @@ export const SiloReport: React.FC = () => {
               <label className="text-sm font-medium">End Date</label>
               <Input
                 type="datetime-local"
+                step="3600"
                 value={filters.endDate ? format(filters.endDate, "yyyy-MM-dd'T'HH:mm") : ''}
                 onChange={handleEndDateChange}
                 disabled={!isEndDateEnabled}

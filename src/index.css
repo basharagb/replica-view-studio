@@ -1,9 +1,9 @@
+/* Import responsive design system */
+@import './styles/responsive.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import responsive design system */
-@import './styles/responsive.css';
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
@@ -118,35 +118,73 @@ All colors MUST be HSL.
 /* Temperature-based silo colors from sillo logic */
 .temp-green {
   background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  transition: all 0.3s ease;
+}
+
+.dark .temp-green {
+  background: linear-gradient(135deg, #388E3C 0%, #2E7D32 100%);
 }
 
 .temp-yellow {
   background: linear-gradient(135deg, #FFC107 0%, #e0a800 100%);
+  transition: all 0.3s ease;
+}
+
+.dark .temp-yellow {
+  background: linear-gradient(135deg, #F57F17 0%, #E65100 100%);
 }
 
 .temp-pink {
   background: linear-gradient(135deg, #F44336 0%, #da190b 100%);
+  transition: all 0.3s ease;
+}
+
+.dark .temp-pink {
+  background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
 }
 
 .temp-beige {
   background: linear-gradient(135deg, #F5DEB3 0%, #e6d0a3 100%);
+  transition: all 0.3s ease;
+}
+
+.dark .temp-beige {
+  background: linear-gradient(135deg, #8D6E63 0%, #5D4037 100%);
 }
 
 /* Silo states */
 .silo-selected {
   @apply border-black border-4 shadow-lg;
   box-shadow: 0 0 8px rgba(0,0,0,0.4);
+  transform: scale(1.1);
+  transition: all 0.3s ease;
+}
+
+.dark .silo-selected {
+  @apply border-white;
+  box-shadow: 0 0 8px rgba(255,255,255,0.4);
 }
 
 .silo-reading {
   @apply border-blue-500 border-4;
   animation: reading-pulse 1.5s infinite;
   box-shadow: 0 0 12px rgba(33, 150, 243, 0.6);
+  transition: all 0.3s ease;
+}
+
+.dark .silo-reading {
+  @apply border-blue-400;
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.6);
 }
 
 .silo-hover {
   @apply border-gray-600;
   transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+.dark .silo-hover {
+  @apply border-gray-400;
 }
 
 /* Reading animations */
@@ -190,4 +228,12 @@ All colors MUST be HSL.
   z-index: 1000;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.dark .temperature-tooltip {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: black;
+  box-shadow: 0 2px 8px rgba(255,255,255,0.3);
 }

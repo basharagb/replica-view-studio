@@ -13,7 +13,7 @@ import AlertSiloMonitoring from '../components/AlertSiloMonitoring';
  */
 const SiloMonitoring: React.FC = () => {
   return (
-    <div className="silo-monitoring-page min-h-screen bg-gray-50">
+    <div className="silo-monitoring-page min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 animate-in fade-in-50 duration-500">
       <AlertSiloMonitoring />
     </div>
   );

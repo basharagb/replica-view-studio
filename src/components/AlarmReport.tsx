@@ -389,6 +389,7 @@ export const AlarmReport: React.FC = () => {
                 </label>
                 <Input
                   type="datetime-local"
+                  step="3600"
                   value={filters.startDate ? format(filters.startDate, "yyyy-MM-dd'T'HH:mm") : ''}
                   onChange={handleStartDateChange}
                   className="w-full border-2 focus:border-blue-500 transition-colors"
@@ -402,6 +403,7 @@ export const AlarmReport: React.FC = () => {
                 </label>
                 <Input
                   type="datetime-local"
+                  step="3600"
                   value={filters.endDate ? format(filters.endDate, "yyyy-MM-dd'T'HH:mm") : ''}
                   onChange={handleEndDateChange}
                   disabled={!isEndDateEnabled}

@@ -60,10 +60,14 @@ export const LabCircle = ({
         text-lab-text
         border-2
         border-gray-300
+        dark:border-gray-600
         shadow-sm
+        hover:shadow-lg
         cursor-pointer
         transition-all
         duration-200
+        hover:scale-110
+        active:scale-95
         user-select-none
         ${isSelected ? 'silo-selected' : ''}
         ${isReading ? 'silo-reading' : ''}

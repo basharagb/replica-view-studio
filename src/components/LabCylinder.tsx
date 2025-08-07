@@ -38,13 +38,13 @@ const LabCylinderComponent = ({
 
   return (
     <div className="relative">
-      <div className="w-32 bg-lab-cylinder border-2 border-gray-400 rounded-lg p-2" data-testid="lab-cylinder">
-        <div className="text-xs font-bold text-center text-lab-text mb-2">
-          Cylinder Sensors
+      <div className="w-32 bg-lab-cylinder border-2 border-gray-400 dark:border-gray-600 rounded-lg p-2 transition-all duration-300 hover:shadow-lg" data-testid="lab-cylinder">
+        <div className="text-xs font-bold text-center text-lab-text dark:text-gray-200 mb-2">
+          Silo Sensors
         </div>
-        <div className="text-xs text-center text-lab-text mb-3">
+        <div className="text-xs text-center text-lab-text dark:text-gray-300 mb-3">
           {readingSilo ? (
-            <span className="text-blue-600 font-bold animate-pulse">Reading Silo {readingSilo}</span>
+            <span className="text-blue-600 dark:text-blue-400 font-bold animate-pulse">Reading Silo {readingSilo}</span>
           ) : (
             <span>Silo {selectedSilo || 112}</span>
           )}
@@ -53,7 +53,7 @@ const LabCylinderComponent = ({
         {/* Display main temperature if available */}
         {currentSilo && (
           <div className="text-center mb-2">
-            <div className="text-xs text-lab-text">Main Temp:</div>
+            <div className="text-xs text-lab-text dark:text-gray-300">Max Temp:</div>
             <div className={`text-sm font-bold ${
               readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
             }`}>
@@ -80,18 +80,11 @@ const LabCylinderComponent = ({
                 {readingSilo && (
                   <div className="absolute inset-0 bg-blue-100 bg-opacity-40 rounded"></div>
                 )}
-                <span className="text-xs font-medium text-lab-text relative z-10">S{sensorIndex + 1}:</span>
+                <span className="text-xs font-medium text-lab-text dark:text-gray-200 relative z-10">S{sensorIndex + 1}:</span>
                 <span className={`text-xs font-bold relative z-10 ${
-                  readingSilo ? 'text-blue-600' : 'text-lab-text'
+                  readingSilo ? 'text-blue-600 dark:text-blue-400' : 'text-lab-text dark:text-gray-200'
                 }`}>
-                  {readingSilo ? (
-                    <span className="inline-flex items-center">
-                      <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin mr-1"></div>
-                      {reading.toFixed(1)}°C
-                    </span>
-                  ) : (
-                    `${reading.toFixed(1)}°C`
-                  )}
+                  {`${reading.toFixed(1)}°C`}
                 </span>
               </div>
             );

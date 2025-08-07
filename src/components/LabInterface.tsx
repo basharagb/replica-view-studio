@@ -59,16 +59,16 @@ export const LabInterface = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-background p-8" data-testid="lab-interface">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex gap-8 2xl:gap-12 3xl:gap-16">
+    <div className="min-h-screen w-full bg-background p-2 sm:p-4 lg:p-6 xl:p-8" data-testid="lab-interface">
+      <div className="w-full max-w-none">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 2xl:gap-12 3xl:gap-16 items-start justify-center">
           {/* Main lab area */}
-          <div className="flex-1 space-y-12 2xl:space-y-16 3xl:space-y-20">
+          <div className="flex-1 w-full lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl space-y-8 lg:space-y-12 2xl:space-y-16 3xl:space-y-20">
             {/* Top section (1-55) - First 3 rows */}
-            <div className="bg-gray-50 p-6 2xl:p-8 3xl:p-10 rounded-lg border-2 border-gray-200" data-testid="top-silo-section" key={`top-${dataVersion}`}>
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 2xl:p-8 3xl:p-10 rounded-lg border-2 border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg" data-testid="top-silo-section" key={`top-${dataVersion}`}>
               <div className="flex gap-6 2xl:gap-8 3xl:gap-10 justify-center">
                 {topSiloGroups.map((group, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="relative transform transition-all duration-200 hover:scale-105">
                     <LabGroup
                       circles={[
                         ...(group.topRow || []),
@@ -85,7 +85,7 @@ export const LabInterface = () => {
                     />
                     {/* Visual separator between groups */}
                     {index < topSiloGroups.length - 1 && (
-                      <div className="absolute -right-3 top-0 bottom-0 w-px bg-gray-400"></div>
+                      <div className="absolute -right-3 top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-600"></div>
                     )}
                   </div>
                 ))}
@@ -93,10 +93,10 @@ export const LabInterface = () => {
             </div>
 
             {/* Bottom section (101-195) - All 5 rows */}
-            <div className="bg-gray-50 p-6 2xl:p-8 3xl:p-10 rounded-lg border-2 border-gray-200" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 2xl:p-8 3xl:p-10 rounded-lg border-2 border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
               <div className="flex gap-6 2xl:gap-8 3xl:gap-10 justify-center">
                 {bottomSiloGroups.map((group, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="relative transform transition-all duration-200 hover:scale-105">
                     <div className="flex flex-col items-center gap-0">
                       {/* Row 1: circles */}
                       <div className="flex gap-0">
@@ -188,7 +188,7 @@ export const LabInterface = () => {
                     </div>
                     {/* Visual separator between groups */}
                     {index < bottomSiloGroups.length - 1 && (
-                      <div className="absolute -right-3 top-0 bottom-0 w-px bg-gray-400"></div>
+                      <div className="absolute -right-3 top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-600"></div>
                     )}
                   </div>
                 ))}
@@ -197,7 +197,7 @@ export const LabInterface = () => {
           </div>
 
           {/* Right side with cylinder, input, and controls */}
-          <div className="flex flex-col items-center gap-4 2xl:gap-6 3xl:gap-8" data-testid="control-panel">
+          <div className="flex flex-col lg:flex-col items-center gap-4 lg:gap-6 2xl:gap-8 3xl:gap-10 lg:min-w-[200px] xl:min-w-[240px]" data-testid="control-panel">
             <LabCylinder
               key={`cylinder-${dataVersion}`}
               selectedSilo={selectedSilo}
@@ -217,36 +217,36 @@ export const LabInterface = () => {
             </div>
             
             {/* Manual/Auto Test Controls */}
-            <div className="flex flex-col gap-2 items-center mt-4 2xl:mt-6 3xl:mt-8">
+            <div className="flex flex-col gap-3 items-center mt-4 lg:mt-6 2xl:mt-8 w-full">
               <Button
                 variant={readingMode === 'manual' ? 'default' : 'outline'}
                 onClick={handleManualReadMode}
                 disabled={isReading && readingMode === 'auto'}
-                className="w-32 2xl:w-36 3xl:w-40"
+                className="w-full max-w-[200px] lg:max-w-[220px] xl:max-w-[240px] text-xs lg:text-sm font-medium transition-all duration-200 hover:scale-105"
                 data-testid="manual-test-button"
               >
-                {readingMode === 'manual' ? 'Stop Manual' : `Manual Test (${manualTestDuration}min)`}
+                {readingMode === 'manual' ? 'Stop Manual Readings' : `Manual Readings (${manualTestDuration}min)`}
               </Button>
               <Button
                 variant={readingMode === 'auto' ? 'default' : 'outline'}
                 onClick={startAutoRead}
                 disabled={(isReading && readingMode === 'manual') || isWaitingForRestart}
-                className="w-32 2xl:w-36 3xl:w-40"
+                className="w-full max-w-[200px] lg:max-w-[220px] xl:max-w-[240px] text-xs lg:text-sm font-medium transition-all duration-200 hover:scale-105"
                 data-testid="auto-test-button"
               >
-                {isWaitingForRestart ? 'Waiting to Restart' : autoReadCompleted ? 'Auto Test Completed' : readingMode === 'auto' ? 'Stop Auto Test' : `Auto Test (${autoTestInterval/60}h)`}
+                {isWaitingForRestart ? 'Waiting to Restart' : autoReadCompleted ? 'Auto Readings Completed' : readingMode === 'auto' ? 'Stop Auto Readings' : `Auto Readings (${autoTestInterval/60}h)`}
               </Button>
               
               {/* Auto Read Progress */}
               {readingMode === 'auto' && (
-                <div className="w-48 2xl:w-56 3xl:w-64 mt-2" data-testid="auto-test-progress">
-                  <div className="bg-gray-200 h-3 rounded">
+                <div className="w-full max-w-[200px] lg:max-w-[220px] xl:max-w-[240px] mt-3" data-testid="auto-test-progress">
+                  <div className="bg-gray-200 dark:bg-gray-700 h-3 rounded-full overflow-hidden">
                     <div
-                      className="bg-green-500 h-3 rounded transition-all duration-300"
+                      className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${autoReadProgress}%` }}
                     />
                   </div>
-                  <div className="text-xs mt-1 text-center">
+                  <div className="text-xs lg:text-sm mt-2 text-center font-medium text-gray-600 dark:text-gray-300">
                     {Math.round(autoReadProgress)}% complete
                   </div>
                 </div>
@@ -254,22 +254,22 @@ export const LabInterface = () => {
 
               {/* Auto Restart Status */}
               {isWaitingForRestart && (
-                <div className="mt-2 text-sm text-blue-600 font-medium">
+                <div className="mt-2 text-sm text-blue-600 dark:text-blue-400 font-medium transition-colors duration-200">
                   ⏳ Waiting {waitTimeRemaining} minutes to restart auto test
                 </div>
               )}
               
               {/* Auto Read Completion Message */}
               {autoReadCompleted && readingMode === 'none' && !isWaitingForRestart && (
-                <div className="mt-2 text-sm text-green-600 font-medium">
+                <div className="mt-2 text-sm text-green-600 dark:text-green-400 font-medium transition-colors duration-200">
                   ✓ Auto test completed successfully
                 </div>
               )}
 
               {/* Reading Status */}
               {isReading && readingSilo && (
-                <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
-                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="mt-2 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 transition-colors duration-200">
+                  <div className="w-3 h-3 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin"></div>
                   Reading Silo {readingSilo}
                 </div>
               )}

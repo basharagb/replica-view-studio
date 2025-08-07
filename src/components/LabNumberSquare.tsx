@@ -46,6 +46,7 @@ export const LabNumberSquare = ({
         ${colorClass}
         border
         border-gray-300
+        dark:border-gray-600
         flex
         items-center
         justify-center
@@ -55,6 +56,9 @@ export const LabNumberSquare = ({
         cursor-pointer
         transition-all
         duration-200
+        hover:scale-110
+        active:scale-95
+        hover:shadow-md
         user-select-none
         rounded-sm
         ${isSelected ? 'silo-selected' : ''}

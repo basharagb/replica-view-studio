@@ -112,7 +112,7 @@ export const useSiloSystem = () => {
     const allSilos = getAllSilos();
     let currentIndex = 0;
     let timeoutCounter = 0;
-    const maxTimeout = 100; // Maximum iterations to prevent infinite loop
+    const maxTimeout = 200; // Maximum iterations to prevent infinite loop (increased for 4s intervals)
 
     // Starting auto test
 
@@ -135,6 +135,16 @@ export const useSiloSystem = () => {
       setAutoReadProgress(0);
       setReadingMode('none');
       return;
+    }
+
+    // Start immediately with first silo
+    if (allSilos.length > 0) {
+      const firstSilo = allSilos[0];
+      setReadingSilo(firstSilo.num);
+      setSelectedSilo(firstSilo.num);
+      setSelectedTemp(firstSilo.temp);
+      setAutoReadProgress((1 / allSilos.length) * 100);
+      currentIndex = 1;
     }
 
     const interval = setInterval(() => {
@@ -176,7 +186,7 @@ export const useSiloSystem = () => {
       setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
 
       currentIndex++;
-    }, getSiloTestDuration()); // Dynamic duration based on auto test interval
+    }, 4000); // 4 seconds between each silo
 
     autoReadInterval.current = interval;
   }, [readingMode, isReading, autoReadCompleted]);

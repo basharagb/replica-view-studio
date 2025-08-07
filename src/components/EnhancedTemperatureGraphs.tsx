@@ -395,6 +395,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     <Input
                       id="start-date"
                       type="datetime-local"
+                      step="3600"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       disabled={!selectedSilo}
@@ -407,6 +408,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     <Input
                       id="end-date"
                       type="datetime-local"
+                      step="3600"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       disabled={!selectedSilo || !startDate}
@@ -511,6 +513,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     <Input
                       id="alerts-start-date"
                       type="datetime-local"
+                      step="3600"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       disabled={selectedAlertSilos.length === 0}
@@ -523,6 +526,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     <Input
                       id="alerts-end-date"
                       type="datetime-local"
+                      step="3600"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       disabled={selectedAlertSilos.length === 0 || !startDate}
@@ -647,7 +651,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                                   dataKey="temperature"
                                   stroke="#3b82f6"
                                   strokeWidth={3}
-                                  name={selectedSilo ? `Silo ${selectedSilo}` : 'General'}
+                                  name={selectedSilo ? `Silo ${selectedSilo}` : 'All Silos Average of Max Temps'}
                                   dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                                   activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
                                 />
@@ -675,7 +679,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                       
                       {/* Graph Info */}
                       {graphData.length > 0 && !isLoading && (
-                        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300">
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-sm">
                             <div>
                               <span className="font-medium">Date Range:</span> {startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified'}

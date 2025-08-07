@@ -131,9 +131,9 @@ const AlertSiloMonitoring: React.FC = () => {
     };
 
     updateAlertSilos();
-    const interval = setInterval(updateAlertSilos, 10000); // Update every 10 seconds
-
-    return () => clearInterval(interval);
+    // Removed auto-reload behavior as per requirements
+    // const interval = setInterval(updateAlertSilos, 10000); // Update every 10 seconds
+    // return () => clearInterval(interval);
   }, []);
 
   const getStatusIcon = (status: 'yellow' | 'red') => {
