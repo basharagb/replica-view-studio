@@ -27,9 +27,9 @@ export const LabCircle = ({
   onMouseMove
 }: LabCircleProps) => {
   const sizeClasses = {
-    sm: 'w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 text-xs',
-    md: 'w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 text-xs',
-    lg: 'w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 text-xs sm:text-sm'
+    sm: 'w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 text-xs sm:text-sm',
+    md: 'w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 text-xs sm:text-sm md:text-base',
+    lg: 'w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 text-sm sm:text-base md:text-lg'
   };
 
   const temperatureColor = getSiloColorByNumber(number);
