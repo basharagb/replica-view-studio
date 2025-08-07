@@ -186,10 +186,10 @@ export const useSiloSystem = () => {
       setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
 
       currentIndex++;
-    }, 4000); // 4 seconds between each silo
+    }, getSiloTestDuration()); // 24 seconds between each silo (based on interval setting)
 
     autoReadInterval.current = interval;
-  }, [readingMode, isReading, autoReadCompleted]);
+  }, [readingMode, isReading, getSiloTestDuration]);
 
   // Start auto restart wait period
   const startAutoRestartWait = useCallback(() => {

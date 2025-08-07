@@ -38,11 +38,11 @@ const LabCylinderComponent = ({
 
   return (
     <div className="relative">
-      <div className="w-32 bg-lab-cylinder border-2 border-gray-400 dark:border-gray-600 rounded-lg p-2 transition-all duration-300 hover:shadow-lg" data-testid="lab-cylinder">
-        <div className="text-xs font-bold text-center text-lab-text dark:text-gray-200 mb-2">
+      <div className="w-40 bg-lab-cylinder border-2 border-gray-400 dark:border-gray-600 rounded-lg p-3 transition-all duration-300 hover:shadow-lg" data-testid="lab-cylinder">
+        <div className="text-sm font-bold text-center text-lab-text dark:text-gray-200 mb-2">
           Silo Sensors
         </div>
-        <div className="text-xs text-center text-lab-text dark:text-gray-300 mb-3">
+        <div className="text-sm text-center text-lab-text dark:text-gray-300 mb-3">
           {readingSilo ? (
             <span className="text-blue-600 dark:text-blue-400 font-bold animate-pulse">Reading Silo {readingSilo}</span>
           ) : (
@@ -53,8 +53,8 @@ const LabCylinderComponent = ({
         {/* Display main temperature if available */}
         {currentSilo && (
           <div className="text-center mb-2">
-            <div className="text-xs text-lab-text dark:text-gray-300">Max Temp:</div>
-            <div className={`text-sm font-bold ${
+            <div className="text-sm text-lab-text dark:text-gray-300">Max Temp:</div>
+            <div className={`text-base font-bold ${
               readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
             }`}>
               {currentSilo.temp.toFixed(1)}°C
@@ -62,7 +62,7 @@ const LabCylinderComponent = ({
           </div>
         )}
         
-        <div className="space-y-1">
+        <div className="space-y-2">
           {sensorReadings.map((reading, sensorIndex) => {
             const tempColor = getTemperatureColor(reading);
             const getBackgroundClass = () => {
@@ -76,12 +76,12 @@ const LabCylinderComponent = ({
             };
 
             return (
-              <div key={sensorIndex} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundClass()}`}>
+              <div key={sensorIndex} className={`flex justify-between items-center rounded-md px-3 py-2 transition-all duration-300 ${getBackgroundClass()}`}>
                 {readingSilo && (
                   <div className="absolute inset-0 bg-blue-100 bg-opacity-40 rounded"></div>
                 )}
-                <span className="text-xs font-medium text-lab-text dark:text-gray-200 relative z-10">S{sensorIndex + 1}:</span>
-                <span className={`text-xs font-bold relative z-10 ${
+                <span className="text-sm font-medium text-lab-text dark:text-gray-200 relative z-10">S{sensorIndex + 1}:</span>
+                <span className={`text-sm font-bold relative z-10 ${
                   readingSilo ? 'text-blue-600 dark:text-blue-400' : 'text-lab-text dark:text-gray-200'
                 }`}>
                   {`${reading.toFixed(1)}°C`}

@@ -42,25 +42,25 @@ export const LabNumberSquare = ({
   return (
     <div
       className={`
-        w-6 h-6
+        w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 xl:w-16 xl:h-16
         ${colorClass}
-        border
+        border-2
         border-gray-300
         dark:border-gray-600
         flex
         items-center
         justify-center
-        text-xs
-        font-medium
+        text-xs sm:text-sm md:text-base lg:text-lg
+        font-semibold
         text-lab-text
         cursor-pointer
         transition-all
-        duration-200
+        duration-300
         hover:scale-110
         active:scale-95
-        hover:shadow-md
+        hover:shadow-lg
         user-select-none
-        rounded-sm
+        rounded-md
         ${isSelected ? 'silo-selected' : ''}
         ${isReading ? 'silo-reading' : ''}
         ${isHovered ? 'silo-hover' : ''}
