@@ -63,10 +63,10 @@ export const LabInterface = () => {
       <div className="w-full h-full max-w-none">
         <div className="flex flex-col xl:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-6 items-start justify-start h-full min-h-[calc(100vh-2rem)]">
           {/* Main lab area - Enhanced for full screen */}
-          <div className="flex-1 w-full max-w-full space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full">
+          <div className="flex-1 w-full max-w-full space-y-1 sm:space-y-2 md:space-y-3 lg:space-y-4 h-full">
             {/* Top section (1-55) - Enhanced size */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[35vh] flex items-center" data-testid="top-silo-section" key={`top-${dataVersion}`}>
-              <div className="flex gap-1 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[35vh] flex items-center" data-testid="top-silo-section" key={`top-${dataVersion}`}>
+              <div className="flex gap-1 sm:gap-1 md:gap-2 lg:gap-2 xl:gap-3 justify-center items-center overflow-x-auto overflow-y-visible pb-2 px-1 h-full min-w-0">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-110 hover:z-10">
                     <LabGroup
@@ -93,13 +93,13 @@ export const LabInterface = () => {
             </div>
 
             {/* Bottom section (101-195) - Enhanced size */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[45vh] flex items-center" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
-              <div className="flex gap-1 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[45vh] flex items-center" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
+              <div className="flex gap-1 sm:gap-1 md:gap-2 lg:gap-2 xl:gap-3 justify-center items-center overflow-x-auto overflow-y-visible pb-2 px-1 h-full min-w-0">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-110 hover:z-10">
-                    <div className="flex flex-col items-center gap-1 sm:gap-2">
+                    <div className="flex flex-col items-center gap-1">
                       {/* Row 1: circles */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1">
                         {(group.row1 || []).slice(0, 3).map((circle) => (
                           <LabCircle
                             key={`row1-${circle.num}`}
@@ -117,7 +117,7 @@ export const LabInterface = () => {
                       </div>
                       
                       {/* Row 2: squares */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1">
                         {(group.row2 || []).slice(0, 5).map((silo) => (
                           <LabNumberSquare
                             key={`row2-${silo.num}`}
@@ -134,7 +134,7 @@ export const LabInterface = () => {
                       </div>
                       
                       {/* Row 3: circles */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1">
                         {(group.row3 || []).slice(0, 3).map((circle) => (
                           <LabCircle
                             key={`row3-${circle.num}`}
@@ -152,7 +152,7 @@ export const LabInterface = () => {
                       </div>
                       
                       {/* Row 4: squares */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1">
                         {(group.row4 || []).slice(0, 5).map((silo) => (
                           <LabNumberSquare
                             key={`row4-${silo.num}`}
@@ -169,7 +169,7 @@ export const LabInterface = () => {
                       </div>
                       
                       {/* Row 5: circles */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1">
                         {(group.row5 || []).slice(0, 3).map((circle) => (
                           <LabCircle
                             key={`row5-${circle.num}`}
