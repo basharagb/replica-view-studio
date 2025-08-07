@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from '../components/ui/textarea';
 import { Separator } from '../components/ui/separator';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSiloSystem } from '../hooks/useSiloSystem';
 import { 
   Settings as SettingsIcon,
   Moon,
@@ -92,6 +93,7 @@ interface SettingsData {
 
 const Settings = () => {
   const { theme, setTheme, isDark } = useTheme();
+  const { readingMode } = useSiloSystem();
   
   const [settings, setSettings] = useState<SettingsData>({
     // Theme Settings
@@ -285,22 +287,24 @@ const Settings = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Auto Test Interval (minutes)</Label>
-                    <Select
-                      value={settings.autoTestInterval.toString()}
-                      onValueChange={(value) => handleSettingChange('autoTestInterval', parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select interval" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="60">1 hour</SelectItem>
-                        <SelectItem value="120">2 hours</SelectItem>
-                        <SelectItem value="180">3 hours</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {readingMode === 'auto' && (
+                    <div>
+                      <Label>Auto Test Interval (minutes)</Label>
+                      <Select
+                        value={settings.autoTestInterval.toString()}
+                        onValueChange={(value) => handleSettingChange('autoTestInterval', parseInt(value))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select interval" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="60">1 hour</SelectItem>
+                          <SelectItem value="120">2 hours</SelectItem>
+                          <SelectItem value="180">3 hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <div>
                     <Label>Data Retention (days)</Label>
                     <Input

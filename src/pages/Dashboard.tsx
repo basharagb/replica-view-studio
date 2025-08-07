@@ -8,7 +8,6 @@ import {
   Settings,
   BarChart3,
   Database,
-  Upload,
   Thermometer
 } from 'lucide-react';
 
@@ -22,7 +21,6 @@ const Dashboard = () => {
     { name: 'Monitoring', href: '/monitoring', icon: Thermometer, description: 'Advanced silo temperature monitoring system' },
     { name: 'Reports', href: '/reports', icon: FileText, description: 'Test history and analytics' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Performance metrics and charts' },
-    { name: 'Data Management', href: '/data', icon: Upload, description: 'Import and export data' },
     { name: 'Settings', href: '/settings', icon: Settings, description: 'System configuration' }
   ];
 

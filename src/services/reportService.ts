@@ -22,10 +22,8 @@ export const getAllSiloNumbers = (): number[] => {
     if (group.row5) group.row5.forEach(silo => allSilos.push(silo.num));
   });
   
-  // Add cylinder silos
-  cylinderSilos.forEach(silo => {
-    allSilos.push(silo.num);
-  });
+  // Note: Cylinder silos (201-208) are excluded from reports dropdown
+  // Only include regular silos (1-195) for reporting purposes
   
   return allSilos.sort((a, b) => a - b);
 };
@@ -159,6 +157,40 @@ export const generateAlarmReportData = (
     if (timeDiff !== 0) return timeDiff;
     return a.siloNumber - b.siloNumber;
   });
+};
+
+// Generate temperature history for graphs
+export const generateTemperatureHistory = (
+  siloNumber: number,
+  startDate: Date,
+  endDate: Date
+): Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> => {
+  const history: Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> = [];
+  const timeDiff = endDate.getTime() - startDate.getTime();
+  const dataPoints = Math.min(Math.max(Math.floor(timeDiff / (1000 * 60 * 60)), 24), 168); // 24 to 168 data points
+  
+  for (let i = 0; i < dataPoints; i++) {
+    const currentTime = new Date(startDate.getTime() + (i * timeDiff / (dataPoints - 1)));
+    
+    // Generate realistic temperature variations
+    const baseSensorReadings = getSensorReadings(siloNumber);
+    const baseTemp = Math.max(...baseSensorReadings);
+    
+    // Add some historical variation (±5°C)
+    const variation = (Math.random() - 0.5) * 10;
+    const maxTemp = Math.max(20, Math.min(60, baseTemp + variation));
+    const avgTemp = maxTemp - (Math.random() * 3); // Average slightly lower
+    const minTemp = avgTemp - (Math.random() * 5); // Min lower than average
+    
+    history.push({
+      time: currentTime.toISOString(),
+      maxTemp: parseFloat(maxTemp.toFixed(1)),
+      avgTemp: parseFloat(avgTemp.toFixed(1)),
+      minTemp: parseFloat(minTemp.toFixed(1))
+    });
+  }
+  
+  return history;
 };
 
 // Export report data to CSV format (for future use)
