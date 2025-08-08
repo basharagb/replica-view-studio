@@ -67,28 +67,28 @@ export const LabInterface = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <div className="w-full h-full max-w-none">
+      <div className="w-full h-full max-w-[85%] mx-auto">
         <div className="flex flex-col xl:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-6 items-start justify-start h-full min-h-[calc(100vh-2rem)]">
-          {/* Main lab area - Enhanced for full screen */}
+          {/* Main lab area - Reduced width by 15% */}
           <motion.div 
-            className="flex-1 w-full max-w-full space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full"
+            className="flex-1 w-full max-w-[85%] space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
           >
-            {/* Top section (1-55) - Enhanced size */}
+            {/* Top section (1-55) - Reduced width and improved layout */}
             <motion.div 
-              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[35vh] flex items-center" 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.002] backdrop-blur-sm min-h-[32vh] flex items-center w-full max-w-[85%] mx-auto" 
               data-testid="top-silo-section" 
               key={`top-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              whileHover={{ scale: 1.005, transition: { duration: 0.2 } }}
+              whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
             >
-              <div className="flex gap-1 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
+              <div className="flex gap-1 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
                 {topSiloGroups.map((group, index) => (
-                  <div key={index} className="relative transform transition-all duration-300 hover:scale-110 hover:z-10">
+                  <div key={index} className="relative transform transition-all duration-300 hover:scale-105 hover:z-10 flex-shrink-0">
                     <LabGroup
                       circles={[
                         ...(group.topRow || []),
@@ -103,31 +103,31 @@ export const LabInterface = () => {
                       onSiloLeave={handleSiloLeave}
                       onSiloMouseMove={handleSiloMouseMove}
                     />
-                    {/* Enhanced visual separator between groups */}
+                    {/* Reduced visual separator between groups */}
                     {index < topSiloGroups.length - 1 && (
-                      <div className="absolute -right-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 dark:from-gray-600 dark:via-gray-500 dark:to-gray-600 rounded-full opacity-60"></div>
+                      <div className="absolute -right-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 dark:from-gray-600 dark:via-gray-500 dark:to-gray-600 rounded-full opacity-40"></div>
                     )}
                   </div>
                 ))}
               </div>
             </motion.div>
 
-            {/* Bottom section (101-195) - Enhanced size */}
+            {/* Bottom section (101-195) - Reduced width and improved layout */}
             <motion.div 
-              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[45vh] flex items-center" 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.002] backdrop-blur-sm min-h-[42vh] flex items-center w-full max-w-[85%] mx-auto" 
               data-testid="bottom-silo-section" 
               key={`bottom-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              whileHover={{ scale: 1.005, transition: { duration: 0.2 } }}
+              whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
             >
-              <div className="flex gap-1 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
+              <div className="flex gap-1 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
                 {bottomSiloGroups.map((group, index) => (
-                  <div key={index} className="relative transform transition-all duration-300 hover:scale-110 hover:z-10">
-                    <div className="flex flex-col items-center gap-1 sm:gap-2">
+                  <div key={index} className="relative transform transition-all duration-300 hover:scale-105 hover:z-10 flex-shrink-0">
+                    <div className="flex flex-col items-center gap-1">
                       {/* Row 1: circles */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1 sm:gap-2">
                         {(group.row1 || []).slice(0, 3).map((circle) => (
                           <LabCircle
                             key={`row1-${circle.num}`}
@@ -145,7 +145,7 @@ export const LabInterface = () => {
                       </div>
                       
                       {/* Row 2: squares */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1 sm:gap-2">
                         {(group.row2 || []).slice(0, 5).map((silo) => (
                           <LabNumberSquare
                             key={`row2-${silo.num}`}
@@ -162,7 +162,7 @@ export const LabInterface = () => {
                       </div>
                       
                       {/* Row 3: circles */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1 sm:gap-2">
                         {(group.row3 || []).slice(0, 3).map((circle) => (
                           <LabCircle
                             key={`row3-${circle.num}`}
@@ -180,7 +180,7 @@ export const LabInterface = () => {
                       </div>
                       
                       {/* Row 4: squares */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1 sm:gap-2">
                         {(group.row4 || []).slice(0, 5).map((silo) => (
                           <LabNumberSquare
                             key={`row4-${silo.num}`}
@@ -197,7 +197,7 @@ export const LabInterface = () => {
                       </div>
                       
                       {/* Row 5: circles */}
-                      <div className="flex gap-1 sm:gap-2 md:gap-3">
+                      <div className="flex gap-1 sm:gap-2">
                         {(group.row5 || []).slice(0, 3).map((circle) => (
                           <LabCircle
                             key={`row5-${circle.num}`}
@@ -214,9 +214,9 @@ export const LabInterface = () => {
                         ))}
                       </div>
                     </div>
-                    {/* Enhanced visual separator between groups */}
+                    {/* Reduced visual separator between groups */}
                     {index < bottomSiloGroups.length - 1 && (
-                      <div className="absolute -right-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 dark:from-gray-600 dark:via-gray-500 dark:to-gray-600 rounded-full opacity-60"></div>
+                      <div className="absolute -right-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 dark:from-gray-600 dark:via-gray-500 dark:to-gray-600 rounded-full opacity-40"></div>
                     )}
                   </div>
                 ))}
@@ -224,8 +224,8 @@ export const LabInterface = () => {
             </motion.div>
           </motion.div>
 
-          {/* Right side panel - Enhanced for full screen */}
-          <div className="flex flex-col lg:flex-col items-center gap-3 lg:gap-4 xl:gap-6 lg:min-w-[220px] xl:min-w-[260px] 2xl:min-w-[280px] h-full" data-testid="control-panel">
+          {/* Right side panel - Reduced width */}
+          <div className="flex flex-col lg:flex-col items-center gap-3 lg:gap-4 xl:gap-6 lg:min-w-[180px] xl:min-w-[200px] 2xl:min-w-[220px] h-full" data-testid="control-panel">
             <LabCylinder
               key={`cylinder-${dataVersion}`}
               selectedSilo={selectedSilo}
