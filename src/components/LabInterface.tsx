@@ -76,9 +76,9 @@ export const LabInterface = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
           >
-            {/* Top section (1-55) - Reduced width and improved layout */}
+            {/* Top section (1-55) - Proper grid layout */}
             <motion.div 
-              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[32vh] flex items-center w-full max-w-4xl mx-auto" 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[32vh] flex items-center w-full max-w-4xl mx-auto" 
               data-testid="top-silo-section" 
               key={`top-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -86,7 +86,7 @@ export const LabInterface = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
             >
-              <div className="flex gap-1 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
+              <div className="flex gap-3 sm:gap-4 md:gap-6 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-105 hover:z-10 flex-shrink-0">
                     <LabGroup
@@ -103,18 +103,18 @@ export const LabInterface = () => {
                       onSiloLeave={handleSiloLeave}
                       onSiloMouseMove={handleSiloMouseMove}
                     />
-                    {/* Reduced visual separator between groups */}
+                    {/* Visual separator between groups */}
                     {index < topSiloGroups.length - 1 && (
-                      <div className="absolute -right-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 dark:from-gray-600 dark:via-gray-500 dark:to-gray-600 rounded-full opacity-40"></div>
+                      <div className="absolute -right-1.5 sm:-right-2 md:-right-3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 dark:from-gray-600 dark:via-gray-500 dark:to-gray-600 rounded-full opacity-40"></div>
                     )}
                   </div>
                 ))}
               </div>
             </motion.div>
 
-            {/* Bottom section (101-195) - Reduced width and improved layout */}
+            {/* Bottom section (101-195) - Proper grid layout */}
             <motion.div 
-              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[42vh] flex items-center w-full max-w-4xl mx-auto" 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[42vh] flex items-center w-full max-w-4xl mx-auto" 
               data-testid="bottom-silo-section" 
               key={`bottom-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -122,12 +122,12 @@ export const LabInterface = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
               whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
             >
-              <div className="flex gap-1 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
+              <div className="flex gap-3 sm:gap-4 md:gap-6 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-105 hover:z-10 flex-shrink-0">
-                    <div className="flex flex-col items-center gap-1">
+                    <div className="flex flex-col items-center gap-1 sm:gap-1.5">
                       {/* Row 1: circles */}
-                      <div className="flex gap-1 sm:gap-2">
+                      <div className="flex gap-1 sm:gap-1.5">
                         {(group.row1 || []).slice(0, 3).map((circle) => (
                           <LabCircle
                             key={`row1-${circle.num}`}
