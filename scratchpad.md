@@ -84,6 +84,7 @@
 - [x] Increase section width by 4% per user feedback
 - [x] Make silos smaller by 3% of their sizes
 - [x] Fix corrupted silo layout and restore proper grid arrangement
+- [x] Increase circle silos by 3% and reduce square silos by 6%
 
 **DEPLOYMENT COMPLETE:** https://replica-view-studio-fixed.netlify.app
 
