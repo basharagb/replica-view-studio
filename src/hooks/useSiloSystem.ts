@@ -1,27 +1,69 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Silo, SiloSystemState, ReadingMode, TooltipPosition } from '../types/silo';
 import { getAllSilos, findSiloByNumber, regenerateAllSiloData } from '../services/siloData';
 
 export const useSiloSystem = () => {
-  // Core state
-  const [selectedSilo, setSelectedSilo] = useState<number>(112);
-  const [selectedTemp, setSelectedTemp] = useState<number>(0.2);
+  // Core state with lazy initialization for persistence
+  const [selectedSilo, setSelectedSilo] = useState<number>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.selectedSilo || 112;
+  });
+  const [selectedTemp, setSelectedTemp] = useState<number>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.selectedTemp || 0.2;
+  });
   const [hoveredSilo, setHoveredSilo] = useState<Silo | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition>({ x: 0, y: 0 });
 
-  // Reading control states
-  const [readingMode, setReadingMode] = useState<ReadingMode>('manual');
-  const [isReading, setIsReading] = useState<boolean>(false);
-  const [readingSilo, setReadingSilo] = useState<number | null>(null);
-  const [autoReadProgress, setAutoReadProgress] = useState<number>(0);
-  const [autoReadCompleted, setAutoReadCompleted] = useState<boolean>(false);
-  const [dataVersion, setDataVersion] = useState<number>(0);
-  const [manualTestDuration, setManualTestDuration] = useState<number>(0.05); // 3 seconds per silo (3/60 = 0.05 minutes) - optimized for speed
-  const [autoTestInterval, setAutoTestInterval] = useState<number>(60); // 1 hour default
-  const [isWaitingForRestart, setIsWaitingForRestart] = useState<boolean>(false);
-  const [waitTimeRemaining, setWaitTimeRemaining] = useState<number>(0);
-  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
-  const [isIdleDetectionActive, setIsIdleDetectionActive] = useState<boolean>(false);
+  // Reading control states with enhanced persistence
+  const [readingMode, setReadingMode] = useState<ReadingMode>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.readingMode || 'manual';
+  });
+  const [isReading, setIsReading] = useState<boolean>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.isReading || false;
+  });
+  const [readingSilo, setReadingSilo] = useState<number | null>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.readingSilo || null;
+  });
+  const [autoReadProgress, setAutoReadProgress] = useState<number>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.autoReadProgress || 0;
+  });
+  const [autoReadCompleted, setAutoReadCompleted] = useState<boolean>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.autoReadCompleted || false;
+  });
+  const [dataVersion, setDataVersion] = useState<number>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.dataVersion || 0;
+  });
+  const [manualTestDuration, setManualTestDuration] = useState<number>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.manualTestDuration || 0.05;
+  });
+  const [autoTestInterval, setAutoTestInterval] = useState<number>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.autoTestInterval || 60;
+  });
+  const [isWaitingForRestart, setIsWaitingForRestart] = useState<boolean>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.isWaitingForRestart || false;
+  });
+  const [waitTimeRemaining, setWaitTimeRemaining] = useState<number>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.waitTimeRemaining || 0;
+  });
+  const [lastActivityTime, setLastActivityTime] = useState<number>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.lastActivityTime || Date.now();
+  });
+  const [isIdleDetectionActive, setIsIdleDetectionActive] = useState<boolean>(() => {
+    const persistedState = loadAutoTestState();
+    return persistedState?.isIdleDetectionActive || false;
+  });
   const autoReadInterval = useRef<NodeJS.Timeout | null>(null);
   const restartWaitInterval = useRef<NodeJS.Timeout | null>(null);
   const idleDetectionInterval = useRef<NodeJS.Timeout | null>(null);
@@ -285,6 +327,56 @@ export const useSiloSystem = () => {
   }, []);
 
   // Cleanup on unmount
+  // Persist state changes to localStorage
+  useEffect(() => {
+    const stateToSave: PersistedAutoTestState = {
+      selectedSilo,
+      selectedTemp,
+      readingMode,
+      isReading,
+      readingSilo,
+      autoReadProgress,
+      autoReadCompleted,
+      dataVersion,
+      manualTestDuration,
+      autoTestInterval,
+      isWaitingForRestart,
+      waitTimeRemaining,
+      lastActivityTime,
+      isIdleDetectionActive
+    };
+    
+    saveAutoTestState(stateToSave);
+  }, [
+    selectedSilo,
+    selectedTemp,
+    readingMode,
+    isReading,
+    readingSilo,
+    autoReadProgress,
+    autoReadCompleted,
+    dataVersion,
+    manualTestDuration,
+    autoTestInterval,
+    isWaitingForRestart,
+    waitTimeRemaining,
+    lastActivityTime,
+    isIdleDetectionActive
+  ]);
+
+  // Auto-resume auto test if it was running when page was left
+  useEffect(() => {
+    const persistedState = loadAutoTestState();
+    if (persistedState?.isReading && persistedState?.readingMode === 'auto') {
+      // Resume auto test if it was running
+      console.log('Resuming auto test from previous session');
+      // The state is already loaded, just need to restart the interval
+      if (autoReadInterval.current === null) {
+        startAutoRead();
+      }
+    }
+  }, []); // Only run on mount
+
   const cleanup = useCallback(() => {
     if (autoReadInterval.current) {
       clearInterval(autoReadInterval.current);
@@ -337,4 +429,60 @@ export const useSiloSystem = () => {
     setManualTestDuration,
     setAutoTestInterval,
   };
+};
+
+// Persistence utility functions
+interface PersistedAutoTestState {
+  selectedSilo?: number;
+  selectedTemp?: number;
+  readingMode?: ReadingMode;
+  isReading?: boolean;
+  readingSilo?: number | null;
+  autoReadProgress?: number;
+  autoReadCompleted?: boolean;
+  dataVersion?: number;
+  manualTestDuration?: number;
+  autoTestInterval?: number;
+  isWaitingForRestart?: boolean;
+  waitTimeRemaining?: number;
+  lastActivityTime?: number;
+  isIdleDetectionActive?: boolean;
+  timestamp?: number;
+}
+
+const loadAutoTestState = (): PersistedAutoTestState | null => {
+  try {
+    const saved = localStorage.getItem('autoTestState');
+    if (!saved) return null;
+    
+    const state = JSON.parse(saved) as PersistedAutoTestState;
+    
+    // Check if state is too old (more than 24 hours)
+    const now = Date.now();
+    const stateAge = now - (state.timestamp || 0);
+    const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+    
+    if (stateAge > maxAge) {
+      localStorage.removeItem('autoTestState');
+      return null;
+    }
+    
+    return state;
+  } catch (error) {
+    console.warn('Failed to load auto test state:', error);
+    localStorage.removeItem('autoTestState');
+    return null;
+  }
+};
+
+const saveAutoTestState = (state: Partial<PersistedAutoTestState>) => {
+  try {
+    const stateToSave = {
+      ...state,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('autoTestState', JSON.stringify(stateToSave));
+  } catch (error) {
+    console.warn('Failed to save auto test state:', error);
+  }
 };

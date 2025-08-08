@@ -33,7 +33,7 @@ let cachedAlarmedSilos: Array<{ number: number; status: string }> | null = null;
 let cacheTimestamp: number = 0;
 const CACHE_DURATION = 30000; // 30 seconds
 
-// Get silos that currently have alarms
+// Get silos that currently have alarms - ONLY CRITICAL ALERTS (65)
 export const getAlarmedSilos = (forceRefresh: boolean = false): Array<{ number: number; status: string }> => {
   const now = Date.now();
   
@@ -50,11 +50,11 @@ export const getAlarmedSilos = (forceRefresh: boolean = false): Array<{ number: 
     const maxTemp = Math.max(...sensorReadings);
     const alertLevel = getAlertLevel(maxTemp);
     
-    // Consider Warning and Critical as alarmed states
-    if (alertLevel === 'warning' || alertLevel === 'critical') {
+    // ONLY consider Critical as alarmed states (show only 65 critical alerts)
+    if (alertLevel === 'critical') {
       alarmedSilos.push({
         number: siloNum,
-        status: alertLevel === 'critical' ? 'Critical' : 'Warning'
+        status: 'Critical'
       });
     }
   });

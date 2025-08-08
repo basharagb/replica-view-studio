@@ -59,7 +59,7 @@ const Dashboard = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md ${
+                className={`flex items-center px-3 py-2 rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md ${
                   isActive(item.href)
                     ? isDark 
                       ? 'bg-blue-900 text-blue-300 border-r-2 border-blue-500'
@@ -68,11 +68,12 @@ const Dashboard = () => {
                       ? 'text-gray-300 hover:bg-gray-700 hover:text-gray-100'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
+                style={{ fontSize: '0.8125rem', fontWeight: '500' }}
               >
                 <item.icon className="h-5 w-5 mr-3" />
                 <div>
-                  <div className="font-medium">{item.name}</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <div className="font-medium" style={{ fontSize: '0.8125rem' }}>{item.name}</div>
+                  <div className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`} style={{ fontSize: '0.6875rem' }}>
                     {item.description}
                   </div>
                 </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, AlertCircle, TrendingUp, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { TEMPERATURE_THRESHOLDS } from '../services/siloData';
+import { TEMPERATURE_THRESHOLDS, getSensorReadings } from '../services/siloData';
 import { getAlarmedSilos } from '../services/reportService';
 
 // Sensor reading type
@@ -32,66 +32,41 @@ const AlertSiloMonitoring: React.FC = () => {
   const [alertSilos, setAlertSilos] = useState<AlertSiloStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Generate alert silo data (simulated)
+  // Generate alert silo data using actual alarmed silos
   const generateAlertSilos = (): AlertSiloStatus[] => {
     const alarmedSiloData = getAlarmedSilos();
-    const alarmedSiloNumbers = alarmedSiloData.map(silo => silo.number);
     const alertSilos: AlertSiloStatus[] = [];
 
-    // Generate random alert silos (5-10 silos with alerts)
-    const numAlertSilos = Math.floor(Math.random() * 6) + 5; // 5-10 silos
-    
-    for (let i = 0; i < numAlertSilos; i++) {
-      const randomIndex = Math.floor(Math.random() * alarmedSiloNumbers.length);
-      const siloNumber = alarmedSiloNumbers[randomIndex];
+    // Use all actual alarmed silos from the system
+    for (let i = 0; i < alarmedSiloData.length; i++) {
+      const siloData = alarmedSiloData[i];
+      const siloNumber = siloData.number;
       
-      // Generate sensor readings with at least one alert
+      // Get actual sensor readings from the silo system
+      const actualSensorReadings = getSensorReadings(siloNumber);
       const sensors: SensorReading[] = [];
-      let hasAlert = false;
       let maxTemp = 0;
       let alertCount = 0;
       
-      for (let j = 1; j <= 8; j++) {
-        let value: number;
+      // Process each sensor reading
+      for (let j = 0; j < actualSensorReadings.length; j++) {
+        const value = actualSensorReadings[j];
         
-        // Ensure at least one sensor has an alert
-        if (!hasAlert && j === 8) {
-          // Force an alert on the last sensor if none yet
-          value = Math.random() > 0.5 ? 
-            Math.round((Math.random() * 5 + 35) * 10) / 10 : // Yellow
-            Math.round((Math.random() * 10 + 40) * 10) / 10; // Red
-        } else {
-          // Random temperature with bias towards alerts
-          const alertChance = Math.random();
-          if (alertChance > 0.6) {
-            // 40% chance of alert
-            value = alertChance > 0.8 ? 
-              Math.round((Math.random() * 10 + 40) * 10) / 10 : // Red
-              Math.round((Math.random() * 5 + 35) * 10) / 10;   // Yellow
-          } else {
-            // Normal reading
-            value = Math.round((Math.random() * 15 + 20) * 10) / 10;
-          }
-        }
-
         let status: 'yellow' | 'red';
-        if (value >= TEMPERATURE_THRESHOLDS.RED_MIN) {
+        if (value > TEMPERATURE_THRESHOLDS.YELLOW_MAX) {
           status = 'red';
-          hasAlert = true;
           alertCount++;
         } else if (value >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) {
           status = 'yellow';
-          hasAlert = true;
           alertCount++;
         } else {
-          // Convert to yellow for display since we only show alert silos
-          status = 'yellow';
+          // Skip normal readings for alert monitoring
+          continue;
         }
 
         maxTemp = Math.max(maxTemp, value);
-        
         sensors.push({
-          id: `sensor-${j}`,
+          id: `S${j + 1}`,
           value,
           status
         });
@@ -169,7 +144,7 @@ const AlertSiloMonitoring: React.FC = () => {
           Alert Silo Monitoring
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Real-time monitoring of silos with temperature alerts. Showing all silos with warning or critical temperature conditions.
+          Real-time monitoring of silos with temperature alerts. Showing only Critical Alerts (65).
         </p>
       </div>
 

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LabGroup } from './LabGroup';
 import { LabCircle } from './LabCircle';
 import { LabNumberSquare } from './LabNumberSquare';
@@ -59,13 +60,32 @@ export const LabInterface = () => {
   }));
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-gray-50 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4" data-testid="lab-interface">
+    <motion.div 
+      className="min-h-screen w-full bg-gradient-to-br from-background via-background to-gray-50 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4" 
+      data-testid="lab-interface"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
       <div className="w-full h-full max-w-none">
         <div className="flex flex-col xl:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-6 items-start justify-start h-full min-h-[calc(100vh-2rem)]">
           {/* Main lab area - Enhanced for full screen */}
-          <div className="flex-1 w-full max-w-full space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full">
+          <motion.div 
+            className="flex-1 w-full max-w-full space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+          >
             {/* Top section (1-55) - Enhanced size */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[35vh] flex items-center" data-testid="top-silo-section" key={`top-${dataVersion}`}>
+            <motion.div 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[35vh] flex items-center" 
+              data-testid="top-silo-section" 
+              key={`top-${dataVersion}`}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              whileHover={{ scale: 1.005, transition: { duration: 0.2 } }}
+            >
               <div className="flex gap-1 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-110 hover:z-10">
@@ -90,10 +110,18 @@ export const LabInterface = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Bottom section (101-195) - Enhanced size */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[45vh] flex items-center" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
+            <motion.div 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.005] backdrop-blur-sm min-h-[45vh] flex items-center" 
+              data-testid="bottom-silo-section" 
+              key={`bottom-${dataVersion}`}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              whileHover={{ scale: 1.005, transition: { duration: 0.2 } }}
+            >
               <div className="flex gap-1 justify-center items-center overflow-x-auto overflow-y-visible pb-4 px-2 h-full min-w-0">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-110 hover:z-10">
@@ -193,8 +221,8 @@ export const LabInterface = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Right side panel - Enhanced for full screen */}
           <div className="flex flex-col lg:flex-col items-center gap-3 lg:gap-4 xl:gap-6 lg:min-w-[220px] xl:min-w-[260px] 2xl:min-w-[280px] h-full" data-testid="control-panel">
@@ -279,21 +307,34 @@ export const LabInterface = () => {
       </div>
 
       {/* Temperature Tooltip */}
-      {hoveredSilo && (
-        <div
-          className="temperature-tooltip"
-          style={{
-            left: tooltipPosition.x + 10,
-            top: tooltipPosition.y - 30,
-          }}
-          data-testid="temperature-tooltip"
-        >
-          Silo {hoveredSilo.num}: {hoveredSilo.temp.toFixed(1)}°C
-        </div>
-      )}
+      <AnimatePresence>
+        {hoveredSilo && (
+          <motion.div
+            className="temperature-tooltip"
+            style={{
+              left: tooltipPosition.x + 10,
+              top: tooltipPosition.y - 30,
+            }}
+            data-testid="temperature-tooltip"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+          >
+            Silo {hoveredSilo.num}: {hoveredSilo.temp.toFixed(1)}°C
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Enhanced Alert System */}
-      <AlertSystem />
-    </div>
+      <motion.div 
+        className="mt-[5px]"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <AlertSystem />
+      </motion.div>
+    </motion.div>
   );
 };

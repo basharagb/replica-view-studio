@@ -1,10 +1,39 @@
 # Scratchpad - Jarvis
 
-## Current Task: FINAL COMPREHENSIVE SYSTEM ENHANCEMENTS
+## Current Task: MULTI-TASK SYSTEM ENHANCEMENTS
 
-**Status: 🔄 IN PROGRESS - FINAL PHASE**
-**Branch:** feature/comprehensive-system-enhancements
-**Started:** 2025-08-07T17:03:15+03:00
+**Status: 🔄 IN PROGRESS - NEW MULTI-TASK PHASE**
+**Branch:** feature/multi-task-enhancements
+**Started:** 2025-08-08T22:14:36+03:00
+
+### NEW MULTI-TASK REQUIREMENTS (5 CRITICAL TASKS):
+
+**1. Dynamic Time Scale for Graphs:**
+- [x] 1 day: 24 time steps (1 hour each)
+- [x] 2 days: 12 time steps (2 hours each, 6 per day)
+- [x] 3 days: 24 time steps (3 hours each, 8 per day)
+- [x] 4+ days: 24 time steps (dynamic hours per step)
+- [x] 24 days: 24 steps (1 day each)
+- [x] Handle dynamically based on selected period
+
+**2. Alert Silos Count Fix:**
+- [x] Enhanced Temperature Graphs should show 65 critical alerts (not 129)
+- [x] Show only alerted silos in live readings
+- [x] Fix Alert Silos selection to match live data
+
+**3. Sidebar Text Size Reduction:**
+- [x] Reduce sidebar text sizes by 4%
+- [x] Apply to all sidebar navigation items
+
+**4. Alert Silo Monitoring Filter:**
+- [x] Show only Critical Alerts (65)
+- [x] Filter out warning alerts from monitoring view
+- [x] Update description accordingly
+
+**5. Deployment & Testing:**
+- [ ] Upload to GitHub
+- [ ] Clear cache
+- [ ] Deploy and provide live link
 
 ### NEW COMPREHENSIVE REQUIREMENTS (6 CRITICAL TASKS):
 
@@ -118,7 +147,7 @@
 - [ ] Provide live link
 - [ ] Clear cache after deployment
 
-## TASK 7 COMPLETED: DARK MODE & UI ENHANCEMENTS ✅
+## TASK 7 COMPLETED: DARK MODE & UI ENHANCEMENTS 
 
 **Completed Features:**
 - ✅ **Enhanced LabInterface**: Added dark mode support for silo sections, progress bars, and status messages with hover animations
