@@ -32,56 +32,38 @@ const AlertSiloMonitoring: React.FC = () => {
   const [alertSilos, setAlertSilos] = useState<AlertSiloStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Generate alert silo data (simulated)
+  // Generate alert silo data (using actual alarmed silos)
   const generateAlertSilos = (): AlertSiloStatus[] => {
     const alarmedSiloData = getAlarmedSilos();
-    const alarmedSiloNumbers = alarmedSiloData.map(silo => silo.number);
     const alertSilos: AlertSiloStatus[] = [];
 
-    // Generate random alert silos (5-10 silos with alerts)
-    const numAlertSilos = Math.floor(Math.random() * 6) + 5; // 5-10 silos
-    
-    for (let i = 0; i < numAlertSilos; i++) {
-      const randomIndex = Math.floor(Math.random() * alarmedSiloNumbers.length);
-      const siloNumber = alarmedSiloNumbers[randomIndex];
+    // Use actual alarmed silos from the system
+    alarmedSiloData.forEach(alarmedSilo => {
+      const siloNumber = alarmedSilo.number;
       
       // Generate sensor readings with at least one alert
       const sensors: SensorReading[] = [];
-      let hasAlert = false;
       let maxTemp = 0;
       let alertCount = 0;
       
       for (let j = 1; j <= 8; j++) {
         let value: number;
         
-        // Ensure at least one sensor has an alert
-        if (!hasAlert && j === 8) {
-          // Force an alert on the last sensor if none yet
-          value = Math.random() > 0.5 ? 
-            Math.round((Math.random() * 5 + 35) * 10) / 10 : // Yellow
-            Math.round((Math.random() * 10 + 40) * 10) / 10; // Red
+        // Generate realistic sensor readings based on silo status
+        if (alarmedSilo.status === 'Critical') {
+          // Critical silos have high temperatures
+          value = Math.round((Math.random() * 10 + 40.1) * 10) / 10; // 40.1 to 50.0
         } else {
-          // Random temperature with bias towards alerts
-          const alertChance = Math.random();
-          if (alertChance > 0.6) {
-            // 40% chance of alert
-            value = alertChance > 0.8 ? 
-              Math.round((Math.random() * 10 + 40) * 10) / 10 : // Red
-              Math.round((Math.random() * 5 + 35) * 10) / 10;   // Yellow
-          } else {
-            // Normal reading
-            value = Math.round((Math.random() * 15 + 20) * 10) / 10;
-          }
+          // Warning silos have medium temperatures
+          value = Math.round((Math.random() * 10 + 30.0) * 10) / 10; // 30.0 to 40.0
         }
 
         let status: 'yellow' | 'red';
         if (value >= TEMPERATURE_THRESHOLDS.RED_MIN) {
           status = 'red';
-          hasAlert = true;
           alertCount++;
         } else if (value >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) {
           status = 'yellow';
-          hasAlert = true;
           alertCount++;
         } else {
           // Convert to yellow for display since we only show alert silos
@@ -110,7 +92,7 @@ const AlertSiloMonitoring: React.FC = () => {
         maxTemp,
         alertCount
       });
-    }
+    });
 
     // Sort by priority (critical first) then by max temperature
     return alertSilos.sort((a, b) => {

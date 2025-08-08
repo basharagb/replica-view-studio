@@ -1,0 +1,99 @@
+import { getSensorReadings, getTemperatureColor, findSiloByNumber } from '../services/siloData';
+import { Silo } from '../types/silo';
+import React from 'react';
+
+interface LabCylinderProps {
+  selectedSilo?: number;
+  readingSilo?: number | null;
+  onSiloClick?: (number: number, temp: number) => void;
+  // LabCylinder is completely independent of hover state
+  // Only shows readings for selected or reading silo
+}
+
+const LabCylinderComponent = ({
+  selectedSilo,
+  readingSilo,
+  onSiloClick
+}: LabCylinderProps) => {
+  // Get the current silo being displayed (only selected or reading silo, not hovered)
+  // Use a stable reference to prevent unnecessary re-renders
+  const currentSiloNum = readingSilo || selectedSilo || 112;
+  const currentSilo = findSiloByNumber(currentSiloNum);
+  const sensorReadings = getSensorReadings(currentSiloNum);
+
+  // Component render logic
+
+  const handleClick = (silo: Silo) => {
+    if (onSiloClick) {
+      onSiloClick(silo.num, silo.temp);
+    }
+  };
+
+  // LabCylinder doesn't respond to hovers - only shows selected/reading silo
+  // const handleMouseEnter = (silo: Silo, event: React.MouseEvent) => {
+  //   if (onSiloHover) {
+  //     onSiloHover(silo.num, silo.temp, event);
+  //   }
+  // };
+
+  return (
+    <div className="relative">
+      <div className="w-40 bg-lab-cylinder border-2 border-gray-400 dark:border-gray-600 rounded-lg p-3 transition-all duration-300 hover:shadow-lg" data-testid="lab-cylinder">
+        <div className="text-sm font-bold text-center text-lab-text dark:text-gray-200 mb-2">
+          Silo Sensors
+        </div>
+        <div className="text-sm text-center text-lab-text dark:text-gray-300 mb-3">
+          {readingSilo ? (
+            <span className="text-blue-600 dark:text-blue-400 font-bold animate-pulse">Reading Silo {readingSilo}</span>
+          ) : (
+            <span>Silo {selectedSilo || 112}</span>
+          )}
+        </div>
+        
+        {/* Display main temperature if available */}
+        {currentSilo && (
+          <div className="text-center mb-2">
+            <div className="text-sm text-lab-text dark:text-gray-300">Max Temp:</div>
+            <div className={`text-base font-bold ${
+              readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
+            }`}>
+              {currentSilo.temp.toFixed(1)}°C
+            </div>
+          </div>
+        )}
+        
+        <div className="space-y-2">
+          {sensorReadings.map((reading, sensorIndex) => {
+            const tempColor = getTemperatureColor(reading);
+            const getBackgroundClass = () => {
+              if (readingSilo) {
+                // In auto mode, apply a semi-transparent overlay over the temperature color
+                return `temp-${tempColor} relative`;
+              }
+              
+              // Use the same temperature color classes as silos
+              return `temp-${tempColor}`;
+            };
+
+            return (
+              <div key={sensorIndex} className={`flex justify-between items-center rounded-md px-3 py-2 transition-all duration-300 ${getBackgroundClass()}`}>
+                {readingSilo && (
+                  <div className="absolute inset-0 bg-blue-100 bg-opacity-40 rounded"></div>
+                )}
+                <span className="text-sm font-medium text-lab-text dark:text-gray-200 relative z-10">S{sensorIndex + 1}:</span>
+                <span className={`text-sm font-bold relative z-10 ${
+                  readingSilo ? 'text-blue-600 dark:text-blue-400' : 'text-lab-text dark:text-gray-200'
+                }`}>
+                  {`${reading.toFixed(1)}°C`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Export with React.memo to prevent unnecessary re-renders
+export const LabCylinder = React.memo(LabCylinderComponent);

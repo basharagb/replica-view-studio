@@ -34,13 +34,13 @@ const Dashboard = () => {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform transition-all duration-300 ease-in-out hover:shadow-2xl ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-[248px] shadow-lg transform transition-all duration-300 ease-in-out hover:shadow-2xl ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } ${isDark ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200'}`}>
         <div className={`flex items-center justify-between h-16 px-6 border-b ${
           isDark ? 'border-gray-700' : 'border-gray-200'
         }`}>
-          <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-3xl sm:text-4xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Silo Monitor
           </h1>
           <Button
@@ -70,9 +70,9 @@ const Dashboard = () => {
                 }`}
               >
                 <item.icon className="h-5 w-5 mr-3" />
-                <div>
-                  <div className="font-medium">{item.name}</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                <div className="ml-1.5"> {/* 5px margin */}
+                  <div className="font-medium text-base sm:text-lg">{item.name}</div>
+                  <div className={`text-sm sm:text-base ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     {item.description}
                   </div>
                 </div>
@@ -95,7 +95,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'md:ml-[248px]' : ''}`}>
         <div className="min-h-screen">
           <Outlet /> {/* Renders nested routes here */}
         </div>

@@ -7,6 +7,7 @@ export const TEMPERATURE_THRESHOLDS = {
   YELLOW_MIN: 30.0,     // Yellow: Medium readings (30 to 40)
   YELLOW_MAX: 40.0,     // Yellow: Medium readings (30 to 40)
   RED_MIN: 40.01,       // Red: High readings (>40)
+  RED_MAX: 50.0        // Red: High readings (>40 to 50)
 } as const;
 
 // Temperature range for random generation (20-50°C)
@@ -28,7 +29,32 @@ export interface EnhancedCylinderSilo extends Silo {
   enhancedSensors?: SensorReading[];  // Optional enhanced sensor data
 }
 
-// Generate random temperature using defined range
+// Target distribution: Red=69, Yellow=61, Green=20, Total=150
+const TARGET_DISTRIBUTION = {
+  RED: 69,
+  YELLOW: 61,
+  GREEN: 20,
+  TOTAL: 150
+} as const;
+
+// Generate temperature based on target distribution
+const generateTemperatureByDistribution = (colorType: 'red' | 'yellow' | 'green'): number => {
+  switch (colorType) {
+    case 'red':
+      // Red: >40°C
+      return Math.round((Math.random() * 10 + 40.1) * 10) / 10; // 40.1 to 50.0
+    case 'yellow':
+      // Yellow: 30-40°C
+      return Math.round((Math.random() * 10 + 30.0) * 10) / 10; // 30.0 to 40.0
+    case 'green':
+      // Green: <30°C
+      return Math.round((Math.random() * 10 + 20.0) * 10) / 10; // 20.0 to 29.9
+    default:
+      return 25.0;
+  }
+};
+
+// Generate random temperature using defined range (legacy function)
 const generateRandomTemp = (): number => {
   const range = TEMP_RANGE.MAX - TEMP_RANGE.MIN;
   return Math.round((Math.random() * range + TEMP_RANGE.MIN) * 10) / 10; // 20.0 to 50.0
@@ -331,6 +357,89 @@ export const regenerateAllSiloData = (): void => {
   });
 };
 
+// Function to regenerate all silo data with exact distribution (Red=69, Yellow=61, Green=20)
+export const regenerateAllSiloDataWithDistribution = (): void => {
+  const allSilos = getAllSilos();
+  
+  // Create distribution array
+  const distributionArray: ('red' | 'yellow' | 'green')[] = [];
+  
+  // Add colors based on target distribution
+  for (let i = 0; i < TARGET_DISTRIBUTION.RED; i++) distributionArray.push('red');
+  for (let i = 0; i < TARGET_DISTRIBUTION.YELLOW; i++) distributionArray.push('yellow');
+  for (let i = 0; i < TARGET_DISTRIBUTION.GREEN; i++) distributionArray.push('green');
+  
+  // Shuffle the distribution array
+  for (let i = distributionArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [distributionArray[i], distributionArray[j]] = [distributionArray[j], distributionArray[i]];
+  }
+  
+  // Apply distribution to silos
+  allSilos.forEach((silo, index) => {
+    if (index < distributionArray.length) {
+      const colorType = distributionArray[index];
+      const newTemp = generateTemperatureByDistribution(colorType);
+      silo.temp = newTemp;
+      
+      // Update the silo in the appropriate data structure
+      updateSiloInDataStructures(silo.num, newTemp);
+    }
+  });
+  
+  // Clear sensor readings cache
+  clearSensorReadingsCache();
+};
+
+// Helper function to update silo temperature in data structures
+const updateSiloInDataStructures = (siloNum: number, newTemp: number): void => {
+  // Update in top silo groups
+  topSiloGroups.forEach(group => {
+    if (group.topRow) {
+      const silo = group.topRow.find(s => s.num === siloNum);
+      if (silo) silo.temp = newTemp;
+    }
+    if (group.middleRow) {
+      const silo = group.middleRow.find(s => s.num === siloNum);
+      if (silo) silo.temp = newTemp;
+    }
+    if (group.bottomRow) {
+      const silo = group.bottomRow.find(s => s.num === siloNum);
+      if (silo) silo.temp = newTemp;
+    }
+  });
+  
+  // Update in bottom silo groups
+  bottomSiloGroups.forEach(group => {
+    if (group.row1) {
+      const silo = group.row1.find(s => s.num === siloNum);
+      if (silo) silo.temp = newTemp;
+    }
+    if (group.row2) {
+      const silo = group.row2.find(s => s.num === siloNum);
+      if (silo) silo.temp = newTemp;
+    }
+    if (group.row3) {
+      const silo = group.row3.find(s => s.num === siloNum);
+      if (silo) silo.temp = newTemp;
+    }
+    if (group.row4) {
+      const silo = group.row4.find(s => s.num === siloNum);
+      if (silo) silo.temp = newTemp;
+    }
+    if (group.row5) {
+      const silo = group.row5.find(s => s.num === siloNum);
+      if (silo) silo.temp = newTemp;
+    }
+  });
+  
+  // Update in cylinder silos
+  const cylinderSilo = cylinderSilos.find(s => s.num === siloNum);
+  if (cylinderSilo) {
+    cylinderSilo.temp = newTemp;
+  }
+};
+
 // Temperature color mapping - Silo monitoring system with priority hierarchy
 export const getTemperatureColor = (temp: number): TemperatureColor => {
   if (temp > TEMPERATURE_THRESHOLDS.YELLOW_MAX) return 'pink';        // Red: >40°C - Highest priority
@@ -406,6 +515,25 @@ export const generateTemperatureMonitoringState = (currentTemp: number, previous
   };
 };
 
+// Get sensor readings for any silo - SORTED from highest to lowest
+export const getSensorReadings = (siloNum: number): number[] => {
+  const silo = findSiloByNumber(siloNum);
+  if (!silo) return [0, 0, 0, 0, 0, 0, 0, 0];
+  
+  // If we have predefined readings, use them (already sorted)
+  if (predefinedReadings[siloNum]) {
+    return predefinedReadings[siloNum];
+  }
+  
+  // Generate new readings and sort them
+  const readings = generateSensorReadings(silo.temp);
+  predefinedReadings[siloNum] = readings;
+  return readings;
+};
+
+// Cylinder measurements (from original LabCylinder) - updated for three-tier color demonstration
+export const cylinderMeasurements = [23.5, 28.7, 33.2, 37.8, 39.4, 42.1, 44.6, 46.3]; // Green, Green, Green, Yellow, Yellow, Red, Red, Red
+
 // Get all silos in order for auto-read functionality
 export const getAllSilos = (): Silo[] => {
   const allSilos: Silo[] = [];
@@ -464,22 +592,3 @@ const predefinedReadings: { [key: number]: number[] } = {
   38: [44.4, 44.3, 44.2, 44.1, 44.0, 43.9, 43.8, 43.8], // Sorted highest to lowest
   112: [40.4, 40.3, 40.3, 40.2, 40.1, 40.1, 40.0, 39.9] // Sorted highest to lowest
 };
-
-// Get sensor readings for any silo - SORTED from highest to lowest
-export const getSensorReadings = (siloNum: number): number[] => {
-  const silo = findSiloByNumber(siloNum);
-  if (!silo) return [0, 0, 0, 0, 0, 0, 0, 0];
-  
-  // If we have predefined readings, use them (already sorted)
-  if (predefinedReadings[siloNum]) {
-    return predefinedReadings[siloNum];
-  }
-  
-  // Generate new readings and sort them
-  const readings = generateSensorReadings(silo.temp);
-  predefinedReadings[siloNum] = readings;
-  return readings;
-};
-
-// Cylinder measurements (from original LabCylinder) - updated for three-tier color demonstration
-export const cylinderMeasurements = [23.5, 28.7, 33.2, 37.8, 39.4, 42.1, 44.6, 46.3]; // Green, Green, Green, Yellow, Yellow, Red, Red, Red

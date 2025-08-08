@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Bell, X, Volume2, VolumeX } from 'lucide-react';
-import { getAlertLevel, getAllSilos } from '../services/siloData';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bell, X, AlertTriangle, AlertCircle, Volume2, VolumeX } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getAllSilos, getAlertLevel } from '../services/siloData';
 import { AlertLevel } from '../types/silo';
 
 interface Alert {
@@ -125,8 +126,14 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
 
   if (isMinimized) {
     return (
-      <div className={`fixed top-4 right-4 z-50 ${className}`}>
-        <button
+      <motion.div 
+        className={`fixed top-4 right-5 z-50 ${className}`}
+        initial={{ opacity: 0, scale: 0.8, y: -20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.8, y: -20 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        <motion.button
           onClick={() => setIsMinimized(false)}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg transition-all ${
             criticalAlerts.length > 0 
@@ -135,19 +142,32 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
               ? 'bg-yellow-500 text-white'
               : 'bg-gray-500 text-white'
           }`}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Bell className="w-4 h-4" />
           <span className="text-sm font-medium">
             {activeAlerts.length} Alert{activeAlerts.length !== 1 ? 's' : ''}
           </span>
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     );
   }
 
   return (
-    <div className={`alert-system fixed top-4 right-4 w-80 z-50 ${className}`}>
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+    <motion.div 
+      className={`alert-system fixed top-4 right-5 w-80 z-50 ${className}`}
+      initial={{ opacity: 0, scale: 0.9, y: -20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: -20 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
+      <motion.div 
+        className="bg-white rounded-lg shadow-lg border border-gray-200"
+        initial={{ y: -10 }}
+        animate={{ y: 0 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
@@ -251,8 +271,8 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

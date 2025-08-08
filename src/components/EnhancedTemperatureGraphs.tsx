@@ -147,43 +147,48 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
         ? [selectedSilo!] 
         : selectedAlertSilos;
       
-      // Enhanced dynamic time scale based on date range
+      // Enhanced dynamic time scale based on user requirements
       const daysDiff = differenceInDays(end, start);
       const hoursDiff = differenceInHours(end, start);
-      const isSingleDay = daysDiff === 0;
-      const isVeryShortPeriod = daysDiff <= 1; // Same day or next day
-      const isShortPeriod = daysDiff <= 3; // 1-3 days
-      const isMediumPeriod = daysDiff <= 7; // 1 week
-      const isLongPeriod = daysDiff <= 30; // 1 month
       
-      // Dynamic data points and time format based on date range
+      // Dynamic data points and time format based on exact user requirements
       let dataPoints: number;
       let timeFormat: string;
       let timeInterval: number; // milliseconds between data points
       
-      if (isSingleDay) {
-        // Same day: show hours with minutes for precision
-        dataPoints = Math.min(hoursDiff + 1, 24);
+      if (daysDiff === 1) {
+        // 1 day: 24 time steps (1 hour each)
+        dataPoints = 24;
         timeFormat = 'HH:mm';
         timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (isVeryShortPeriod) {
-        // 1-2 days: show hours with date and time
-        dataPoints = Math.min(hoursDiff + 1, 48);
+      } else if (daysDiff === 2) {
+        // 2 days: 12 time steps (2 hours each) - 6 for first day, 6 for second day
+        dataPoints = 12;
         timeFormat = 'MMM dd HH:mm';
-        timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (isShortPeriod) {
-        // 2-3 days: show hours with date for better granularity
-        dataPoints = Math.min(hoursDiff + 1, 72);
+        timeInterval = 2 * 60 * 60 * 1000; // 2 hours
+      } else if (daysDiff === 3) {
+        // 3 days: 9 time steps (8 hours each) - 3 for each day
+        dataPoints = 9;
         timeFormat = 'MMM dd HH:mm';
-        timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (isMediumPeriod) {
-        // 4-7 days: show daily readings with date
-        dataPoints = daysDiff + 1;
+        timeInterval = 8 * 60 * 60 * 1000; // 8 hours
+      } else if (daysDiff === 24) {
+        // 24 days: 24 time steps (1 day each)
+        dataPoints = 24;
         timeFormat = 'MMM dd';
         timeInterval = 24 * 60 * 60 * 1000; // 1 day
-      } else if (isLongPeriod) {
+      } else if (daysDiff === 0) {
+        // Same day: show hourly for better granularity
+        dataPoints = Math.max(hoursDiff, 24);
+        timeFormat = 'HH:mm';
+        timeInterval = 60 * 60 * 1000; // 1 hour
+      } else if (daysDiff <= 7) {
+        // 4-7 days: show daily readings
+        dataPoints = daysDiff;
+        timeFormat = 'MMM dd';
+        timeInterval = 24 * 60 * 60 * 1000; // 1 day
+      } else if (daysDiff <= 30) {
         // 1-4 weeks: show daily readings
-        dataPoints = daysDiff + 1;
+        dataPoints = daysDiff;
         timeFormat = 'MMM dd';
         timeInterval = 24 * 60 * 60 * 1000; // 1 day
       } else {
