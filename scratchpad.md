@@ -82,6 +82,7 @@
 - [x] Make silo layout fit properly (based on attachments)
 - [x] Upload to GitHub, clear cache, deploy with live link
 - [x] Increase section width by 4% per user feedback
+- [x] Make silos smaller by 3% of their sizes
 
 **DEPLOYMENT COMPLETE:** https://replica-view-studio-fixed.netlify.app
 
