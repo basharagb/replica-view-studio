@@ -67,18 +67,18 @@ export const LabInterface = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <div className="w-full h-full max-w-[85%] mx-auto">
-        <div className="flex flex-col xl:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-6 items-start justify-start h-full min-h-[calc(100vh-2rem)]">
+      <div className="w-full h-full max-w-7xl mx-auto">
+        <div className="flex flex-col xl:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-6 items-start justify-center h-full min-h-[calc(100vh-2rem)]">
           {/* Main lab area - Reduced width by 15% */}
           <motion.div 
-            className="flex-1 w-full max-w-[85%] space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full"
+            className="flex-1 w-full max-w-5xl space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
           >
             {/* Top section (1-55) - Reduced width and improved layout */}
             <motion.div 
-              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.002] backdrop-blur-sm min-h-[32vh] flex items-center w-full max-w-[85%] mx-auto" 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[32vh] flex items-center w-full max-w-4xl mx-auto" 
               data-testid="top-silo-section" 
               key={`top-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -114,7 +114,7 @@ export const LabInterface = () => {
 
             {/* Bottom section (101-195) - Reduced width and improved layout */}
             <motion.div 
-              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.002] backdrop-blur-sm min-h-[42vh] flex items-center w-full max-w-[85%] mx-auto" 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[42vh] flex items-center w-full max-w-4xl mx-auto" 
               data-testid="bottom-silo-section" 
               key={`bottom-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
