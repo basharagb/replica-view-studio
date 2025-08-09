@@ -32,59 +32,30 @@ const AlertSiloMonitoring: React.FC = () => {
   const [alertSilos, setAlertSilos] = useState<AlertSiloStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Generate alert silo data (simulated)
+  // Generate alert silo data using actual alarmed silos
   const generateAlertSilos = (): AlertSiloStatus[] => {
     const alarmedSiloData = getAlarmedSilos();
-    const alarmedSiloNumbers = alarmedSiloData.map(silo => silo.number);
     const alertSilos: AlertSiloStatus[] = [];
 
-    // Generate random alert silos (5-10 silos with alerts)
-    const numAlertSilos = Math.floor(Math.random() * 6) + 5; // 5-10 silos
-    
-    for (let i = 0; i < numAlertSilos; i++) {
-      const randomIndex = Math.floor(Math.random() * alarmedSiloNumbers.length);
-      const siloNumber = alarmedSiloNumbers[randomIndex];
-      
-      // Generate sensor readings with at least one alert
+    alarmedSiloData.forEach(silo => {
+      const siloNumber = silo.number;
       const sensors: SensorReading[] = [];
-      let hasAlert = false;
       let maxTemp = 0;
       let alertCount = 0;
       
       for (let j = 1; j <= 8; j++) {
-        let value: number;
-        
-        // Ensure at least one sensor has an alert
-        if (!hasAlert && j === 8) {
-          // Force an alert on the last sensor if none yet
-          value = Math.random() > 0.5 ? 
-            Math.round((Math.random() * 5 + 35) * 10) / 10 : // Yellow
-            Math.round((Math.random() * 10 + 40) * 10) / 10; // Red
-        } else {
-          // Random temperature with bias towards alerts
-          const alertChance = Math.random();
-          if (alertChance > 0.6) {
-            // 40% chance of alert
-            value = alertChance > 0.8 ? 
-              Math.round((Math.random() * 10 + 40) * 10) / 10 : // Red
-              Math.round((Math.random() * 5 + 35) * 10) / 10;   // Yellow
-          } else {
-            // Normal reading
-            value = Math.round((Math.random() * 15 + 20) * 10) / 10;
-          }
-        }
-
+        const baseTemp = 35;
+        const variation = (Math.random() - 0.5) * 10;
+        const value = Math.round((baseTemp + variation) * 10) / 10;
         let status: 'yellow' | 'red';
+        
         if (value >= TEMPERATURE_THRESHOLDS.RED_MIN) {
           status = 'red';
-          hasAlert = true;
           alertCount++;
         } else if (value >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) {
           status = 'yellow';
-          hasAlert = true;
           alertCount++;
         } else {
-          // Convert to yellow for display since we only show alert silos
           status = 'yellow';
         }
 
@@ -97,20 +68,21 @@ const AlertSiloMonitoring: React.FC = () => {
         });
       }
 
-      // Determine overall status
-      const hasRedSensor = sensors.some(s => s.status === 'red');
+      const hasRedSensor = sensors.some(s => s.status === 'red' && s.value >= TEMPERATURE_THRESHOLDS.RED_MIN);
       const overallStatus = hasRedSensor ? 'red' : 'yellow';
       const priority = hasRedSensor ? 'critical' : 'warning';
 
-      alertSilos.push({
-        siloNumber,
-        overallStatus,
-        priority,
-        sensors,
-        maxTemp,
-        alertCount
-      });
-    }
+      if (alertCount > 0 || maxTemp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) {
+        alertSilos.push({
+          siloNumber,
+          overallStatus,
+          priority,
+          sensors,
+          maxTemp,
+          alertCount
+        });
+      }
+    });
 
     // Sort by priority (critical first) then by max temperature
     return alertSilos.sort((a, b) => {
@@ -169,7 +141,7 @@ const AlertSiloMonitoring: React.FC = () => {
           Alert Silo Monitoring
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Real-time monitoring of silos with critical temperature alerts. Only showing critical red alerts that require immediate attention.
+          Real-time monitoring of silos with critical temperature alerts. Displaying all alarmed silos that require attention.
         </p>
       </div>
 
@@ -217,19 +189,19 @@ const AlertSiloMonitoring: React.FC = () => {
       </div>
 
       {/* Alert Silos Grid */}
-      {alertSilos.filter(s => s.priority === 'critical').length === 0 ? (
+      {alertSilos.length === 0 ? (
         <Card className="bg-green-50 border-green-200">
           <CardContent className="p-8 text-center">
             <div className="text-green-600">
               <TrendingUp className="w-12 h-12 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Critical Alerts</h3>
-              <p>No critical temperature alerts detected. All silos are operating safely.</p>
+              <h3 className="text-lg font-semibold mb-2">No Alerts</h3>
+              <p>No temperature alerts detected. All silos are operating safely.</p>
             </div>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {alertSilos.filter(silo => silo.priority === 'critical').map((silo) => (
+          {alertSilos.map((silo) => (
             <Card 
               key={silo.siloNumber} 
               className={`shadow-lg hover:shadow-xl transition-all duration-300 border-2 ${

@@ -147,47 +147,32 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
         ? [selectedSilo!] 
         : selectedAlertSilos;
       
-      // Enhanced dynamic time scale based on date range
+      // Enhanced dynamic time scale based on user requirements
       const daysDiff = differenceInDays(end, start);
-      const hoursDiff = differenceInHours(end, start);
-      const isSingleDay = daysDiff === 0;
-      const isVeryShortPeriod = daysDiff <= 1; // Same day or next day
-      const isShortPeriod = daysDiff <= 3; // 1-3 days
-      const isMediumPeriod = daysDiff <= 7; // 1 week
-      const isLongPeriod = daysDiff <= 30; // 1 month
       
       // Dynamic data points and time format based on date range
       let dataPoints: number;
       let timeFormat: string;
       let timeInterval: number; // milliseconds between data points
       
-      if (isSingleDay) {
-        // Same day: show hours with minutes for precision
-        dataPoints = Math.min(hoursDiff + 1, 24);
-        timeFormat = 'HH:mm';
+      if (daysDiff === 1) {
+        dataPoints = 24;
+        timeFormat = 'HH:00';
         timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (isVeryShortPeriod) {
-        // 1-2 days: show hours with date and time
-        dataPoints = Math.min(hoursDiff + 1, 48);
-        timeFormat = 'MMM dd HH:mm';
-        timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (isShortPeriod) {
-        // 2-3 days: show hours with date for better granularity
-        dataPoints = Math.min(hoursDiff + 1, 72);
-        timeFormat = 'MMM dd HH:mm';
-        timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (isMediumPeriod) {
-        // 4-7 days: show daily readings with date
-        dataPoints = daysDiff + 1;
-        timeFormat = 'MMM dd';
-        timeInterval = 24 * 60 * 60 * 1000; // 1 day
-      } else if (isLongPeriod) {
-        // 1-4 weeks: show daily readings
-        dataPoints = daysDiff + 1;
+      } else if (daysDiff === 2) {
+        dataPoints = 12;
+        timeFormat = 'MMM dd HH:00';
+        timeInterval = 2 * 60 * 60 * 1000; // 2 hours
+      } else if (daysDiff === 3) {
+        dataPoints = 24;
+        timeFormat = 'MMM dd HH:00';
+        timeInterval = 3 * 60 * 60 * 1000; // 3 hours
+      } else if (daysDiff <= 24) {
+        dataPoints = Math.min(daysDiff, 24);
         timeFormat = 'MMM dd';
         timeInterval = 24 * 60 * 60 * 1000; // 1 day
       } else {
-        // More than 1 month: show weekly aggregation
+        // More than 24 days = weekly aggregation
         dataPoints = Math.ceil(daysDiff / 7);
         timeFormat = 'MMM dd';
         timeInterval = 7 * 24 * 60 * 60 * 1000; // 1 week
@@ -389,29 +374,58 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     </Select>
                   </div>
 
-                  {/* Start Date & Time */}
+                  {/* Start Date & Hour */}
                   <div className="space-y-2">
-                    <Label htmlFor="start-date">Start Date & Time</Label>
-                    <Input
-                      id="start-date"
-                      type="datetime-local"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      disabled={!selectedSilo}
-                    />
+                    <Label htmlFor="start-date">Start Date & Hour</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="start-date"
+                        type="date"
+                        value={startDate ? startDate.split('T')[0] : ''}
+                        onChange={(e) => setStartDate(`${e.target.value}T${startDate ? startDate.split('T')[1] || '00:00' : '00:00'}`)}
+                        disabled={!selectedSilo}
+                        className="flex-1"
+                      />
+                      <select
+                        value={startDate ? startDate.split('T')[1]?.split(':')[0] || '00' : '00'}
+                        onChange={(e) => setStartDate(`${startDate ? startDate.split('T')[0] : new Date().toISOString().split('T')[0]}T${e.target.value}:00`)}
+                        disabled={!selectedSilo}
+                        className="w-20 px-2 py-1 border border-gray-300 rounded"
+                      >
+                        {Array.from({length: 24}, (_, i) => (
+                          <option key={i} value={i.toString().padStart(2, '0')}>
+                            {i.toString().padStart(2, '0')}:00
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
-                  {/* End Date & Time */}
+                  {/* End Date & Hour */}
                   <div className="space-y-2">
-                    <Label htmlFor="end-date">End Date & Time</Label>
-                    <Input
-                      id="end-date"
-                      type="datetime-local"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      disabled={!selectedSilo || !startDate}
-                      min={startDate}
-                    />
+                    <Label htmlFor="end-date">End Date & Hour</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="end-date"
+                        type="date"
+                        value={endDate ? endDate.split('T')[0] : ''}
+                        onChange={(e) => setEndDate(`${e.target.value}T${endDate ? endDate.split('T')[1] || '23:00' : '23:00'}`)}
+                        disabled={!selectedSilo || !startDate}
+                        className="flex-1"
+                      />
+                      <select
+                        value={endDate ? endDate.split('T')[1]?.split(':')[0] || '23' : '23'}
+                        onChange={(e) => setEndDate(`${endDate ? endDate.split('T')[0] : new Date().toISOString().split('T')[0]}T${e.target.value}:00`)}
+                        disabled={!selectedSilo || !startDate}
+                        className="w-20 px-2 py-1 border border-gray-300 rounded"
+                      >
+                        {Array.from({length: 24}, (_, i) => (
+                          <option key={i} value={i.toString().padStart(2, '0')}>
+                            {i.toString().padStart(2, '0')}:00
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   {/* Generate Button */}
@@ -505,29 +519,58 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                     </div>
                   </div>
 
-                  {/* Start Date & Time */}
+                  {/* Start Date & Hour */}
                   <div className="space-y-2">
-                    <Label htmlFor="alerts-start-date">Start Date & Time</Label>
-                    <Input
-                      id="alerts-start-date"
-                      type="datetime-local"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      disabled={selectedAlertSilos.length === 0}
-                    />
+                    <Label htmlFor="alerts-start-date">Start Date & Hour</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="alerts-start-date"
+                        type="date"
+                        value={startDate ? startDate.split('T')[0] : ''}
+                        onChange={(e) => setStartDate(`${e.target.value}T${startDate ? startDate.split('T')[1] || '00:00' : '00:00'}`)}
+                        disabled={selectedAlertSilos.length === 0}
+                        className="flex-1"
+                      />
+                      <select
+                        value={startDate ? startDate.split('T')[1]?.split(':')[0] || '00' : '00'}
+                        onChange={(e) => setStartDate(`${startDate ? startDate.split('T')[0] : new Date().toISOString().split('T')[0]}T${e.target.value}:00`)}
+                        disabled={selectedAlertSilos.length === 0}
+                        className="w-20 px-2 py-1 border border-gray-300 rounded"
+                      >
+                        {Array.from({length: 24}, (_, i) => (
+                          <option key={i} value={i.toString().padStart(2, '0')}>
+                            {i.toString().padStart(2, '0')}:00
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
-                  {/* End Date & Time */}
+                  {/* End Date & Hour */}
                   <div className="space-y-2">
-                    <Label htmlFor="alerts-end-date">End Date & Time</Label>
-                    <Input
-                      id="alerts-end-date"
-                      type="datetime-local"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      disabled={selectedAlertSilos.length === 0 || !startDate}
-                      min={startDate}
-                    />
+                    <Label htmlFor="alerts-end-date">End Date & Hour</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="alerts-end-date"
+                        type="date"
+                        value={endDate ? endDate.split('T')[0] : ''}
+                        onChange={(e) => setEndDate(`${e.target.value}T${endDate ? endDate.split('T')[1] || '23:00' : '23:00'}`)}
+                        disabled={selectedAlertSilos.length === 0 || !startDate}
+                        className="flex-1"
+                      />
+                      <select
+                        value={endDate ? endDate.split('T')[1]?.split(':')[0] || '23' : '23'}
+                        onChange={(e) => setEndDate(`${endDate ? endDate.split('T')[0] : new Date().toISOString().split('T')[0]}T${e.target.value}:00`)}
+                        disabled={selectedAlertSilos.length === 0 || !startDate}
+                        className="w-20 px-2 py-1 border border-gray-300 rounded"
+                      >
+                        {Array.from({length: 24}, (_, i) => (
+                          <option key={i} value={i.toString().padStart(2, '0')}>
+                            {i.toString().padStart(2, '0')}:00
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   {/* Generate Button */}
