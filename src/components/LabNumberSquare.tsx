@@ -42,7 +42,7 @@ export const LabNumberSquare = ({
   return (
     <div
       className={`
-        w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8
+        w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10
         ${colorClass}
         border-2
         border-gray-300

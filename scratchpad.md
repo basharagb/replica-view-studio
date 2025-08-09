@@ -35,7 +35,16 @@
 - [ ] Clear cache
 - [ ] Deploy and provide live link
 
-### NEW COMPREHENSIVE REQUIREMENTS (6 CRITICAL TASKS):
+### NEW SILO SIZING FIX TASK:
+
+**CRITICAL: Fix Silo Sizes and Layout**
+- [x] Analyze correct vs incorrect silo layout from user images
+- [x] Fix circular silo sizes (should be larger than current)
+- [x] Fix square silo sizes (should be smaller than circular ones)
+- [x] Ensure proper fit and spacing
+- [ ] Git push and deploy with live link
+
+### PREVIOUS COMPREHENSIVE REQUIREMENTS (6 CRITICAL TASKS):
 
 **1. Live Test Auto Mode Fix:**
 - [ ] Auto test starts immediately (no delay)

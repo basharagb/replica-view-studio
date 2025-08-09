@@ -86,7 +86,7 @@ export const LabInterface = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
             >
-              <div className="flex gap-3 sm:gap-4 md:gap-6 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
+              <div className="flex gap-4 sm:gap-5 md:gap-6 lg:gap-8 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-105 hover:z-10 flex-shrink-0">
                     <LabGroup
@@ -122,7 +122,7 @@ export const LabInterface = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
               whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
             >
-              <div className="flex gap-3 sm:gap-4 md:gap-6 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
+              <div className="flex gap-4 sm:gap-5 md:gap-6 lg:gap-8 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-105 hover:z-10 flex-shrink-0">
                     <div className="flex flex-col items-center gap-1 sm:gap-1.5">
