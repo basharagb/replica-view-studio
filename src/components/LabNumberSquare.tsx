@@ -1,3 +1,4 @@
+import React from 'react';
 import { getSiloColorByNumber, findSiloByNumber } from '../services/siloData';
 
 interface LabNumberSquareProps {
@@ -11,7 +12,7 @@ interface LabNumberSquareProps {
   onMouseMove?: (event: React.MouseEvent) => void;
 }
 
-export const LabNumberSquare = ({
+const LabNumberSquareComponent = ({
   number,
   isSelected = false,
   isReading = false,
@@ -74,3 +75,6 @@ export const LabNumberSquare = ({
     </div>
   );
 };
+
+// Export with React.memo to prevent unnecessary re-renders
+export const LabNumberSquare = React.memo(LabNumberSquareComponent);

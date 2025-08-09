@@ -1,3 +1,4 @@
+import React from 'react';
 import { LabCircle } from './LabCircle';
 import { LabNumberSquare } from './LabNumberSquare';
 import { Silo } from '../types/silo';
@@ -14,7 +15,7 @@ interface LabGroupProps {
   onSiloMouseMove?: (event: React.MouseEvent) => void;
 }
 
-export const LabGroup = ({
+const LabGroupComponent = ({
   circles,
   squares,
   selectedSilo,
@@ -82,3 +83,6 @@ export const LabGroup = ({
     </div>
   );
 };
+
+// Export with React.memo to prevent unnecessary re-renders
+export const LabGroup = React.memo(LabGroupComponent);
