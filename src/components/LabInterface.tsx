@@ -216,7 +216,7 @@ export const LabInterface = () => {
               />
             </div>
             
-            {/* Manual/Auto Test Controls */}
+            {/* Manual/Auto Readings Controls */}
             <div className="flex flex-col gap-2 items-center mt-4 2xl:mt-6 3xl:mt-8">
               <Button
                 variant={readingMode === 'manual' ? 'default' : 'outline'}
@@ -225,7 +225,7 @@ export const LabInterface = () => {
                 className="w-32 2xl:w-36 3xl:w-40"
                 data-testid="manual-test-button"
               >
-                {readingMode === 'manual' ? 'Stop Manual' : `Manual Test (${manualTestDuration}min)`}
+                {readingMode === 'manual' ? 'Stop Manual' : `Manual Readings (${manualTestDuration}min)`}
               </Button>
               <Button
                 variant={readingMode === 'auto' ? 'default' : 'outline'}
@@ -234,7 +234,7 @@ export const LabInterface = () => {
                 className="w-32 2xl:w-36 3xl:w-40"
                 data-testid="auto-test-button"
               >
-                {isWaitingForRestart ? 'Waiting to Restart' : autoReadCompleted ? 'Auto Test Completed' : readingMode === 'auto' ? 'Stop Auto Test' : `Auto Test (${autoTestInterval/60}h)`}
+                {isWaitingForRestart ? 'Waiting to Restart' : autoReadCompleted ? 'Auto Readings Completed' : readingMode === 'auto' ? 'Stop Auto Readings' : `Auto Readings (${autoTestInterval/60}h)`}
               </Button>
               
               {/* Auto Read Progress */}
@@ -255,14 +255,14 @@ export const LabInterface = () => {
               {/* Auto Restart Status */}
               {isWaitingForRestart && (
                 <div className="mt-2 text-sm text-blue-600 font-medium">
-                  ⏳ Waiting {waitTimeRemaining} minutes to restart auto test
+                  ⏳ Waiting {waitTimeRemaining} minutes to restart auto readings
                 </div>
               )}
               
               {/* Auto Read Completion Message */}
               {autoReadCompleted && readingMode === 'none' && !isWaitingForRestart && (
                 <div className="mt-2 text-sm text-green-600 font-medium">
-                  ✓ Auto test completed successfully
+                  ✓ Auto readings completed successfully
                 </div>
               )}
 

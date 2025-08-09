@@ -289,7 +289,7 @@ const Settings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {readingMode === 'auto' && (
                     <div>
-                      <Label>Auto Test Interval (minutes)</Label>
+                      <Label>Auto Readings Interval (minutes)</Label>
                       <Select
                         value={settings.autoTestInterval.toString()}
                         onValueChange={(value) => handleSettingChange('autoTestInterval', parseInt(value))}
@@ -807,4 +807,4 @@ const Settings = () => {
   );
 };
 
-export default Settings; 
+export default Settings;  

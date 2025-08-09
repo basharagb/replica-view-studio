@@ -58,7 +58,7 @@ const Analytics = () => {
       {
         id: '1',
         type: 'test',
-        message: 'Auto test completed - 150 silos tested',
+        message: 'Auto readings completed - 150 silos tested',
         timestamp: new Date('2024-08-04T12:30:00'),
         status: 'success'
       },
@@ -338,4 +338,4 @@ const Analytics = () => {
   );
 };
 
-export default Analytics; 
+export default Analytics;  

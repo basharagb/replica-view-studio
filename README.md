@@ -10,6 +10,7 @@
 - **Interactive 3D Cylinder Visualization**: Dynamic cylindrical display showing sensor data
 - **Hover Tooltips**: Detailed information display on silo interaction
 - **Selection-based Control**: Click to select and monitor specific silos
+- **Critical Alerts Monitoring**: Real-time monitoring of critical temperature alerts
 - **Responsive Design**: Optimized for desktop and mobile interfaces
 - **Performance Optimized**: React.memo implementation for smooth interactions
 
@@ -74,6 +75,7 @@ replica-view-studio/
 - **8 Sensor Positions**: S1 through S8 with temperature readings
 - **Real-time Updates**: Dynamic sensor data visualization
 - **Selection Control**: Click to select and monitor specific silos
+- **Critical Alerts**: Monitor only critical red temperature alerts that require immediate attention
 
 ### 2. Interactive Cylinder Display
 - **3D Visualization**: Cylindrical representation of silo data
@@ -225,7 +227,7 @@ npm run test:report
 ### Planned Features
 - **Real-time Data Integration**: Connect to actual sensor systems
 - **Historical Data**: Time-series data visualization
-- **Alert System**: Temperature threshold notifications
+- **Enhanced Alert System**: Expanded temperature threshold notifications
 - **Multi-silo Support**: Expand to multiple silo monitoring
 - **Mobile App**: Native mobile application
 

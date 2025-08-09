@@ -68,7 +68,7 @@ export const useSiloSystem = () => {
     }, manualTestDuration * 60 * 1000); // Convert minutes to milliseconds
   }, [manualTestDuration]);
 
-  // Get silo test duration based on auto test interval
+  // Get silo readings duration based on auto readings interval
   const getSiloTestDuration = useCallback(() => {
     // Convert minutes to milliseconds and calculate per-silo duration
     // 1 hour (60 min) = 24 seconds per silo = 24000ms
@@ -100,7 +100,7 @@ export const useSiloSystem = () => {
       return;
     }
 
-    // Generate new random data for this auto test
+    // Generate new random data for this auto readings
     // regenerateAllSiloData();
     // setDataVersion(prev => prev + 1);
     
@@ -114,11 +114,11 @@ export const useSiloSystem = () => {
     let timeoutCounter = 0;
     const maxTimeout = 100; // Maximum iterations to prevent infinite loop
 
-    // Starting auto test
+    // Starting auto readings
 
     // Validate silo data
     if (!allSilos || allSilos.length === 0) {
-      console.error('No silos found - cannot start auto test');
+      console.error('No silos found - cannot start auto readings');
       setIsReading(false);
       setReadingSilo(null);
       setAutoReadProgress(0);
@@ -142,7 +142,7 @@ export const useSiloSystem = () => {
       
       // Safety timeout to prevent infinite loops
       if (timeoutCounter > maxTimeout) {
-        console.error('Auto test timeout - forcing completion');
+        console.error('Auto readings timeout - forcing completion');
         clearInterval(interval);
         autoReadInterval.current = null;
         setIsReading(false);
@@ -176,7 +176,7 @@ export const useSiloSystem = () => {
       setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
 
       currentIndex++;
-    }, getSiloTestDuration()); // Dynamic duration based on auto test interval
+    }, getSiloTestDuration()); // Dynamic duration based on auto readings interval
 
     autoReadInterval.current = interval;
   }, [readingMode, isReading, autoReadCompleted]);
@@ -190,12 +190,12 @@ export const useSiloSystem = () => {
     const countdownInterval = setInterval(() => {
       setWaitTimeRemaining(prev => {
         if (prev <= 1) {
-          // Time's up - restart auto test
+          // Time's up - restart auto readings
           clearInterval(countdownInterval);
           setIsWaitingForRestart(false);
           setAutoReadCompleted(false);
           setAutoReadProgress(0);
-          // Restart auto test
+          // Restart auto readings
           setTimeout(() => startAutoRead(), 100);
           return 0;
         }
@@ -218,7 +218,7 @@ export const useSiloSystem = () => {
       const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
       
       if (idleTime >= fifteenMinutes && readingMode === 'none') {
-        // Auto start test after 15 minutes of idle
+        // Auto start readings after 15 minutes of idle
         clearInterval(idleCheckInterval);
         setIsIdleDetectionActive(false);
         setReadingMode('auto');
