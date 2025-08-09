@@ -128,6 +128,9 @@ npm run lint
 
 ## 🌐 Deployment
 
+### GitHub Pages Deployment
+The project is configured for automatic deployment on GitHub Pages via GitHub Actions workflow.
+
 ### Netlify Deployment
 The project is configured for automatic deployment on Netlify:
 
