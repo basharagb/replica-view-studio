@@ -38,6 +38,33 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
   const [selectedAlertSilos, setSelectedAlertSilos] = useState<number[]>([]);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+  
+  // Helper function to round datetime to nearest hour
+  const roundToNearestHour = (dateTimeString: string): string => {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    date.setMinutes(0, 0, 0); // Set minutes, seconds, milliseconds to 0
+    return date.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:mm
+  };
+  
+  // Helper function to format datetime for display (DD/MM/YYYY, HH:00)
+  const formatDateTimeForDisplay = (dateTimeString: string): string => {
+    if (!dateTimeString) return 'Not specified';
+    const date = new Date(dateTimeString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    return format(date, 'dd/MM/yyyy, HH:00');
+  };
+  
+  // Custom datetime change handlers that round to nearest hour
+  const handleStartDateChange = (value: string) => {
+    const roundedValue = roundToNearestHour(value);
+    setStartDate(roundedValue);
+  };
+  
+  const handleEndDateChange = (value: string) => {
+    const roundedValue = roundToNearestHour(value);
+    setEndDate(roundedValue);
+  };
   const [graphData, setGraphData] = useState<TemperatureDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -156,46 +183,22 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
       let timeFormat: string;
       let timeInterval: number; // milliseconds between data points
       
-      if (daysDiff === 1) {
-        // 1 day: 24 time steps (1 hour each)
-        dataPoints = 24;
-        timeFormat = 'HH:mm';
+      // Always aggregate data by hour for consistent hourly display
+      if (daysDiff === 0) {
+        // Same day: show hourly
+        dataPoints = Math.max(hoursDiff, 1);
+        timeFormat = 'HH:00';
         timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (daysDiff === 2) {
-        // 2 days: 12 time steps (2 hours each) - 6 for first day, 6 for second day
-        dataPoints = 12;
-        timeFormat = 'MMM dd HH:mm';
-        timeInterval = 2 * 60 * 60 * 1000; // 2 hours
-      } else if (daysDiff === 3) {
-        // 3 days: 24 time steps (3 hours each) - 8 for each day
-        dataPoints = 24;
-        timeFormat = 'MMM dd HH:mm';
-        timeInterval = 3 * 60 * 60 * 1000; // 3 hours
-      } else if (daysDiff === 4) {
-        // 4 days: 24 time steps (4 hours each) - 6 for each day
-        dataPoints = 24;
-        timeFormat = 'MMM dd HH:mm';
-        timeInterval = 4 * 60 * 60 * 1000; // 4 hours
-      } else if (daysDiff === 24) {
-        // 24 days: 24 time steps (1 day each)
-        dataPoints = 24;
-        timeFormat = 'MMM dd';
-        timeInterval = 24 * 60 * 60 * 1000; // 1 day
-      } else if (daysDiff === 0) {
-        // Same day: show hourly for better granularity
-        dataPoints = Math.max(hoursDiff, 24);
-        timeFormat = 'HH:mm';
+      } else if (daysDiff <= 7) {
+        // Up to 7 days: show hourly with date
+        dataPoints = daysDiff * 24;
+        timeFormat = 'dd/MM HH:00';
         timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (daysDiff <= 30) {
-        // For other periods: 24 time steps with dynamic hours per step
-        dataPoints = 24;
-        timeFormat = daysDiff <= 7 ? 'MMM dd HH:mm' : 'MMM dd';
-        timeInterval = (daysDiff * 24 * 60 * 60 * 1000) / 24; // Dynamic hours per step
       } else {
-        // More than 1 month: show weekly aggregation
-        dataPoints = Math.ceil(daysDiff / 7);
-        timeFormat = 'MMM dd';
-        timeInterval = 7 * 24 * 60 * 60 * 1000; // 1 week
+        // More than 7 days: show daily aggregation but still hourly format
+        dataPoints = daysDiff;
+        timeFormat = 'dd/MM/yyyy';
+        timeInterval = 24 * 60 * 60 * 1000; // 1 day
       }
 
       for (let i = 0; i < dataPoints; i++) {
@@ -402,9 +405,15 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                       type="datetime-local"
                       step="3600"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
                       disabled={!selectedSilo}
+                      placeholder="Select date and hour"
                     />
+                    {startDate && (
+                      <div className="text-xs text-gray-500">
+                        Selected: {formatDateTimeForDisplay(startDate)}
+                      </div>
+                    )}
                   </div>
 
                   {/* End Date & Time */}
@@ -415,10 +424,16 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                       type="datetime-local"
                       step="3600"
                       value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
+                      onChange={(e) => handleEndDateChange(e.target.value)}
                       disabled={!selectedSilo || !startDate}
                       min={startDate}
+                      placeholder="Select date and hour"
                     />
+                    {endDate && (
+                      <div className="text-xs text-gray-500">
+                        Selected: {formatDateTimeForDisplay(endDate)}
+                      </div>
+                    )}
                   </div>
 
                   {/* Generate Button */}
@@ -520,9 +535,15 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                       type="datetime-local"
                       step="3600"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
                       disabled={selectedAlertSilos.length === 0}
+                      placeholder="Select date and hour"
                     />
+                    {startDate && (
+                      <div className="text-xs text-gray-500">
+                        Selected: {formatDateTimeForDisplay(startDate)}
+                      </div>
+                    )}
                   </div>
 
                   {/* End Date & Time */}
@@ -533,10 +554,16 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                       type="datetime-local"
                       step="3600"
                       value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
+                      onChange={(e) => handleEndDateChange(e.target.value)}
                       disabled={selectedAlertSilos.length === 0 || !startDate}
                       min={startDate}
+                      placeholder="Select date and hour"
                     />
+                    {endDate && (
+                      <div className="text-xs text-gray-500">
+                        Selected: {formatDateTimeForDisplay(endDate)}
+                      </div>
+                    )}
                   </div>
 
                   {/* Generate Button */}

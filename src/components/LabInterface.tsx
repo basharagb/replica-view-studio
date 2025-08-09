@@ -68,10 +68,10 @@ export const LabInterface = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
           >
-            {/* Top section (1-55) - Updated card width and spacing */}
+            {/* Top section (1-55) - Expanded card width by 6% total (3% each side) */}
             <motion.div 
               className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[32vh] flex items-center w-full max-w-5xl mx-auto" 
-              style={{marginLeft: '-3%', marginRight: '-3%'}} 
+              style={{marginLeft: '-6%', marginRight: '-6%', width: '112%'}} 
               data-testid="top-silo-section" 
               key={`top-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -105,10 +105,10 @@ export const LabInterface = () => {
               </div>
             </motion.div>
 
-            {/* Bottom section (101-195) - Updated card width and spacing */}
+            {/* Bottom section (101-195) - Expanded card width by 6% total (3% each side) */}
             <motion.div 
               className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[42vh] flex items-center w-full max-w-5xl mx-auto" 
-              style={{marginLeft: '-3%', marginRight: '-3%'}} 
+              style={{marginLeft: '-6%', marginRight: '-6%', width: '112%'}} 
               data-testid="bottom-silo-section" 
               key={`bottom-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}

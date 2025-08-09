@@ -1,10 +1,35 @@
 # Scratchpad - Jarvis
 
-## Current Task: MULTI-TASK SYSTEM ENHANCEMENTS
+## Current Task: HOUR PICKER AND LAYOUT FIXES
 
-**Status: 🔄 IN PROGRESS - NEW MULTI-TASK PHASE**
+**Status: 🔄 IN PROGRESS**
+**Branch:** feature/hour-picker-and-layout-fixes
+**Started:** 2025-08-09T15:47:35+03:00
+
+### TASK REQUIREMENTS:
+
+**1. Reports Page - Enhanced Temperature Graphs:**
+- [x] Modify datetime pickers to select hours only (ignore minutes)
+- [x] Format display: DD/MM/YYYY, HH:00
+- [x] Remove minute selection from UI
+- [x] Round selected time to nearest hour (minutes/seconds = 00)
+- [x] Aggregate graph data by hour
+- [x] Update X-axis labels/tooltips to show only hours
+
+**2. Live Readings Page - Silo Layout:**
+- [x] Expand top/bottom silo section cards width by 3% left and 3% right (6% total)
+- [x] Remove ALL horizontal and vertical spacing between silos (already implemented with gap-0)
+- [x] Keep labels readable and prevent overlaps
+- [x] Maintain vertical spacing outside the cards
+
+**3. Deployment:**
+- [ ] Commit changes to GitHub
+- [ ] Deploy to existing environment
+
+## Previous Task: MULTI-TASK SYSTEM ENHANCEMENTS
+
+**Status: ✅ COMPLETED**
 **Branch:** feature/multi-task-enhancements
-**Started:** 2025-08-08T22:14:36+03:00
 
 ### NEW MULTI-TASK REQUIREMENTS (5 CRITICAL TASKS):
 
