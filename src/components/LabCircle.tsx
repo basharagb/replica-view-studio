@@ -1,3 +1,4 @@
+import React from 'react';
 import { getSiloColorByNumber } from '../services/siloData';
 import { TemperatureColor } from '../types/silo';
 
@@ -14,7 +15,7 @@ interface LabCircleProps {
   onMouseMove?: (event: React.MouseEvent) => void;
 }
 
-export const LabCircle = ({
+const LabCircleComponent = ({
   number,
   temp,
   size = 'md',
@@ -82,3 +83,6 @@ export const LabCircle = ({
     </div>
   );
 };
+
+// Export with React.memo to prevent unnecessary re-renders
+export const LabCircle = React.memo(LabCircleComponent);

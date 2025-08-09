@@ -324,8 +324,11 @@ export const regenerateAllSiloData = (): void => {
   bottomSiloGroups = generateBottomSiloGroups();
   cylinderSilos = generateCylinderSilos();
   
-  // Clear cache and update predefined readings for cylinder silos
+  // Clear caches when data changes
   clearSensorReadingsCache();
+  clearSiloLookupCache();
+  
+  // Update predefined readings for cylinder silos
   cylinderSilos.forEach(silo => {
     predefinedReadings[silo.num] = silo.sensors;
   });
@@ -442,10 +445,25 @@ export const getAllSilos = (): Silo[] => {
   return sortedSilos;
 };
 
-// Find silo by number
-export const findSiloByNumber = (siloNum: number): Silo | null => {
+let siloLookupMap: Map<number, Silo> | null = null;
+
+const buildSiloLookupMap = (): Map<number, Silo> => {
+  const map = new Map<number, Silo>();
   const allSilos = getAllSilos();
-  return allSilos.find(silo => silo.num === siloNum) || null;
+  allSilos.forEach(silo => map.set(silo.num, silo));
+  return map;
+};
+
+// Find silo by number with O(1) lookup
+export const findSiloByNumber = (siloNum: number): Silo | null => {
+  if (!siloLookupMap) {
+    siloLookupMap = buildSiloLookupMap();
+  }
+  return siloLookupMap.get(siloNum) || null;
+};
+
+export const clearSiloLookupCache = (): void => {
+  siloLookupMap = null;
 };
 
 // Temperature scale values for display - updated for 20-50°C range
