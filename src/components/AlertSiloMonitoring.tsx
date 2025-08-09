@@ -141,7 +141,7 @@ const AlertSiloMonitoring: React.FC = () => {
           Alert Silo Monitoring
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Real-time monitoring of silos with critical temperature alerts. Displaying all alarmed silos that require attention.
+          Real-time monitoring of silos with critical temperature alerts. Displaying only critical red alerts that require immediate attention.
         </p>
       </div>
 
@@ -189,19 +189,19 @@ const AlertSiloMonitoring: React.FC = () => {
       </div>
 
       {/* Alert Silos Grid */}
-      {alertSilos.length === 0 ? (
+      {alertSilos.filter(s => s.priority === 'critical').length === 0 ? (
         <Card className="bg-green-50 border-green-200">
           <CardContent className="p-8 text-center">
             <div className="text-green-600">
               <TrendingUp className="w-12 h-12 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Alerts</h3>
-              <p>No temperature alerts detected. All silos are operating safely.</p>
+              <h3 className="text-lg font-semibold mb-2">No Critical Alerts</h3>
+              <p>No critical temperature alerts detected. All silos are operating safely.</p>
             </div>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {alertSilos.map((silo) => (
+          {alertSilos.filter(silo => silo.priority === 'critical').map((silo) => (
             <Card 
               key={silo.siloNumber} 
               className={`shadow-lg hover:shadow-xl transition-all duration-300 border-2 ${
