@@ -27,9 +27,9 @@ export const LabCircle = ({
   onMouseMove
 }: LabCircleProps) => {
   const sizeClasses = {
-    sm: 'w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 xl:w-16 xl:h-16 text-xs',
-    md: 'w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 text-xs',
-    lg: 'w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 xl:w-20 xl:h-20 text-xs sm:text-sm'
+    sm: 'w-[1.96rem] h-[1.96rem] sm:w-[2.45rem] sm:h-[2.45rem] md:w-[2.94rem] md:h-[2.94rem] lg:w-[3.43rem] lg:h-[3.43rem] xl:w-[3.92rem] xl:h-[3.92rem] text-xs',
+    md: 'w-[2.45rem] h-[2.45rem] sm:w-[2.94rem] sm:h-[2.94rem] md:w-[3.43rem] md:h-[3.43rem] lg:w-[3.92rem] lg:h-[3.92rem] xl:w-[4.41rem] xl:h-[4.41rem] text-xs',
+    lg: 'w-[2.94rem] h-[2.94rem] sm:w-[3.43rem] sm:h-[3.43rem] md:w-[3.92rem] md:h-[3.92rem] lg:w-[4.41rem] lg:h-[4.41rem] xl:w-[4.9rem] xl:h-[4.9rem] text-xs sm:text-sm'
   };
 
   const temperatureColor = getSiloColorByNumber(number);

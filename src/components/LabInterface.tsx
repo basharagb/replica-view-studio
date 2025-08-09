@@ -51,34 +51,27 @@ export const LabInterface = () => {
     }
   };
 
-  // Create bottom row data (simplified groups with 3 circles each)
-  const bottomRowData = bottomSiloGroups.map(group => ({
-    circles: [
-      ...(group.row1?.slice(0, 3) || [])
-    ],
-    squares: (group.row2?.slice(0, 5) || []).map(silo => silo.num)
-  }));
-
   return (
     <motion.div 
       className="min-h-screen w-full bg-gradient-to-br from-background via-background to-gray-50 dark:to-gray-900 p-1 sm:p-2 md:p-3 lg:p-4" 
       data-testid="lab-interface"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      transition={{ duration: 0.5 }}
     >
       <div className="w-full h-full max-w-7xl mx-auto">
         <div className="flex flex-col xl:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-6 items-start justify-center h-full min-h-[calc(100vh-2rem)]">
-          {/* Main lab area - Reduced width by 15% */}
+          {/* Main lab area */}
           <motion.div 
             className="flex-1 w-full max-w-5xl space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 h-full"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
           >
-            {/* Top section (1-55) - Proper grid layout */}
+            {/* Top section (1-55) - Updated card width and spacing */}
             <motion.div 
-              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[32vh] flex items-center w-full max-w-4xl mx-auto" 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[32vh] flex items-center w-full max-w-5xl mx-auto" 
+              style={{marginLeft: '-3%', marginRight: '-3%'}} 
               data-testid="top-silo-section" 
               key={`top-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -86,7 +79,7 @@ export const LabInterface = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
             >
-              <div className="flex gap-4 sm:gap-5 md:gap-6 lg:gap-8 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
+              <div className="flex gap-0 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-105 hover:z-10 flex-shrink-0">
                     <LabGroup
@@ -112,9 +105,10 @@ export const LabInterface = () => {
               </div>
             </motion.div>
 
-            {/* Bottom section (101-195) - Proper grid layout */}
+            {/* Bottom section (101-195) - Updated card width and spacing */}
             <motion.div 
-              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[42vh] flex items-center w-full max-w-4xl mx-auto" 
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-2 sm:p-3 md:p-4 lg:p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.001] backdrop-blur-sm min-h-[42vh] flex items-center w-full max-w-5xl mx-auto" 
+              style={{marginLeft: '-3%', marginRight: '-3%'}} 
               data-testid="bottom-silo-section" 
               key={`bottom-${dataVersion}`}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -122,99 +116,24 @@ export const LabInterface = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
               whileHover={{ scale: 1.002, transition: { duration: 0.2 } }}
             >
-              <div className="flex gap-4 sm:gap-5 md:gap-6 lg:gap-8 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
+              <div className="flex gap-0 justify-center items-center overflow-x-hidden overflow-y-visible pb-2 px-1 h-full w-full">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative transform transition-all duration-300 hover:scale-105 hover:z-10 flex-shrink-0">
-                    <div className="flex flex-col items-center gap-1 sm:gap-1.5">
-                      {/* Row 1: circles */}
-                      <div className="flex gap-1 sm:gap-1.5">
-                        {(group.row1 || []).slice(0, 3).map((circle) => (
-                          <LabCircle
-                            key={`row1-${circle.num}`}
-                            number={circle.num}
-                            temp={circle.temp}
-                            isSelected={selectedSilo === circle.num}
-                            isReading={readingSilo === circle.num}
-                            isHovered={hoveredSilo?.num === circle.num}
-                            onClick={handleSiloClick}
-                            onMouseEnter={handleSiloHover}
-                            onMouseLeave={handleSiloLeave}
-                            onMouseMove={handleSiloMouseMove}
-                          />
-                        ))}
-                      </div>
-                      
-                      {/* Row 2: squares */}
-                      <div className="flex gap-1 sm:gap-2">
-                        {(group.row2 || []).slice(0, 5).map((silo) => (
-                          <LabNumberSquare
-                            key={`row2-${silo.num}`}
-                            number={silo.num}
-                            isSelected={selectedSilo === silo.num}
-                            isReading={readingSilo === silo.num}
-                            isHovered={hoveredSilo?.num === silo.num}
-                            onClick={handleSiloClick}
-                            onMouseEnter={handleSiloHover}
-                            onMouseLeave={handleSiloLeave}
-                            onMouseMove={handleSiloMouseMove}
-                          />
-                        ))}
-                      </div>
-                      
-                      {/* Row 3: circles */}
-                      <div className="flex gap-1 sm:gap-2">
-                        {(group.row3 || []).slice(0, 3).map((circle) => (
-                          <LabCircle
-                            key={`row3-${circle.num}`}
-                            number={circle.num}
-                            temp={circle.temp}
-                            isSelected={selectedSilo === circle.num}
-                            isReading={readingSilo === circle.num}
-                            isHovered={hoveredSilo?.num === circle.num}
-                            onClick={handleSiloClick}
-                            onMouseEnter={handleSiloHover}
-                            onMouseLeave={handleSiloLeave}
-                            onMouseMove={handleSiloMouseMove}
-                          />
-                        ))}
-                      </div>
-                      
-                      {/* Row 4: squares */}
-                      <div className="flex gap-1 sm:gap-2">
-                        {(group.row4 || []).slice(0, 5).map((silo) => (
-                          <LabNumberSquare
-                            key={`row4-${silo.num}`}
-                            number={silo.num}
-                            isSelected={selectedSilo === silo.num}
-                            isReading={readingSilo === silo.num}
-                            isHovered={hoveredSilo?.num === silo.num}
-                            onClick={handleSiloClick}
-                            onMouseEnter={handleSiloHover}
-                            onMouseLeave={handleSiloLeave}
-                            onMouseMove={handleSiloMouseMove}
-                          />
-                        ))}
-                      </div>
-                      
-                      {/* Row 5: circles */}
-                      <div className="flex gap-1 sm:gap-2">
-                        {(group.row5 || []).slice(0, 3).map((circle) => (
-                          <LabCircle
-                            key={`row5-${circle.num}`}
-                            number={circle.num}
-                            temp={circle.temp}
-                            isSelected={selectedSilo === circle.num}
-                            isReading={readingSilo === circle.num}
-                            isHovered={hoveredSilo?.num === circle.num}
-                            onClick={handleSiloClick}
-                            onMouseEnter={handleSiloHover}
-                            onMouseLeave={handleSiloLeave}
-                            onMouseMove={handleSiloMouseMove}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    {/* Reduced visual separator between groups */}
+                    <LabGroup
+                      circles={[
+                        ...(group.row1 || []),
+                        ...(group.row3 || [])
+                      ]}
+                      squares={group.row2?.map(silo => silo.num) || []}
+                      selectedSilo={selectedSilo}
+                      readingSilo={readingSilo}
+                      hoveredSilo={hoveredSilo}
+                      onSiloClick={handleSiloClick}
+                      onSiloHover={handleSiloHover}
+                      onSiloLeave={handleSiloLeave}
+                      onSiloMouseMove={handleSiloMouseMove}
+                    />
+                    {/* Visual separator between groups */}
                     {index < bottomSiloGroups.length - 1 && (
                       <div className="absolute -right-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 dark:from-gray-600 dark:via-gray-500 dark:to-gray-600 rounded-full opacity-40"></div>
                     )}
@@ -224,15 +143,13 @@ export const LabInterface = () => {
             </motion.div>
           </motion.div>
 
-          {/* Right side panel - Reduced width */}
+          {/* Right side panel */}
           <div className="flex flex-col lg:flex-col items-center gap-3 lg:gap-4 xl:gap-6 lg:min-w-[180px] xl:min-w-[200px] 2xl:min-w-[220px] h-full" data-testid="control-panel">
             <LabCylinder
               key={`cylinder-${dataVersion}`}
               selectedSilo={selectedSilo}
               readingSilo={readingSilo}
               onSiloClick={handleSiloClick}
-              // LabCylinder is completely independent of hover state
-              // Only shows readings for selected or reading silo
             />
             <div className="w-24 lg:w-28 xl:w-32">
               <Input
@@ -244,7 +161,7 @@ export const LabInterface = () => {
               />
             </div>
             
-            {/* Manual/Auto Test Controls - Enhanced spacing */}
+            {/* Manual/Auto Test Controls */}
             <div className="flex flex-col gap-4 items-center mt-6 lg:mt-8 w-full flex-1 justify-start">
               <Button
                 variant={readingMode === 'manual' ? 'default' : 'outline'}
@@ -265,7 +182,7 @@ export const LabInterface = () => {
                 {isWaitingForRestart ? 'Waiting to Restart' : autoReadCompleted ? 'Auto Readings Completed' : readingMode === 'auto' ? 'Stop Auto Readings' : `Auto Readings (${autoTestInterval/60}h)`}
               </Button>
               
-              {/* Auto Read Progress - Enhanced */}
+              {/* Auto Read Progress */}
               {readingMode === 'auto' && (
                 <div className="w-full max-w-[220px] lg:max-w-[240px] xl:max-w-[260px] mt-4" data-testid="auto-test-progress">
                   <div className="bg-gray-200 dark:bg-gray-700 h-4 lg:h-5 rounded-full overflow-hidden shadow-inner border border-gray-300 dark:border-gray-600">

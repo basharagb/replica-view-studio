@@ -26,9 +26,9 @@ export const LabGroup = ({
   onSiloMouseMove
 }: LabGroupProps) => {
   return (
-    <div className="relative flex flex-col items-center gap-2 sm:gap-3 md:gap-4 lg:gap-5">
+    <div className="relative flex flex-col items-center gap-0">
       {/* Top row of circles - exactly 3 circles */}
-      <div className="flex gap-2 sm:gap-3 md:gap-4 lg:gap-5">
+      <div className="flex gap-0">
         {circles.slice(0, 3).map((circle, index) => (
           <LabCircle
             key={`top-${circle.num}`}
@@ -46,7 +46,7 @@ export const LabGroup = ({
       </div>
       
       {/* Middle row with squares - exactly 5 squares */}
-      <div className="flex gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3">
+      <div className="flex gap-0">
         {squares.slice(0, 5).map((num, index) => (
           <LabNumberSquare
             key={`square-${num}`}
@@ -63,7 +63,7 @@ export const LabGroup = ({
       </div>
       
       {/* Bottom row of circles - exactly 3 circles */}
-      <div className="flex gap-2 sm:gap-3 md:gap-4 lg:gap-5">
+      <div className="flex gap-0">
         {circles.slice(3, 6).map((circle, index) => (
           <LabCircle
             key={`bottom-${circle.num}`}

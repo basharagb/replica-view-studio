@@ -42,7 +42,15 @@
 - [x] Fix circular silo sizes (should be larger than current)
 - [x] Fix square silo sizes (should be smaller than circular ones)
 - [x] Ensure proper fit and spacing
-- [ ] Git push and deploy with live link
+- [x] Git push and deploy with live link
+- [x] Adjust card width: +10% left, +3% right
+- [x] Remove horizontal spacing between silos (gap-0)
+- [x] Maintain vertical spacing as is
+- [x] NEW: Expand card width by 6% total (-3% offset both sides)
+- [x] NEW: Remove ALL spacing between silos (horizontal & vertical)
+- [x] NEW: Reduce circular silo size by 2%
+- [x] NEW: Reduce square silo size by 8%
+- [x] NEW: Keep outer card spacing and shadows unchanged
 
 ### PREVIOUS COMPREHENSIVE REQUIREMENTS (6 CRITICAL TASKS):
 
