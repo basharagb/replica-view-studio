@@ -333,6 +333,11 @@ export const getTemperatureColor = (temp: number): TemperatureColor => {
   return 'beige';                                                     // Default - Below range
 };
 
+// Get default wheat color for initial state
+export const getDefaultWheatColor = (): TemperatureColor => {
+  return 'beige';
+};
+
 // Calculate alert level based on temperature - Priority hierarchy
 export const getAlertLevel = (temp: number): AlertLevel => {
   if (temp > TEMPERATURE_THRESHOLDS.YELLOW_MAX) return 'critical';    // Red: >40°C (Highest priority)

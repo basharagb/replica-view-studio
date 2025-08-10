@@ -25,7 +25,9 @@ const LabNumberSquareComponent = ({
   // Find the silo data to get temperature
   const silo = findSiloByNumber(number);
   const temp = silo?.temp || 0;
-  const temperatureColor = getSiloColorByNumber(number);
+  
+  // Use wheat color by default, update based on readings when available
+  const temperatureColor = silo ? getSiloColorByNumber(number) : 'beige';
   const colorClass = `temp-${temperatureColor}`;
 
   const handleClick = () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getSiloColorByNumber } from '../services/siloData';
+import { getSiloColorByNumber, findSiloByNumber } from '../services/siloData';
 import { TemperatureColor } from '../types/silo';
 
 interface LabCircleProps {
@@ -33,7 +33,9 @@ const LabCircleComponent = ({
     lg: 'w-16 h-16 text-base'
   };
 
-  const temperatureColor = getSiloColorByNumber(number);
+  // Use wheat color by default, update based on readings when available
+  const silo = findSiloByNumber(number);
+  const temperatureColor = silo ? getSiloColorByNumber(number) : 'beige';
   const colorClass = `temp-${temperatureColor}`;
 
   const handleClick = () => {

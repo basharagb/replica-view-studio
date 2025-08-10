@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 import { useLiveSensorData } from '../hooks/useLiveSensorData';
 import { Silo, ReadingMode, TooltipPosition } from '../types/silo';
 import { temperatureScaleValues } from '../services/siloData';
+import { getAllSilos, findSiloByNumber } from '../services/siloData';
 import EnhancedTemperatureDisplay from './EnhancedTemperatureDisplay';
 import EnhancedSensorPanel from './EnhancedSensorPanel';
 import AlertSystem from './AlertSystem';
@@ -307,22 +308,6 @@ export const LabInterface = () => {
     }
   }, []);
 
-  // Handle input change
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value)) {
-      setSelectedSilo(value);
-    }
-  };
-
-  // Create bottom row data (simplified groups with 3 circles each)
-  const bottomRowData = bottomSiloGroups.map(group => ({
-    circles: [
-      ...(group.row1?.slice(0, 3) || [])
-    ],
-    squares: (group.row2?.slice(0, 5) || []).map(silo => silo.num)
-  }));
-
   // Cleanup on unmount
   useEffect(() => {
     return cleanup;
@@ -357,10 +342,10 @@ export const LabInterface = () => {
                   <div key={index} className="relative">
                     <LabGroup
                       circles={[
-                        ...(group.topRow || []),
-                        ...(group.bottomRow || [])
+                        ...(group.topRow?.slice(0, 3) || []),
+                        ...(group.bottomRow?.slice(0, 3) || [])
                       ]}
-                      squares={group.middleRow?.map(silo => silo.num) || []}
+                      squares={group.middleRow?.slice(0, 5).map(silo => silo.num) || []}
                       selectedSilo={selectedSilo}
                       readingSilo={readingSilo}
                       hoveredSilo={hoveredSilo}
