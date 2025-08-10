@@ -1,0 +1,15 @@
+FORCE NETLIFY DEPLOYMENT - CRITICAL ROUTING FIX
+==============================================
+
+Deployment Timestamp: 2025-01-09 01:25:00 UTC
+Commit: 712c52d + BrowserRouter fix
+Issue: Netlify showing old version without Dashboard sidebar
+Fix Applied: Changed HashRouter to BrowserRouter for proper SPA routing
+
+EXPECTED DEPLOYMENT RESULT:
+✅ Dashboard layout with left sidebar navigation
+✅ Live Readings as default route with LabInterface
+✅ All navigation menu items functional
+✅ Proper SPA routing with _redirects support
+
+This file forces Netlify to recognize changes and deploy latest version.
