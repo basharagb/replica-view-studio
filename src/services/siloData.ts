@@ -1,5 +1,6 @@
 import { Silo, SiloGroup, TemperatureColor, SensorReading, AlertLevel, TemperatureTrend, TemperatureMonitoringState } from '../types/silo';
 import { realTimeSensorService } from './realTimeSensorService';
+import { getSiloData as getApiSiloData, markSiloAsChecked, fetchSiloReadings, SiloData } from './apiService';
 
 // Temperature threshold constants for silo monitoring system
 export const TEMPERATURE_THRESHOLDS = {
@@ -72,6 +73,30 @@ export const generateSensorReadings = (baseTemp: number): number[] => {
   return readings.sort((a, b) => b - a);
 };
 
+// Convert API SiloData to Silo format
+const convertApiSiloToSilo = (apiSilo: SiloData): Silo => {
+  const enhancedSensors = apiSilo.sensors.map((temp, index) => ({
+    id: `S${index + 1}`,
+    temperature: temp,
+    position: SENSOR_POSITIONS[index] || `Sensor ${index + 1}`,
+    calibrationStatus: 'calibrated' as const,
+    timestamp: new Date(apiSilo.timestamp),
+    isActive: true
+  }));
+
+  return {
+    num: apiSilo.num,
+    temp: apiSilo.temp,
+    sensors: enhancedSensors
+  };
+};
+
+// Get silo data with proper format conversion
+const getSiloData = (siloNumber: number): Silo => {
+  const apiSilo = getApiSiloData(siloNumber);
+  return convertApiSiloToSilo(apiSilo);
+};
+
 // Generate silo with 8 sensors and calculate temperature using priority hierarchy
 const generateSiloWithSensors = (num: number): Silo => {
   const baseTemp = generateRandomTemp();
@@ -89,84 +114,85 @@ const generateSiloGroup = (siloNumbers: number[]): Silo[] => {
   return siloNumbers.map(num => generateSiloWithSensors(num));
 };
 
-// Generate top section silo groups
+// Correct silo layout based on user's images
+// Top section: Circular silos (1-61)
 const generateTopSiloGroups = (): SiloGroup[] => {
   return [
-    // Group 1 (leftmost)
+    // Group 1 (1-10)
     {
-      topRow: generateSiloGroup([55, 51, 47]),
-      middleRow: generateSiloGroup([54, 52, 50, 48, 46]),
-      bottomRow: generateSiloGroup([53, 49, 45])
+      topRow: [getSiloData(1), getSiloData(2), getSiloData(3)],
+      middleRow: [getSiloData(6), getSiloData(7)],
+      bottomRow: [getSiloData(8), getSiloData(9), getSiloData(10)]
     },
-    // Group 2
+    // Group 2 (12-21)
     {
-      topRow: generateSiloGroup([44, 40, 36]),
-      middleRow: generateSiloGroup([43, 41, 39, 37, 35]),
-      bottomRow: generateSiloGroup([42, 38, 34])
+      topRow: [getSiloData(12), getSiloData(13), getSiloData(14)],
+      middleRow: [getSiloData(17), getSiloData(18)],
+      bottomRow: [getSiloData(19), getSiloData(20), getSiloData(21)]
     },
-    // Group 3
+    // Group 3 (23-32)
     {
-      topRow: generateSiloGroup([33, 29, 25]),
-      middleRow: generateSiloGroup([32, 30, 28, 26, 24]),
-      bottomRow: generateSiloGroup([31, 27, 23])
+      topRow: [getSiloData(23), getSiloData(24), getSiloData(25)],
+      middleRow: [getSiloData(28), getSiloData(29)],
+      bottomRow: [getSiloData(30), getSiloData(31), getSiloData(32)]
     },
-    // Group 4
+    // Group 4 (34-43)
     {
-      topRow: generateSiloGroup([22, 18, 14]),
-      middleRow: generateSiloGroup([21, 19, 17, 15, 13]),
-      bottomRow: generateSiloGroup([20, 16, 12])
+      topRow: [getSiloData(34), getSiloData(35), getSiloData(36)],
+      middleRow: [getSiloData(39), getSiloData(40)],
+      bottomRow: [getSiloData(41), getSiloData(42), getSiloData(43)]
     },
-    // Group 5 (rightmost)
+    // Group 5 (45-54)
     {
-      topRow: generateSiloGroup([11, 7, 3]),
-      middleRow: generateSiloGroup([10, 8, 6, 4, 2]),
-      bottomRow: generateSiloGroup([9, 5, 1])
+      topRow: [getSiloData(45), getSiloData(46), getSiloData(47)],
+      middleRow: [getSiloData(50), getSiloData(51)],
+      bottomRow: [getSiloData(52), getSiloData(53), getSiloData(54)]
     }
   ];
 };
 
-// Generate bottom section silo groups
+// Bottom section: Square silos (101-195) arranged in groups
 const generateBottomSiloGroups = (): SiloGroup[] => {
   return [
-    // Group 1 (leftmost)
+    // Group 1 (195-177)
     {
-      row1: generateSiloGroup([195, 188, 181]),
-      row2: generateSiloGroup([194, 190, 187, 183, 180]),
-      row3: generateSiloGroup([193, 186, 179]),
-      row4: generateSiloGroup([192, 189, 185, 182, 178]),
-      row5: generateSiloGroup([191, 184, 177])
+      topRow: [getSiloData(195), getSiloData(188), getSiloData(181)],
+      middleRow: [getSiloData(194), getSiloData(190), getSiloData(187), getSiloData(183), getSiloData(180)],
+      bottomRow: [getSiloData(193), getSiloData(186), getSiloData(179)],
+      row4: [getSiloData(192), getSiloData(185), getSiloData(182), getSiloData(178)],
+      row5: [getSiloData(191), getSiloData(184), getSiloData(177)]
     },
-    // Group 2
+    // Group 2 (176-158)
     {
-      row1: generateSiloGroup([176, 169, 162]),
-      row2: generateSiloGroup([175, 171, 168, 164, 161]),
-      row3: generateSiloGroup([174, 167, 160]),
-      row4: generateSiloGroup([173, 170, 166, 163, 159]),
-      row5: generateSiloGroup([172, 165, 158])
+      topRow: [getSiloData(176), getSiloData(169), getSiloData(162)],
+      middleRow: [getSiloData(175), getSiloData(171), getSiloData(168), getSiloData(164), getSiloData(161)],
+      bottomRow: [getSiloData(174), getSiloData(167), getSiloData(160)],
+      row4: [getSiloData(173), getSiloData(170), getSiloData(166), getSiloData(163), getSiloData(159)],
+      row5: [getSiloData(172), getSiloData(165), getSiloData(158)]
     },
-    // Group 3
+    // Group 3 (157-139)
     {
-      row1: generateSiloGroup([157, 150, 143]),
-      row2: generateSiloGroup([156, 152, 149, 145, 142]),
-      row3: generateSiloGroup([155, 148, 141]),
-      row4: generateSiloGroup([154, 151, 147, 144, 140]),
-      row5: generateSiloGroup([153, 146, 139])
+      topRow: [getSiloData(157), getSiloData(150), getSiloData(143)],
+      middleRow: [getSiloData(156), getSiloData(152), getSiloData(149), getSiloData(145), getSiloData(142)],
+      bottomRow: [getSiloData(155), getSiloData(148), getSiloData(141)],
+      row4: [getSiloData(154), getSiloData(151), getSiloData(147), getSiloData(144), getSiloData(140)],
+      row5: [getSiloData(153), getSiloData(146), getSiloData(139)]
     },
-    // Group 4
+    // Group 4 (138-120)
     {
-      row1: generateSiloGroup([138, 131, 124]),
-      row2: generateSiloGroup([137, 133, 130, 126, 123]),
-      row3: generateSiloGroup([136, 129, 122]),
-      row4: generateSiloGroup([135, 132, 128, 125, 121]),
-      row5: generateSiloGroup([134, 127, 120])
+      topRow: [getSiloData(138), getSiloData(131), getSiloData(124)],
+      middleRow: [getSiloData(137), getSiloData(133), getSiloData(130), getSiloData(126), getSiloData(123)],
+      bottomRow: [getSiloData(136), getSiloData(129), getSiloData(122)],
+      row4: [getSiloData(135), getSiloData(132), getSiloData(128), getSiloData(125), getSiloData(121)],
+      row5: [getSiloData(134), getSiloData(127), getSiloData(120)]
     },
-    // Group 5 (rightmost) - contains selected silo 112
+    // Group 5 (119-101)
     {
-      row1: generateSiloGroup([119, 112, 105]),
-      row2: generateSiloGroup([118, 114, 111, 107, 104]),
-      row3: generateSiloGroup([117, 110, 103]),
-      row4: generateSiloGroup([116, 113, 109, 106, 102]),
-      row5: generateSiloGroup([115, 108, 101])
+      topRow: [getSiloData(119), getSiloData(112), getSiloData(105)],
+      middleRow: [getSiloData(118), getSiloData(114), getSiloData(111), getSiloData(107), getSiloData(104)],
+      bottomRow: [getSiloData(117), getSiloData(110), getSiloData(103)],
+      row4: [getSiloData(116), getSiloData(113), getSiloData(109), getSiloData(106), getSiloData(102)],
+      row5: [getSiloData(115), getSiloData(108), getSiloData(101)]
     }
   ];
 };
@@ -187,8 +213,12 @@ const generateCylinderSilos = (): CylinderSilo[] => {
   });
 };
 
-// Mutable data structures that can be updated
-export let topSiloGroups: SiloGroup[] = [
+// Mutable data structures that can be updated - now using API data
+export let topSiloGroups: SiloGroup[] = generateTopSiloGroups();
+export let bottomSiloGroups: SiloGroup[] = generateBottomSiloGroups();
+
+// Legacy static data for backward compatibility
+const legacyTopSiloGroups: SiloGroup[] = [
   {
     topRow: [{ num: 55, temp: 42.5 }, { num: 51, temp: 41.8 }, { num: 47, temp: 44.2 }],
     middleRow: [{ num: 54, temp: 43.1 }, { num: 52, temp: 45.3 }, { num: 50, temp: 42.4 }, { num: 48, temp: 37.2 }, { num: 46, temp: 31.8 }],
@@ -216,7 +246,8 @@ export let topSiloGroups: SiloGroup[] = [
   }
 ];
 
-export let bottomSiloGroups: SiloGroup[] = [
+// Legacy bottom silo groups for backward compatibility
+const legacyBottomSiloGroups: SiloGroup[] = [
   {
     row1: [{ num: 195, temp: 43.2 }, { num: 188, temp: 41.6 }, { num: 181, temp: 44.8 }],
     row2: [{ num: 194, temp: 42.1 }, { num: 190, temp: 45.3 }, { num: 187, temp: 40.9 }, { num: 183, temp: 43.7 }, { num: 180, temp: 41.8 }],

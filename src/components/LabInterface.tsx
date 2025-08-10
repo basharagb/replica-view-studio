@@ -5,10 +5,10 @@ import { LabNumberSquare } from './LabNumberSquare';
 import { LabCylinder } from './LabCylinder';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { useLiveSensorData } from '../hooks/useLiveSensorData';
+import { useApiSensorData } from '../hooks/useApiSensorData';
 import { Silo, ReadingMode, TooltipPosition } from '../types/silo';
 import { temperatureScaleValues } from '../services/siloData';
-import { getAllSilos, findSiloByNumber } from '../services/siloData';
+// Removed unused imports - now using API service functions
 import EnhancedTemperatureDisplay from './EnhancedTemperatureDisplay';
 import EnhancedSensorPanel from './EnhancedSensorPanel';
 import AlertSystem from './AlertSystem';
@@ -20,11 +20,13 @@ export const LabInterface = () => {
     isLoading,
     error,
     refreshData,
-    toggleRealTime
-  } = useLiveSensorData({
-    autoRefresh: true,
-    refreshInterval: 30000,
-    enableRealTimeUpdates: true
+    testSilo,
+    clearError,
+    findSiloByNumber,
+    getAllSilos
+  } = useApiSensorData({
+    autoRefresh: false, // Manual control for testing
+    refreshInterval: 30000
   });
 
   // State for silo selection and reading
@@ -49,10 +51,10 @@ export const LabInterface = () => {
   const [isIdleDetectionActive, setIsIdleDetectionActive] = useState<boolean>(false);
 
   // Handle silo click
-  const handleSiloClick = useCallback((siloNum: number, temp: number) => {
+  const handleSiloClick = useCallback(async (siloNum: number, temp: number) => {
     if (readingMode === 'manual' && !isReading) {
-      // Start manual reading
-      startManualRead(siloNum, temp);
+      // Start manual reading with API call
+      await startManualRead(siloNum, temp);
     } else if (readingMode === 'none') {
       // Normal selection
       setSelectedSilo(siloNum);
@@ -76,19 +78,28 @@ export const LabInterface = () => {
     setHoveredSilo(null);
   }, []);
 
-  // Start manual reading
-  const startManualRead = useCallback((siloNum: number, temp: number) => {
+  // Start manual reading with API integration
+  const startManualRead = useCallback(async (siloNum: number, temp: number) => {
     setIsReading(true);
     setReadingSilo(siloNum);
 
-    // Use manual test duration (in minutes, convert to milliseconds)
-    setTimeout(() => {
-      setSelectedSilo(siloNum);
-      setSelectedTemp(temp);
+    try {
+      // Test the silo using API
+      await testSilo(siloNum);
+      
+      // Use manual test duration (in minutes, convert to milliseconds)
+      setTimeout(() => {
+        setSelectedSilo(siloNum);
+        setSelectedTemp(temp);
+        setIsReading(false);
+        setReadingSilo(null);
+      }, manualTestDuration * 60 * 1000); // Convert minutes to milliseconds
+    } catch (error) {
+      console.error('Failed to test silo:', error);
       setIsReading(false);
       setReadingSilo(null);
-    }, manualTestDuration * 60 * 1000); // Convert minutes to milliseconds
-  }, [manualTestDuration]);
+    }
+  }, [manualTestDuration, testSilo]);
 
   // Get silo readings duration based on auto readings interval
   const getSiloTestDuration = useCallback(() => {
@@ -108,101 +119,6 @@ export const LabInterface = () => {
     }
   }, [autoTestInterval]);
 
-  // Start/stop auto reading
-  const startAutoRead = useCallback(() => {
-    if (readingMode === 'auto' && autoReadInterval.current) {
-      // Stop auto read
-      clearInterval(autoReadInterval.current);
-      autoReadInterval.current = null;
-      setIsReading(false);
-      setReadingSilo(null);
-      setAutoReadProgress(0);
-      setReadingMode('none');
-      setAutoReadCompleted(false);
-      return;
-    }
-
-    // Generate new random data for this auto readings
-    // regenerateAllSiloData();
-    // setDataVersion(prev => prev + 1);
-    
-    setReadingMode('auto');
-    setIsReading(true);
-    setAutoReadProgress(0);
-    setAutoReadCompleted(false);
-
-    const allSilos = getAllSilos();
-    let currentIndex = 0;
-    let timeoutCounter = 0;
-    const maxTimeout = 100; // Maximum iterations to prevent infinite loop
-
-    // Starting auto readings
-
-    // Validate silo data
-    if (!allSilos || allSilos.length === 0) {
-      console.error('No silos found - cannot start auto readings');
-      setIsReading(false);
-      setReadingSilo(null);
-      setAutoReadProgress(0);
-      setReadingMode('none');
-      return;
-    }
-
-    // Validate each silo has required properties
-    const invalidSilos = allSilos.filter(silo => !silo.num || typeof silo.temp !== 'number');
-    if (invalidSilos.length > 0) {
-      console.error('Invalid silos found:', invalidSilos);
-      setIsReading(false);
-      setReadingSilo(null);
-      setAutoReadProgress(0);
-      setReadingMode('none');
-      return;
-    }
-
-    const interval = setInterval(() => {
-      timeoutCounter++;
-      
-      // Safety timeout to prevent infinite loops
-      if (timeoutCounter > maxTimeout) {
-        console.error('Auto readings timeout - forcing completion');
-        clearInterval(interval);
-        autoReadInterval.current = null;
-        setIsReading(false);
-        setReadingSilo(null);
-        setAutoReadProgress(100);
-        setReadingMode('none');
-        setAutoReadCompleted(true);
-        return;
-      }
-
-      if (currentIndex >= allSilos.length) {
-        // Auto read complete - start waiting for restart
-        clearInterval(interval);
-        autoReadInterval.current = null;
-        setIsReading(false);
-        setReadingSilo(null);
-        setAutoReadProgress(100);
-        setAutoReadCompleted(true);
-        
-        // Start waiting period before auto-restart
-        startAutoRestartWait();
-        return;
-      }
-
-      const currentSilo = allSilos[currentIndex];
-      // Reading silo progress
-      
-      setReadingSilo(currentSilo.num);
-      setSelectedSilo(currentSilo.num);
-      setSelectedTemp(currentSilo.temp);
-      setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
-
-      currentIndex++;
-    }, getSiloTestDuration()); // Dynamic duration based on auto readings interval
-
-    autoReadInterval.current = interval;
-  }, [readingMode, isReading, autoReadCompleted]);
-
   // Start auto restart wait period
   const startAutoRestartWait = useCallback(() => {
     setIsWaitingForRestart(true);
@@ -217,8 +133,6 @@ export const LabInterface = () => {
           setIsWaitingForRestart(false);
           setAutoReadCompleted(false);
           setAutoReadProgress(0);
-          // Restart auto readings
-          setTimeout(() => startAutoRead(), 100);
           return 0;
         }
         return prev - 1;
@@ -227,6 +141,70 @@ export const LabInterface = () => {
     
     restartWaitInterval.current = countdownInterval;
   }, [autoTestInterval]);
+
+  // Start/stop auto reading with API integration
+  const startAutoRead = useCallback(async () => {
+    if (readingMode === 'auto' && autoReadInterval.current) {
+      // Stop auto read
+      clearInterval(autoReadInterval.current);
+      autoReadInterval.current = null;
+      setIsReading(false);
+      setReadingSilo(null);
+      setAutoReadProgress(0);
+      setReadingMode('none');
+      setAutoReadCompleted(false);
+      return;
+    }
+    
+    if (readingMode !== 'auto' || isReading) {
+      return;
+    }
+    
+    // Start auto read with API integration
+    const allSilos = getAllSilos();
+    let currentIndex = 0;
+    const testDuration = getSiloTestDuration();
+    
+    setIsReading(true);
+    setAutoReadProgress(0);
+    setAutoReadCompleted(false);
+    
+    const readNextSilo = async () => {
+      if (currentIndex < allSilos.length) {
+        const currentSilo = allSilos[currentIndex];
+        setReadingSilo(currentSilo.num);
+        setSelectedSilo(currentSilo.num);
+        setSelectedTemp(currentSilo.temp);
+        
+        try {
+          // Test the silo using API
+          await testSilo(currentSilo.num);
+        } catch (error) {
+          console.error(`Failed to test silo ${currentSilo.num}:`, error);
+        }
+        
+        // Update progress
+        setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
+        
+        currentIndex++;
+        
+        // Schedule next silo reading
+        autoReadInterval.current = setTimeout(readNextSilo, testDuration);
+      } else {
+        // All silos completed
+        setIsReading(false);
+        setReadingSilo(null);
+        setAutoReadCompleted(true);
+        autoReadInterval.current = null;
+        
+        // Start waiting for restart
+        startAutoRestartWait();
+      }
+    };
+    
+    // Start reading
+    readNextSilo();
+  }, [readingMode, isReading, getAllSilos, getSiloTestDuration, startAutoRestartWait, testSilo]);
 
   // Start idle detection after manual test stops
   const startIdleDetection = useCallback(() => {
@@ -286,32 +264,56 @@ export const LabInterface = () => {
     return readingSilo === siloNum;
   }, [readingSilo]);
 
-  // Check if a silo is selected
-  const isSiloSelected = useCallback((siloNum: number): boolean => {
-    return selectedSilo === siloNum;
-  }, [selectedSilo]);
+  // Get current silo data for display
+  const getCurrentSiloData = useCallback(() => {
+    const silo = findSiloByNumber(selectedSilo);
+    return silo || { num: selectedSilo, temp: selectedTemp };
+  }, [selectedSilo, selectedTemp, findSiloByNumber]);
 
   // Get silo by number
   const getSiloByNumber = useCallback((siloNum: number): Silo | null => {
     return findSiloByNumber(siloNum);
   }, []);
 
-  // Cleanup on unmount
-  const cleanup = useCallback(() => {
+  // Handle reading mode change
+  const handleReadingModeChange = useCallback(async (mode: ReadingMode) => {
+    // Stop any current reading
     if (autoReadInterval.current) {
       clearInterval(autoReadInterval.current);
       autoReadInterval.current = null;
     }
+    
     if (restartWaitInterval.current) {
       clearInterval(restartWaitInterval.current);
       restartWaitInterval.current = null;
     }
-  }, []);
+    
+    setReadingMode(mode);
+    setIsReading(false);
+    setReadingSilo(null);
+    setAutoReadProgress(0);
+    setAutoReadCompleted(false);
+    setIsWaitingForRestart(false);
+    setWaitTimeRemaining(0);
+    
+    if (mode === 'auto') {
+      await startAutoRead();
+    }
+  }, [startAutoRead]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return cleanup;
-  }, [cleanup]);
+  // Handle restart auto reading
+  const handleRestartAutoReading = useCallback(async () => {
+    if (restartWaitInterval.current) {
+      clearInterval(restartWaitInterval.current);
+      restartWaitInterval.current = null;
+    }
+    
+    setIsWaitingForRestart(false);
+    setWaitTimeRemaining(0);
+    setAutoReadCompleted(false);
+    
+    await startAutoRead();
+  }, [startAutoRead]);
 
   // Handle input change
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {

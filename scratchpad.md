@@ -1,6 +1,37 @@
 # Scratchpad - Jarvis
 
-## Current Task: BLANK WHITE SCREEN FIX
+## Current Task: LIVE READINGS API INTEGRATION & SILO LAYOUT FIX
+
+**Status: 🔄 IN PROGRESS**
+**Branch:** hot-fix/live-readings
+**Started:** 2025-08-10T21:16:24+03:00
+
+### REQUIREMENTS ANALYSIS
+- [x] Clear npm cache and create hot-fix/live-readings branch
+- [x] Create API service for real silo data integration
+- [x] Fix silo layout to match user's images (circular 1-61, square 101-195)
+- [x] Implement wheat color default state until tested
+- [x] Update LabInterface to use real API calls
+- [x] Implement manual/auto testing with API integration
+- [x] Fix React Hook dependency warnings and function declaration order
+- [ ] Test and verify correct silo arrangement in browser
+- [ ] Create unit tests for API integration
+- [ ] Commit changes and create PR
+
+### API INTEGRATION COMPLETED
+- ✅ Created apiService.ts with real API integration
+- ✅ API endpoint: http://idealchiprnd.pythonanywhere.com/readings/avg/latest/by-silo-number
+- ✅ Proper data conversion from API format to internal Silo format
+- ✅ Wheat color (#DEB887) default for unchecked silos
+- ✅ Fixed type compatibility issues between SiloData and Silo interfaces
+
+### SILO LAYOUT CORRECTIONS
+- ✅ Top section: Circular silos (1-61) in correct groups
+- ✅ Bottom section: Square silos (101-195) in proper arrangement
+- ✅ Fixed duplicate variable declarations
+- ✅ Proper API data integration for all silo positions
+
+## Previous Task: BLANK WHITE SCREEN FIX
 
 **Status: ✅ COMPLETED - FULLY RESOLVED**
 
