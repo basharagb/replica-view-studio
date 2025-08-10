@@ -20,7 +20,7 @@ const Dashboard = () => {
     { name: 'Live Readings', href: '/', icon: Activity, description: 'Real-time silo monitoring and readings' },
     { name: 'Alerts Monitoring', href: '/monitoring', icon: Thermometer, description: 'Advanced silo temperature monitoring system' },
     { name: 'Reports', href: '/reports', icon: FileText, description: 'Readings history and analytics' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Performance metrics and charts' },
+    { name: 'Maintenance', href: '/analytics', icon: BarChart3, description: 'Performance metrics and charts' },
     { name: 'Settings', href: '/settings', icon: Settings, description: 'System configuration' }
   ];
 
