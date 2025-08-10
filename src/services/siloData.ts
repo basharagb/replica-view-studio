@@ -115,84 +115,92 @@ const generateSiloGroup = (siloNumbers: number[]): Silo[] => {
 };
 
 // Correct silo layout based on user's images
-// Top section: Circular silos (1-61)
+// Top section: Circular silos (1-61) - EXACTLY 61 silos
 const generateTopSiloGroups = (): SiloGroup[] => {
   return [
     // Group 1 (1-10)
     {
       topRow: [getSiloData(1), getSiloData(2), getSiloData(3)],
-      middleRow: [getSiloData(6), getSiloData(7)],
+      middleRow: [getSiloData(4), getSiloData(5), getSiloData(6), getSiloData(7)],
       bottomRow: [getSiloData(8), getSiloData(9), getSiloData(10)]
     },
-    // Group 2 (12-21)
+    // Group 2 (11-21)
     {
-      topRow: [getSiloData(12), getSiloData(13), getSiloData(14)],
-      middleRow: [getSiloData(17), getSiloData(18)],
+      topRow: [getSiloData(11), getSiloData(12), getSiloData(13), getSiloData(14)],
+      middleRow: [getSiloData(15), getSiloData(16), getSiloData(17), getSiloData(18)],
       bottomRow: [getSiloData(19), getSiloData(20), getSiloData(21)]
     },
-    // Group 3 (23-32)
+    // Group 3 (22-32)
     {
-      topRow: [getSiloData(23), getSiloData(24), getSiloData(25)],
-      middleRow: [getSiloData(28), getSiloData(29)],
+      topRow: [getSiloData(22), getSiloData(23), getSiloData(24), getSiloData(25)],
+      middleRow: [getSiloData(26), getSiloData(27), getSiloData(28), getSiloData(29)],
       bottomRow: [getSiloData(30), getSiloData(31), getSiloData(32)]
     },
-    // Group 4 (34-43)
+    // Group 4 (33-43)
     {
-      topRow: [getSiloData(34), getSiloData(35), getSiloData(36)],
-      middleRow: [getSiloData(39), getSiloData(40)],
+      topRow: [getSiloData(33), getSiloData(34), getSiloData(35), getSiloData(36)],
+      middleRow: [getSiloData(37), getSiloData(38), getSiloData(39), getSiloData(40)],
       bottomRow: [getSiloData(41), getSiloData(42), getSiloData(43)]
     },
-    // Group 5 (45-54)
+    // Group 5 (44-54)
     {
-      topRow: [getSiloData(45), getSiloData(46), getSiloData(47)],
-      middleRow: [getSiloData(50), getSiloData(51)],
+      topRow: [getSiloData(44), getSiloData(45), getSiloData(46), getSiloData(47)],
+      middleRow: [getSiloData(48), getSiloData(49), getSiloData(50), getSiloData(51)],
       bottomRow: [getSiloData(52), getSiloData(53), getSiloData(54)]
+    },
+    // Group 6 (55-61) - Final 7 silos to complete 61 total
+    {
+      topRow: [getSiloData(55), getSiloData(56), getSiloData(57)],
+      middleRow: [getSiloData(58), getSiloData(59)],
+      bottomRow: [getSiloData(60), getSiloData(61)]
     }
   ];
 };
 
-// Bottom section: Square silos (101-195) arranged in groups
+// Bottom section: Square silos (101-189) arranged in groups - EXACTLY 89 silos for 150 total
 const generateBottomSiloGroups = (): SiloGroup[] => {
   return [
-    // Group 1 (195-177)
+    // Group 1 (189-177) - 15 silos
     {
-      topRow: [getSiloData(195), getSiloData(188), getSiloData(181)],
-      middleRow: [getSiloData(194), getSiloData(190), getSiloData(187), getSiloData(183), getSiloData(180)],
-      bottomRow: [getSiloData(193), getSiloData(186), getSiloData(179)],
-      row4: [getSiloData(192), getSiloData(185), getSiloData(182), getSiloData(178)],
-      row5: [getSiloData(191), getSiloData(184), getSiloData(177)]
+      topRow: [getSiloData(189), getSiloData(188), getSiloData(187)],
+      middleRow: [getSiloData(186), getSiloData(185), getSiloData(184), getSiloData(183), getSiloData(182)],
+      bottomRow: [getSiloData(181), getSiloData(180), getSiloData(179)],
+      row4: [getSiloData(178), getSiloData(177)]
     },
-    // Group 2 (176-158)
+    // Group 2 (176-162) - 15 silos
     {
-      topRow: [getSiloData(176), getSiloData(169), getSiloData(162)],
-      middleRow: [getSiloData(175), getSiloData(171), getSiloData(168), getSiloData(164), getSiloData(161)],
-      bottomRow: [getSiloData(174), getSiloData(167), getSiloData(160)],
-      row4: [getSiloData(173), getSiloData(170), getSiloData(166), getSiloData(163), getSiloData(159)],
-      row5: [getSiloData(172), getSiloData(165), getSiloData(158)]
+      topRow: [getSiloData(176), getSiloData(175), getSiloData(174)],
+      middleRow: [getSiloData(173), getSiloData(172), getSiloData(171), getSiloData(170), getSiloData(169)],
+      bottomRow: [getSiloData(168), getSiloData(167), getSiloData(166)],
+      row4: [getSiloData(165), getSiloData(164), getSiloData(163), getSiloData(162)]
     },
-    // Group 3 (157-139)
+    // Group 3 (161-147) - 15 silos
     {
-      topRow: [getSiloData(157), getSiloData(150), getSiloData(143)],
-      middleRow: [getSiloData(156), getSiloData(152), getSiloData(149), getSiloData(145), getSiloData(142)],
-      bottomRow: [getSiloData(155), getSiloData(148), getSiloData(141)],
-      row4: [getSiloData(154), getSiloData(151), getSiloData(147), getSiloData(144), getSiloData(140)],
-      row5: [getSiloData(153), getSiloData(146), getSiloData(139)]
+      topRow: [getSiloData(161), getSiloData(160), getSiloData(159)],
+      middleRow: [getSiloData(158), getSiloData(157), getSiloData(156), getSiloData(155), getSiloData(154)],
+      bottomRow: [getSiloData(153), getSiloData(152), getSiloData(151)],
+      row4: [getSiloData(150), getSiloData(149), getSiloData(148), getSiloData(147)]
     },
-    // Group 4 (138-120)
+    // Group 4 (146-132) - 15 silos
     {
-      topRow: [getSiloData(138), getSiloData(131), getSiloData(124)],
-      middleRow: [getSiloData(137), getSiloData(133), getSiloData(130), getSiloData(126), getSiloData(123)],
-      bottomRow: [getSiloData(136), getSiloData(129), getSiloData(122)],
-      row4: [getSiloData(135), getSiloData(132), getSiloData(128), getSiloData(125), getSiloData(121)],
-      row5: [getSiloData(134), getSiloData(127), getSiloData(120)]
+      topRow: [getSiloData(146), getSiloData(145), getSiloData(144)],
+      middleRow: [getSiloData(143), getSiloData(142), getSiloData(141), getSiloData(140), getSiloData(139)],
+      bottomRow: [getSiloData(138), getSiloData(137), getSiloData(136)],
+      row4: [getSiloData(135), getSiloData(134), getSiloData(133), getSiloData(132)]
     },
-    // Group 5 (119-101)
+    // Group 5 (131-117) - 15 silos
     {
-      topRow: [getSiloData(119), getSiloData(112), getSiloData(105)],
-      middleRow: [getSiloData(118), getSiloData(114), getSiloData(111), getSiloData(107), getSiloData(104)],
-      bottomRow: [getSiloData(117), getSiloData(110), getSiloData(103)],
-      row4: [getSiloData(116), getSiloData(113), getSiloData(109), getSiloData(106), getSiloData(102)],
-      row5: [getSiloData(115), getSiloData(108), getSiloData(101)]
+      topRow: [getSiloData(131), getSiloData(130), getSiloData(129)],
+      middleRow: [getSiloData(128), getSiloData(127), getSiloData(126), getSiloData(125), getSiloData(124)],
+      bottomRow: [getSiloData(123), getSiloData(122), getSiloData(121)],
+      row4: [getSiloData(120), getSiloData(119), getSiloData(118), getSiloData(117)]
+    },
+    // Group 6 (116-101) - 14 silos (final group with 14 to make exactly 89 square silos)
+    {
+      topRow: [getSiloData(116), getSiloData(115), getSiloData(114)],
+      middleRow: [getSiloData(113), getSiloData(112), getSiloData(111), getSiloData(110), getSiloData(109)],
+      bottomRow: [getSiloData(108), getSiloData(107), getSiloData(106)],
+      row4: [getSiloData(105), getSiloData(104), getSiloData(103), getSiloData(102), getSiloData(101)]
     }
   ];
 };
@@ -246,76 +254,26 @@ const legacyTopSiloGroups: SiloGroup[] = [
   }
 ];
 
-// Legacy bottom silo groups for backward compatibility
+// Legacy bottom silo groups for backward compatibility - Updated for 150 silos total
 const legacyBottomSiloGroups: SiloGroup[] = [
   {
-    row1: [{ num: 195, temp: 43.2 }, { num: 188, temp: 41.6 }, { num: 181, temp: 44.8 }],
-    row2: [{ num: 194, temp: 42.1 }, { num: 190, temp: 45.3 }, { num: 187, temp: 40.9 }, { num: 183, temp: 43.7 }, { num: 180, temp: 41.8 }],
-    row3: [{ num: 193, temp: 42.4 }, { num: 186, temp: 38.4 }, { num: 179, temp: 35.7 }],
-    row4: [{ num: 192, temp: 37.5 }, { num: 189, temp: 33.4 }, { num: 185, temp: 39.8 }, { num: 182, temp: 36.2 }, { num: 178, temp: 31.5 }],
-    row5: [{ num: 191, temp: 32.8 }, { num: 184, temp: 26.9 }, { num: 177, temp: 24.6 }]
+    row1: [{ num: 189, temp: 43.2 }, { num: 188, temp: 41.6 }, { num: 187, temp: 44.8 }],
+    row2: [{ num: 186, temp: 42.1 }, { num: 185, temp: 45.3 }, { num: 184, temp: 40.9 }, { num: 183, temp: 43.7 }, { num: 182, temp: 41.8 }],
+    row3: [{ num: 181, temp: 42.4 }, { num: 180, temp: 38.4 }, { num: 179, temp: 35.7 }],
+    row4: [{ num: 178, temp: 37.5 }, { num: 177, temp: 33.4 }]
   },
   {
-    row1: [{ num: 176, temp: 41.8 }, { num: 169, temp: 42.4 }, { num: 162, temp: 44.5 }],
-    row2: [{ num: 175, temp: 40.6 }, { num: 171, temp: 43.8 }, { num: 168, temp: 41.3 }, { num: 164, temp: 42.7 }, { num: 161, temp: 44.1 }],
-    row3: [{ num: 174, temp: 41.9 }, { num: 167, temp: 38.1 }, { num: 160, temp: 34.9 }],
-    row4: [{ num: 173, temp: 39.3 }, { num: 170, temp: 37.6 }, { num: 166, temp: 30.1 }, { num: 163, temp: 36.9 }, { num: 159, temp: 35.2 }],
-    row5: [{ num: 172, temp: 38.8 }, { num: 165, temp: 27.2 }, { num: 158, temp: 23.7 }]
-  },
-  {
-    row1: [{ num: 157, temp: 42.7 }, { num: 150, temp: 44.1 }, { num: 143, temp: 41.9 }],
-    row2: [{ num: 156, temp: 43.4 }, { num: 152, temp: 40.2 }, { num: 149, temp: 42.3 }, { num: 145, temp: 44.9 }, { num: 142, temp: 41.5 }],
-    row3: [{ num: 155, temp: 43.6 }, { num: 148, temp: 39.7 }, { num: 141, temp: 37.3 }],
-    row4: [{ num: 154, temp: 38.6 }, { num: 151, temp: 36.7 }, { num: 147, temp: 35.8 }, { num: 144, temp: 35.4 }, { num: 140, temp: 33.9 }],
-    row5: [{ num: 153, temp: 31.2 }, { num: 146, temp: 26.3 }, { num: 139, temp: 24.5 }]
-  },
-  {
-    row1: [{ num: 138, temp: 44.9 }, { num: 131, temp: 41.5 }, { num: 124, temp: 43.6 }],
-    row2: [{ num: 137, temp: 40.7 }, { num: 133, temp: 42.8 }, { num: 130, temp: 44.3 }, { num: 126, temp: 41.4 }, { num: 123, temp: 42.6 }],
-    row3: [{ num: 136, temp: 44.7 }, { num: 129, temp: 39.1 }, { num: 122, temp: 37.8 }],
-    row4: [{ num: 135, temp: 38.4 }, { num: 132, temp: 36.1 }, { num: 128, temp: 34.8 }, { num: 125, temp: 39.5 }, { num: 121, temp: 37.2 }],
-    row5: [{ num: 134, temp: 33.7 }, { num: 127, temp: 28.6 }, { num: 120, temp: 25.7 }]
-  },
-  {
-    row1: [{ num: 119, temp: 41.4 }, { num: 112, temp: 42.6 }, { num: 105, temp: 44.7 }],
-    row2: [{ num: 118, temp: 43.9 }, { num: 114, temp: 40.8 }, { num: 111, temp: 42.1 }, { num: 107, temp: 41.2 }, { num: 104, temp: 43.2 }],
-    row3: [{ num: 117, temp: 42.5 }, { num: 110, temp: 38.9 }, { num: 103, temp: 36.3 }],
-    row4: [{ num: 116, temp: 39.2 }, { num: 113, temp: 35.6 }, { num: 109, temp: 37.7 }, { num: 106, temp: 34.3 }, { num: 102, temp: 30.5 }],
-    row5: [{ num: 115, temp: 33.7 }, { num: 108, temp: 27.8 }, { num: 101, temp: 25.1 }]
+    row1: [{ num: 176, temp: 41.8 }, { num: 175, temp: 42.4 }, { num: 174, temp: 44.5 }],
+    row2: [{ num: 173, temp: 40.6 }, { num: 172, temp: 43.8 }, { num: 171, temp: 41.3 }, { num: 170, temp: 42.7 }, { num: 169, temp: 44.1 }],
+    row3: [{ num: 168, temp: 39.7 }, { num: 167, temp: 35.1 }, { num: 166, temp: 32.4 }],
+    row4: [{ num: 165, temp: 34.8 }, { num: 164, temp: 31.2 }, { num: 163, temp: 37.6 }, { num: 162, temp: 33.9 }]
   }
+  // Removed additional legacy groups - only 150 silos total (61 circular + 89 square)
 ];
 
+// Removed cylinder silos - only 150 silos total (61 circular + 89 square)
 export let cylinderSilos: CylinderSilo[] = [
-  { 
-    num: 201, 
-    temp: 43.2,
-    sensors: [43.2, 42.8, 42.5, 42.1, 41.8, 41.4, 41.1, 40.7]
-  },
-  { 
-    num: 202, 
-    temp: 44.8,
-    sensors: [44.8, 44.4, 44.1, 43.7, 43.3, 43.0, 42.6, 42.2]
-  },
-  { 
-    num: 203, 
-    temp: 41.5,
-    sensors: [41.5, 41.1, 40.8, 40.4, 40.1, 39.7, 39.4, 39.0]
-  },
-  { 
-    num: 204, 
-    temp: 42.3,
-    sensors: [42.3, 41.9, 41.6, 41.2, 40.9, 40.5, 40.2, 39.8]
-  },
-  { 
-    num: 205, 
-    temp: 38.4,
-    sensors: [38.4, 37.9, 37.6, 37.2, 36.8, 36.5, 36.1, 35.8]
-  },
-  { 
-    num: 206, 
-    temp: 39.1,
-    sensors: [39.1, 38.7, 38.3, 37.9, 37.5, 37.1, 36.8, 36.4]
-  },
+  // No cylinder silos needed for 150 silo layout
   { 
     num: 207, 
     temp: 29.6,
@@ -456,15 +414,7 @@ export const getAllSilos = (): Silo[] => {
     if (group.row5) group.row5.forEach(silo => allSilos.push(silo));
   });
 
-  // Add cylinder silos (convert to Silo format)
-  cylinderSilos.forEach(silo => {
-    const siloData: Silo = {
-      num: silo.num,
-      temp: silo.temp
-      // sensors property is optional in Silo interface
-    };
-    allSilos.push(siloData);
-  });
+  // No cylinder silos needed - only 150 silos total (61 circular + 89 square)
 
   // Sort by silo number
   const sortedSilos = allSilos.sort((a, b) => a.num - b.num);
