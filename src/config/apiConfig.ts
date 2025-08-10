@@ -95,9 +95,9 @@ export function getEnvironmentConfig(): APIConfig {
   if (isDevelopment) {
     return {
       ...API_CONFIG,
-      defaultDataSource: 'api', // Development: Still API-first
+      defaultDataSource: 'mock', // Development: Use mock data by default
       fallbackToMock: true, // Allow fallback for development
-      enableRealTime: true
+      enableRealTime: false // Disable real-time for local development
     };
   }
   

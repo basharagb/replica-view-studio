@@ -5,14 +5,21 @@
 
 import { apiClient } from './apiClient';
 import { siloReadingsService } from './siloReadingsService';
-import { 
+import {
   APIEndpoints,
   SiloReading,
   LevelReading,
   ProcessedSiloData,
   SiloBinnedRequestParams
 } from '../types/api';
-import { Silo, SiloGroup, CylinderSilo, SensorReading } from '../types/silo';
+import { Silo, SiloGroup, SensorReading } from '../types/silo';
+import { CylinderSilo } from './siloData';
+import { isAPIMode } from '../config/apiConfig';
+import {
+  topSiloGroups as mockTopSiloGroups,
+  bottomSiloGroups as mockBottomSiloGroups,
+  cylinderSilos as mockCylinderSilos
+} from './siloData';
 
 export interface LiveSensorData {
   siloNumber: number;
@@ -96,6 +103,25 @@ export class RealTimeSensorService {
    * Convert API sensor data to LabInterface format
    */
   async getLiveSiloSystem(): Promise<LiveSiloSystem> {
+    // Check if we should use mock data instead of API
+    if (!isAPIMode()) {
+      console.log('Using mock data for local development');
+      // Convert cylinder silos to correct format (sensors as number[] for backward compatibility)
+      const convertedCylinderSilos = mockCylinderSilos.map(silo => ({
+        num: silo.num,
+        temp: silo.temp,
+        sensors: silo.sensors
+      }));
+
+      return {
+        topSiloGroups: mockTopSiloGroups,
+        bottomSiloGroups: mockBottomSiloGroups,
+        cylinderSilos: convertedCylinderSilos,
+        lastUpdated: new Date(),
+        isLoading: false
+      };
+    }
+
     try {
       const sensorReadings = await this.getLatestSensorReadings();
       const sensorMap = new Map(sensorReadings.map(s => [s.siloNumber, s]));
@@ -395,16 +421,18 @@ export class RealTimeSensorService {
       if (sensorData) {
         silos.push({
           num,
-          temp: sensorData.temperature,
-          sensors: sensorData.sensors
+          temp: sensorData.temperature
+          // Note: Not including sensors property as it's not compatible with SensorReading[] type
+          // The UI components handle number[] sensors separately
         });
       } else {
         // Create fallback silo data
         const fallbackData = this.createFallbackSensorData(num);
         silos.push({
           num,
-          temp: fallbackData.temperature,
-          sensors: fallbackData.sensors
+          temp: fallbackData.temperature
+          // Note: Not including sensors property as it's not compatible with SensorReading[] type
+          // The UI components handle number[] sensors separately
         });
       }
     }
