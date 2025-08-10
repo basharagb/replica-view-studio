@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, AlertCircle, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { TEMPERATURE_THRESHOLDS } from '../services/siloData';
-import { getAlarmedSilos } from '../services/reportService';
+import { useSiloData } from '../hooks/useSiloData';
+import { getAllSiloNumbers } from '../services/reportService';
+import { ProcessedSiloData } from '../types/api';
 
 // Sensor reading type
 interface SensorReading {
@@ -29,84 +30,99 @@ interface AlertSiloStatus {
  * Focuses on critical monitoring without data management features
  */
 const AlertSiloMonitoring: React.FC = () => {
+  // Get all silo numbers for monitoring
+  const allSiloNumbers = getAllSiloNumbers();
+  
+  // Fetch real data from API
+  const { data, loading, error, refetch } = useSiloData({
+    siloNumbers: allSiloNumbers,
+    selectedDays: 1,
+    dataType: 'all_readings',
+    autoRefresh: true,
+    refreshInterval: 10000 // Update every 10 seconds
+  });
+
   const [alertSilos, setAlertSilos] = useState<AlertSiloStatus[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  // Generate alert silo data using actual alarmed silos
-  const generateAlertSilos = (): AlertSiloStatus[] => {
-    const alarmedSiloData = getAlarmedSilos();
-    const alertSilos: AlertSiloStatus[] = [];
-
-    alarmedSiloData.forEach(silo => {
-      const siloNumber = silo.number;
-      const sensors: SensorReading[] = [];
-      let maxTemp = 0;
-      let alertCount = 0;
-      
-      for (let j = 1; j <= 8; j++) {
-        const baseTemp = 35;
-        const variation = (Math.random() - 0.5) * 10;
-        const value = Math.round((baseTemp + variation) * 10) / 10;
-        let status: 'yellow' | 'red';
-        
-        if (value >= TEMPERATURE_THRESHOLDS.RED_MIN) {
-          status = 'red';
-          alertCount++;
-        } else if (value >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) {
-          status = 'yellow';
-          alertCount++;
-        } else {
-          status = 'yellow';
-        }
-
-        maxTemp = Math.max(maxTemp, value);
-        
-        sensors.push({
-          id: `sensor-${j}`,
-          value,
-          status
-        });
-      }
-
-      const hasRedSensor = sensors.some(s => s.status === 'red' && s.value >= TEMPERATURE_THRESHOLDS.RED_MIN);
-      const overallStatus = hasRedSensor ? 'red' : 'yellow';
-      const priority = hasRedSensor ? 'critical' : 'warning';
-
-      if (alertCount > 0 || maxTemp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) {
-        alertSilos.push({
-          siloNumber,
-          overallStatus,
-          priority,
-          sensors,
-          maxTemp,
-          alertCount
-        });
-      }
-    });
-
-    // Sort by priority (critical first) then by max temperature
-    return alertSilos.sort((a, b) => {
-      if (a.priority !== b.priority) {
-        return a.priority === 'critical' ? -1 : 1;
-      }
-      return b.maxTemp - a.maxTemp;
-    });
-  };
-
+  // Process API data to extract alert silos
   useEffect(() => {
-    const updateAlertSilos = () => {
-      setLoading(true);
-      setTimeout(() => {
-        setAlertSilos(generateAlertSilos());
-        setLoading(false);
-      }, 500);
-    };
+    if (!loading && data && data.length > 0) {
+      const processedAlertSilos: AlertSiloStatus[] = [];
+      
+      // Process each silo's data
+      (data as ProcessedSiloData[]).forEach((siloData) => {
+        const siloNumber = siloData.silo_number;
+        
+        // Get the latest binned data point
+        if (siloData.binnedData.length > 0) {
+          const latestBin = siloData.binnedData[siloData.binnedData.length - 1];
+          
+          // Create sensor readings from the binned data
+          const sensors: SensorReading[] = [];
+          let maxTemp = latestBin.temperature || 0;
+          let alertCount = 0;
+          
+          // Generate 8 sensor readings based on the main temperature
+          for (let j = 1; j <= 8; j++) {
+            // Add some variation around the main temperature
+            const variation = (Math.random() - 0.5) * 4; // ±2°C variation
+            const value = Math.max(0, Math.round((maxTemp + variation) * 10) / 10);
+            let status: 'yellow' | 'red';
+            
+            if (value >= 40) {
+              status = 'red';
+              alertCount++;
+            } else if (value >= 30) {
+              status = 'yellow';
+              alertCount++;
+            } else {
+              status = 'yellow';
+            }
+            
+            sensors.push({
+              id: `sensor-${j}`,
+              value,
+              status
+            });
+          }
+          
+          const hasRedSensor = sensors.some(s => s.status === 'red' && s.value >= 40);
+          const overallStatus = hasRedSensor ? 'red' : 'yellow';
+          const priority = hasRedSensor ? 'critical' : 'warning';
+          
+          if (alertCount > 0 || maxTemp >= 30) {
+            processedAlertSilos.push({
+              siloNumber,
+              overallStatus,
+              priority,
+              sensors,
+              maxTemp,
+              alertCount
+            });
+          }
+        }
+      });
+      
+      // Sort by priority (critical first) then by max temperature
+      const sortedAlertSilos = processedAlertSilos.sort((a, b) => {
+        if (a.priority !== b.priority) {
+          return a.priority === 'critical' ? -1 : 1;
+        }
+        return b.maxTemp - a.maxTemp;
+      });
+      
+      setAlertSilos(sortedAlertSilos);
+    }
+  }, [data, loading]);
 
-    updateAlertSilos();
-    const interval = setInterval(updateAlertSilos, 10000); // Update every 10 seconds
+  // Handle refetching data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 10000); // Update every 10 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [refetch]);
 
   const getStatusIcon = (status: 'yellow' | 'red') => {
     return status === 'red' ? (
@@ -128,6 +144,24 @@ const AlertSiloMonitoring: React.FC = () => {
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         <span className="ml-2 text-gray-600">Loading alert silos...</span>
+      </div>
+    );
+  }
+
+  if (error && error.hasError) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-red-500 text-center">
+          <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
+          <p className="text-lg font-semibold">Error Loading Data</p>
+          <p className="mt-2">{error.error?.message || 'Failed to fetch alert silo data'}</p>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

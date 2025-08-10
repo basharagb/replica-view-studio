@@ -12,13 +12,13 @@ import {
   ReferenceLine,
   Brush
 } from 'recharts';
-import { 
-  Eye, 
-  EyeOff, 
-  Download, 
-  Printer, 
-  RefreshCw, 
-  Zap, 
+import {
+  Eye,
+  EyeOff,
+  Download,
+  Printer,
+  RefreshCw,
+  Zap,
   TrendingUp,
   AlertTriangle,
   Menu,
@@ -29,6 +29,7 @@ import EnhancedSearchableDropdown, { DropdownOption } from './EnhancedSearchable
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { useLiveSensorData } from '../hooks/useLiveSensorData';
 import '../styles/responsive.css';
 
 interface TemperatureReading {
@@ -93,6 +94,19 @@ export const ResponsiveMultiSiloVisualization: React.FC<ResponsiveMultiSiloVisua
   updateInterval = 30000,
   className = ""
 }) => {
+  const {
+    topSiloGroups,
+    bottomSiloGroups,
+    isLoading: isSensorLoading,
+    error: sensorError,
+    refreshData,
+    toggleRealTime
+  } = useLiveSensorData({
+    autoRefresh: true,
+    refreshInterval: updateInterval,
+    enableRealTimeUpdates: realTimeEnabled
+  });
+
   const [selectedSilos, setSelectedSilos] = useState<string[]>([]);
   const [siloConfigs, setSiloConfigs] = useState<SiloConfig[]>([]);
   const [temperatureData, setTemperatureData] = useState<TemperatureReading[]>([]);

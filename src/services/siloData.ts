@@ -1,4 +1,5 @@
 import { Silo, SiloGroup, TemperatureColor, SensorReading, AlertLevel, TemperatureTrend, TemperatureMonitoringState } from '../types/silo';
+import { realTimeSensorService } from './realTimeSensorService';
 
 // Temperature threshold constants for silo monitoring system
 export const TEMPERATURE_THRESHOLDS = {

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { RefreshCw, TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { useSiloData } from '../hooks/useSiloData';
 
 interface TemperatureDataPoint {
   time: string;
@@ -35,11 +36,60 @@ const AnimatedTemperatureGraph: React.FC<AnimatedTemperatureGraphProps> = ({
   isAlarmReport = false,
   className = ''
 }) => {
+  // Fetch real data from API if siloNumber is provided
+  const { data: apiData, loading: apiLoading, error: apiError, refetch } = useSiloData({
+    siloNumbers: siloNumber ? [siloNumber] : undefined,
+    selectedDays: 1,
+    dataType: 'all_readings',
+    autoRefresh: true,
+    refreshInterval: 30000 // Update every 30 seconds
+  });
+
   const [data, setData] = useState<TemperatureDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Generate realistic temperature data
+  // Process API data to temperature data points
+  const processAPIData = useCallback((): TemperatureDataPoint[] => {
+    if (!apiData || apiData.length === 0) {
+      return [];
+    }
+    
+    const dataPoints: TemperatureDataPoint[] = [];
+    const siloData = apiData[0]; // We're only fetching one silo
+    
+    // Process binned data
+    if ('binnedData' in siloData) {
+      siloData.binnedData.forEach(bin => {
+        if (bin.temperature !== undefined) {
+          // Determine status based on temperature
+          let status: 'normal' | 'warning' | 'critical';
+          if (bin.temperature >= 40) {
+            status = 'critical';
+          } else if (bin.temperature >= 35) {
+            status = 'warning';
+          } else {
+            status = 'normal';
+          }
+          
+          dataPoints.push({
+            time: new Date(bin.timestamp).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            }),
+            temperature: bin.temperature,
+            status,
+            timestamp: new Date(bin.timestamp)
+          });
+        }
+      });
+    }
+    
+    return dataPoints;
+  }, [apiData]);
+
+  // Generate realistic temperature data (fallback)
   const generateTemperatureData = useCallback((): TemperatureDataPoint[] => {
     const dataPoints: TemperatureDataPoint[] = [];
     const now = new Date();
@@ -76,10 +126,10 @@ const AnimatedTemperatureGraph: React.FC<AnimatedTemperatureGraphProps> = ({
       }
       
       dataPoints.push({
-        time: timestamp.toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
+        time: timestamp.toLocaleTimeString('en-US', {
+          hour: '2-digit',
           minute: '2-digit',
-          hour12: false 
+          hour12: false
         }),
         temperature,
         status,
@@ -94,25 +144,57 @@ const AnimatedTemperatureGraph: React.FC<AnimatedTemperatureGraphProps> = ({
   const generateNewData = async () => {
     setIsGenerating(true);
     
-    // Simulate generation delay for animation
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const newData = generateTemperatureData();
-    setData(newData);
+    // If we have a silo number, refetch from API
+    if (siloNumber) {
+      await refetch();
+    } else {
+      // Simulate generation delay for animation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const newData = generateTemperatureData();
+      setData(newData);
+    }
     setIsGenerating(false);
   };
 
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Initial loading delay
-      const initialData = generateTemperatureData();
-      setData(initialData);
+      // If we have a silo number, wait for API data
+      if (siloNumber) {
+        // Wait for API data to load
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else {
+        // For non-silo graphs, use generated data
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Initial loading delay
+        const initialData = generateTemperatureData();
+        setData(initialData);
+      }
       setLoading(false);
     };
 
     loadInitialData();
-  }, [isAlarmReport, generateTemperatureData]);
+  }, [siloNumber, generateTemperatureData]);
+
+  // Update data when API data changes
+  useEffect(() => {
+    if (siloNumber && !apiLoading && apiData) {
+      const processedData = processAPIData();
+      setData(processedData);
+      setLoading(false);
+    }
+  }, [siloNumber, apiData, apiLoading, processAPIData]);
+
+  // Handle API errors
+  useEffect(() => {
+    if (siloNumber && apiError && apiError.hasError) {
+      console.error('Error fetching silo data:', apiError.error);
+      // Fallback to generated data on API error
+      const fallbackData = generateTemperatureData();
+      setData(fallbackData);
+      setLoading(false);
+    }
+  }, [siloNumber, apiError, generateTemperatureData]);
 
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: {

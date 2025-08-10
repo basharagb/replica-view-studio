@@ -535,7 +535,6 @@ export class SiloReadingsService {
     }
   }
 }
-}
 
 // Export singleton instance
 export const siloReadingsService = new SiloReadingsService();
