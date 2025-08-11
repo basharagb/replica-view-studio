@@ -68,10 +68,15 @@ User requires connecting the Live Readings system to real API endpoints:
 - Silo 1 was not changing from wheat color to green (#46d446) after API fetch
 - Color conversion function didn't recognize API color #46d446
 
-**Root Cause:**
-- `convertApiColorToTemperatureColor()` only handled specific colors
-- UI components weren't re-rendering after API data was cached
-- Missing pattern matching for API color variations
+**Color Update Fix:**
+- Enhanced `convertApiColorToTemperatureColor()` to recognize #46d446 green color from API
+- Added UI re-render triggers (`regenerateAllSiloData()`) after API data fetch
+- Fixed color conversion with pattern matching for API color variations
+
+**Git Operations Protocol:**
+- **CRITICAL**: Never perform git operations (git push, git add, git commit) without user notification and approval
+- Always notify user before any git operation and wait for explicit approval
+- This ensures user has full control over repository changes and commit timing
 
 **Solution Implemented:**
 1. **Enhanced Color Conversion**: Updated to recognize #46d446 and similar green patterns
