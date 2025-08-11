@@ -40,7 +40,7 @@ const LabCylinderComponent = ({
     <div className="relative">
       <div className="w-32 bg-lab-cylinder border-2 border-gray-400 rounded-lg p-2" data-testid="lab-cylinder">
         <div className="text-xs font-bold text-center text-lab-text mb-2">
-          Cylinder Sensors
+          Silo Sensors
         </div>
         <div className="text-xs text-center text-lab-text mb-3">
           {readingSilo ? (

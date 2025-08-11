@@ -1,6 +1,46 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Silo, SiloSystemState, ReadingMode, TooltipPosition } from '../types/silo';
 import { getAllSilos, findSiloByNumber, regenerateAllSiloData } from '../services/siloData';
+
+// Persistent auto test state management
+interface AutoTestState {
+  isActive: boolean;
+  currentIndex: number;
+  progress: number;
+  startTime: number;
+  readingSilo: number | null;
+}
+
+const AUTO_TEST_STORAGE_KEY = 'replica-view-studio-auto-test-state';
+
+// Save auto test state to localStorage
+const saveAutoTestState = (state: AutoTestState) => {
+  try {
+    localStorage.setItem(AUTO_TEST_STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn('Failed to save auto test state:', error);
+  }
+};
+
+// Load auto test state from localStorage
+const loadAutoTestState = (): AutoTestState | null => {
+  try {
+    const saved = localStorage.getItem(AUTO_TEST_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.warn('Failed to load auto test state:', error);
+    return null;
+  }
+};
+
+// Clear auto test state from localStorage
+const clearAutoTestState = () => {
+  try {
+    localStorage.removeItem(AUTO_TEST_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Failed to clear auto test state:', error);
+  }
+};
 
 export const useSiloSystem = () => {
   // Core state
@@ -22,9 +62,96 @@ export const useSiloSystem = () => {
   const [waitTimeRemaining, setWaitTimeRemaining] = useState<number>(0);
   const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   const [isIdleDetectionActive, setIsIdleDetectionActive] = useState<boolean>(false);
+  
+  // Persistent auto test state
+  const [currentAutoTestIndex, setCurrentAutoTestIndex] = useState<number>(0);
+  
   const autoReadInterval = useRef<NodeJS.Timeout | null>(null);
   const restartWaitInterval = useRef<NodeJS.Timeout | null>(null);
   const idleDetectionInterval = useRef<NodeJS.Timeout | null>(null);
+  const currentSiloTimeout = useRef<NodeJS.Timeout | null>(null); // Track current silo timeout
+
+  // Restore auto test state on component mount
+  useEffect(() => {
+    const savedState = loadAutoTestState();
+    if (savedState && savedState.isActive) {
+      // Resume auto test from saved state
+      setReadingMode('auto');
+      setIsReading(true);
+      setCurrentAutoTestIndex(savedState.currentIndex);
+      setAutoReadProgress(savedState.progress);
+      setReadingSilo(savedState.readingSilo);
+      
+      // Resume the auto test process
+      resumeAutoTest(savedState);
+    }
+  }, []);
+
+  // Resume auto test from saved state
+  const resumeAutoTest = useCallback((savedState: AutoTestState) => {
+    const allSilos = getAllSilos();
+    if (!allSilos || allSilos.length === 0) return;
+
+    let currentIndex = savedState.currentIndex;
+    const startTime = Date.now();
+    
+    // Calculate remaining time for current silo
+    const elapsedTime = startTime - savedState.startTime;
+    const remainingTime = Math.max(0, 24000 - (elapsedTime % 24000));
+
+    // Start from current silo with remaining time
+    if (currentIndex < allSilos.length) {
+      const currentSilo = allSilos[currentIndex];
+      setReadingSilo(currentSilo.num);
+      setSelectedSilo(currentSilo.num);
+      setSelectedTemp(currentSilo.temp);
+
+      // Continue with remaining time for current silo
+      currentSiloTimeout.current = setTimeout(() => {
+        currentIndex++;
+        continueAutoTest(allSilos, currentIndex);
+      }, remainingTime);
+    }
+  }, []);
+
+  // Continue auto test from specific index
+  const continueAutoTest = useCallback((allSilos: Silo[], startIndex: number) => {
+    let currentIndex = startIndex;
+
+    const interval = setInterval(() => {
+      if (currentIndex >= allSilos.length) {
+        // Auto test complete
+        clearInterval(interval);
+        autoReadInterval.current = null;
+        setIsReading(false);
+        setReadingSilo(null);
+        setAutoReadProgress(100);
+        setAutoReadCompleted(true);
+        clearAutoTestState();
+        return;
+      }
+
+      const currentSilo = allSilos[currentIndex];
+      setReadingSilo(currentSilo.num);
+      setSelectedSilo(currentSilo.num);
+      setSelectedTemp(currentSilo.temp);
+      setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
+      setCurrentAutoTestIndex(currentIndex);
+
+      // Save current state
+      saveAutoTestState({
+        isActive: true,
+        currentIndex,
+        progress: ((currentIndex + 1) / allSilos.length) * 100,
+        startTime: Date.now(),
+        readingSilo: currentSilo.num
+      });
+
+      currentIndex++;
+    }, 24000); // Fixed 24-second intervals
+
+    autoReadInterval.current = interval;
+  }, []);
 
   // Handle silo click
   const handleSiloClick = useCallback((siloNum: number, temp: number) => {
@@ -68,53 +195,67 @@ export const useSiloSystem = () => {
     }, manualTestDuration * 60 * 1000); // Convert minutes to milliseconds
   }, [manualTestDuration]);
 
-  // Get silo readings duration based on auto readings interval
+  // Fixed 24-second duration for real physical silo testing
   const getSiloTestDuration = useCallback(() => {
-    // Convert minutes to milliseconds and calculate per-silo duration
-    // 1 hour (60 min) = 24 seconds per silo = 24000ms
-    // 2 hours (120 min) = 48 seconds per silo = 48000ms  
-    // 3 hours (180 min) = 72 seconds per silo = 72000ms
-    switch (autoTestInterval) {
-      case 60:  // 1 hour
-        return 24000; // 24 seconds
-      case 120: // 2 hours
-        return 48000; // 48 seconds
-      case 180: // 3 hours
-        return 72000; // 72 seconds
-      default:
-        return 24000; // Default to 24 seconds
-    }
-  }, [autoTestInterval]);
+    // Fixed 24 seconds per silo for real physical sensor readings
+    return 24000; // 24 seconds
+  }, []);
 
-  // Start/stop auto reading
+  // Start/stop auto reading with persistent state
   const startAutoRead = useCallback(() => {
-    if (readingMode === 'auto' && autoReadInterval.current) {
-      // Stop auto read
-      clearInterval(autoReadInterval.current);
-      autoReadInterval.current = null;
+    if (readingMode === 'auto') {
+      // Stop auto read and clear ALL timers but SAVE current position
+      if (autoReadInterval.current) {
+        clearInterval(autoReadInterval.current);
+        autoReadInterval.current = null;
+      }
+      if (currentSiloTimeout.current) {
+        clearTimeout(currentSiloTimeout.current);
+        currentSiloTimeout.current = null;
+      }
+      if (restartWaitInterval.current) {
+        clearInterval(restartWaitInterval.current);
+        restartWaitInterval.current = null;
+      }
+      
+      // Save current position for resume (don't clear persistent state)
+      const allSilos = getAllSilos();
+      if (allSilos && allSilos.length > 0) {
+        saveAutoTestState({
+          isActive: false, // Mark as stopped but keep position
+          currentIndex: currentAutoTestIndex,
+          progress: autoReadProgress,
+          startTime: Date.now(),
+          readingSilo: readingSilo
+        });
+      }
+      
       setIsReading(false);
       setReadingSilo(null);
-      setAutoReadProgress(0);
       setReadingMode('none');
-      setAutoReadCompleted(false);
+      setIsWaitingForRestart(false);
+      setWaitTimeRemaining(0);
+      console.log(`Auto test stopped by user at silo ${currentAutoTestIndex + 1}`);
       return;
     }
 
-    // Generate new random data for this auto readings
-    // regenerateAllSiloData();
-    // setDataVersion(prev => prev + 1);
+    // Check if resuming from saved state (either active or stopped)
+    const savedState = loadAutoTestState();
+    if (savedState && (savedState.isActive || savedState.currentIndex > 0)) {
+      // Resume from saved state (whether it was active or stopped)
+      savedState.isActive = true; // Mark as active when resuming
+      saveAutoTestState(savedState); // Update state to active
+      resumeAutoTest(savedState);
+      return;
+    }
     
     setReadingMode('auto');
     setIsReading(true);
     setAutoReadProgress(0);
     setAutoReadCompleted(false);
+    setCurrentAutoTestIndex(0);
 
     const allSilos = getAllSilos();
-    let currentIndex = 0;
-    let timeoutCounter = 0;
-    const maxTimeout = 100; // Maximum iterations to prevent infinite loop
-
-    // Starting auto readings
 
     // Validate silo data
     if (!allSilos || allSilos.length === 0) {
@@ -137,49 +278,27 @@ export const useSiloSystem = () => {
       return;
     }
 
-    const interval = setInterval(() => {
-      timeoutCounter++;
-      
-      // Safety timeout to prevent infinite loops
-      if (timeoutCounter > maxTimeout) {
-        console.error('Auto readings timeout - forcing completion');
-        clearInterval(interval);
-        autoReadInterval.current = null;
-        setIsReading(false);
-        setReadingSilo(null);
-        setAutoReadProgress(100);
-        setReadingMode('none');
-        setAutoReadCompleted(true);
-        return;
-      }
+    // Start immediately with first silo
+    const currentSilo = allSilos[0];
+    setReadingSilo(currentSilo.num);
+    setSelectedSilo(currentSilo.num);
+    setSelectedTemp(currentSilo.temp);
+    setAutoReadProgress((1 / allSilos.length) * 100);
+    
+    // Save initial state
+    saveAutoTestState({
+      isActive: true,
+      currentIndex: 0,
+      progress: (1 / allSilos.length) * 100,
+      startTime: Date.now(),
+      readingSilo: currentSilo.num
+    });
 
-      if (currentIndex >= allSilos.length) {
-        // Auto read complete - start waiting for restart
-        clearInterval(interval);
-        autoReadInterval.current = null;
-        setIsReading(false);
-        setReadingSilo(null);
-        setAutoReadProgress(100);
-        setAutoReadCompleted(true);
-        
-        // Start waiting period before auto-restart
-        startAutoRestartWait();
-        return;
-      }
-
-      const currentSilo = allSilos[currentIndex];
-      // Reading silo progress
-      
-      setReadingSilo(currentSilo.num);
-      setSelectedSilo(currentSilo.num);
-      setSelectedTemp(currentSilo.temp);
-      setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
-
-      currentIndex++;
-    }, getSiloTestDuration()); // Dynamic duration based on auto readings interval
-
-    autoReadInterval.current = interval;
-  }, [readingMode, isReading, autoReadCompleted]);
+    // Continue with the rest of the silos after 24 seconds
+    currentSiloTimeout.current = setTimeout(() => {
+      continueAutoTest(allSilos, 1);
+    }, 24000);
+  }, [readingMode, isReading, autoReadCompleted, resumeAutoTest, continueAutoTest]);
 
   // Start auto restart wait period
   const startAutoRestartWait = useCallback(() => {

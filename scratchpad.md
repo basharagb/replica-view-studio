@@ -1,18 +1,183 @@
 # Scratchpad - Jarvis
 
-## Current Task: UI MODIFICATIONS HOTFIX
+## Current Task: REAL SILO TESTING SYSTEM MODIFICATIONS
 
-**Status: 🔄 IN PROGRESS - NEW BRANCH CREATED**
-**Branch:** hot-fix/ui-modifications2
-**Started:** 2025-08-11T12:57:55+03:00
+**Status: 🔧 PLANNING REAL-WORLD API INTEGRATION**
+**Started:** 2025-08-11T14:00:06+03:00
 
-### BRANCH SETUP
+### TASK OVERVIEW - REAL PHYSICAL SILOS
+User clarified that these are **REAL PHYSICAL SILOS** on the ground, not simulated:
+
+- 150 real silos with 8 physical sensors each
+- Auto test: Start immediately, 24-second intervals between silos
+- Remove circular progress indicators from sensors (keep only on silos)
+- Show old sensor readings while silo is loading, update with new readings when complete
+- Prepare for future API integration for both manual and auto testing modes
+- Critical temperature threshold: ≥40°C indicates real problems requiring physical action
+
+### IMPLEMENTATION PLAN FOR REAL SILO SYSTEM
+
+**🎯 STEP-BY-STEP MODIFICATIONS:**
+
+**Phase 1: Auto Test Logic Modifications**
+
+- [x] Modify `useSiloSystem.ts` - Remove startup delays in auto test
+- [x] Update `getSiloTestDuration()` - Fixed 24-second intervals only
+- [x] Simplify `startAutoRead()` - Immediate start, no complex timing
+- [x] Remove variable duration logic (1hr/2hr/3hr intervals)
+- [x] Change "Cylinder Sensors" to "Silo Sensors" in LabCylinder.tsx
+- [ ] Keep silo-level progress indicators, remove sensor progress
+- [x] **NEW REQUIREMENT**: Make auto test persistent across page navigation
+- [x] Resume auto test from exact point where it was stopped
+- [x] Only stop auto test when user clicks stop button
+- [x] Added localStorage persistence for auto test state
+- [x] Implemented resumeAutoTest() and continueAutoTest() functions
+- [x] Modified startAutoRead() to handle persistent state management
+- [x] **FIXED**: Stop button now properly clears all timers and stops auto test
+- [x] Added currentSiloTimeout tracking for proper timer management
+- [x] Enhanced stop functionality to clear all intervals and timeouts
+- [x] **ENHANCED**: Auto test now resumes from stopped position instead of restarting
+- [x] Modified stop logic to save current position (not clear state completely)
+- [x] Updated start logic to resume from any saved position (active or stopped)
+
+**Phase 2: Sensor Display Updates**
+
+- [ ] Update sensor components - Remove circular progress indicators
+- [ ] Modify sensor state management - Show old readings during load
+- [ ] Implement "loading" vs "loaded" states for sensors
+- [ ] Update sensor display logic - New readings only after completion
+- [ ] Maintain S1-S8 sorting (highest to lowest)
+
+**Phase 3: API Integration Preparation**
+
+- [ ] Create API service structure for real sensor calls
+- [ ] Add error handling and retry logic
+- [ ] Maintain 8-sensor data format compatibility
+- [ ] Prepare manual test API endpoints
+- [ ] Prepare auto test sequential API calls
+
+**Phase 4: Testing & Validation**
+
+- [ ] Test auto mode with 24-second intervals
+- [ ] Verify sensor display behavior during loading
+- [ ] Validate progress indicators work correctly
+- [ ] Test manual mode preparation for API
+- [ ] Create unit tests for new logic
+
+**🔧 TECHNICAL CHANGES NEEDED:**
+
+**1. Auto Test Behavior Changes:**
+
+- **Immediate Start**: Remove delay, start testing first silo immediately
+- **Fixed 24-Second Intervals**: Wait exactly 24 seconds between each silo test
+- **Remove Complex Timing**: Eliminate variable durations (24s/48s/72s based on intervals)
+- **Simplified Progress**: Keep silo-level progress indicators only
+
+**2. Sensor Display Modifications:**
+
+- **Remove Sensor Progress Indicators**: No circular progress on individual sensors
+- **Show Old Readings During Load**: Display previous sensor values while silo is being tested
+- **Update After Completion**: Replace with new readings only when silo test finishes
+- **Maintain Sensor Priority**: Keep S1=highest to S8=lowest sorting
+
+**3. API Integration Preparation:**
+
+- **Manual Test API**: Prepare single silo testing endpoint calls
+- **Auto Test API**: Prepare sequential silo testing with real sensor data
+- **Data Structure**: Maintain current 8-sensor format for API compatibility
+- **Error Handling**: Add API failure states and retry logic
+
+**4. Current System Analysis (For Reference):**
+
+**Silo Layout Structure:**
+
+- **Top Section (Silos 1-61)**: 61 circular silos arranged in 6 groups
+- **Bottom Section (Silos 101-189)**: 89 square silos arranged in 6 groups  
+- **Total**: Exactly 150 real physical silos
+- **Layout**: Responsive grid with proper spacing and visual separators
+
+**Temperature Monitoring Logic:**
+
+- **8 Physical Sensors per Silo**: Each silo has 8 real temperature sensors (S1-S8)
+- **Sensor Positions**: Top-North, Top-East, Mid-North, Mid-East, Mid-South, Mid-West, Bottom-South, Bottom-West
+- **Temperature Calculation**: Silo temp = MAX of all 8 sensor readings
+- **Sensor Sorting**: S1=highest temp, S8=lowest temp (descending order)
+
+**Color Coding System (Priority-Based):**
+
+- **🟢 Green**: All sensors <35°C (Normal operation)
+- **🟡 Yellow**: Any sensor 35-40°C and no red sensors (Warning)
+- **🔴 Red**: Any sensor ≥40°C (Critical - Physical Action Required)
+- **Priority Rule**: Red > Yellow > Green (if ANY sensor is red, entire silo shows red)
+
+**Modified Testing Modes:**
+
+**Manual Mode (API-Ready):**
+
+- Click any silo to start individual real sensor test
+- Connect to API endpoint for single silo reading
+- Show old sensor values during API call
+- Update with new readings when API responds
+- Purpose: Targeted inspection of specific physical silos
+
+**Auto Mode (API-Ready):**
+
+- Tests all 150 real silos sequentially
+- Start immediately with first silo
+- Fixed 24-second wait between each silo
+- Connect to API for each silo's sensor readings
+- Show old readings during each API call
+- Purpose: Comprehensive monitoring of all physical silos
+
+**5. Key Components:**
+
+**LabInterface.tsx**: Main UI component
+- Renders silo layout with top/bottom sections
+- Handles user interactions (click, hover, mouse events)
+- Integrates with temperature display and sensor panels
+
+**useSiloSystem.ts**: Core business logic hook
+- Manages all state (selected silo, reading modes, progress)
+- Handles manual/auto test execution
+- Controls timing and intervals
+- Provides cleanup and lifecycle management
+
+**siloData.ts**: Data management service
+- Temperature threshold constants (35°C warning, 40°C critical)
+- Silo generation with 8-sensor simulation
+- Color calculation using priority hierarchy
+- Sensor readings cache and lookup optimization
+
+**6. Real-Time Features:**
+- **Live Updates**: Temperature readings refresh every 5 seconds
+- **Alert System**: Sound alerts for critical temperatures
+- **Hover Tooltips**: Real-time temperature display on hover
+- **Progress Tracking**: Visual progress bars for auto testing
+- **Status Indicators**: Reading mode, completion status, wait timers
+
+**7. Data Flow:**
+```
+Sensor Readings (8 per silo) → 
+Max Temperature Calculation → 
+Priority-Based Color Assignment → 
+UI Rendering with Real-Time Updates → 
+User Interaction (Manual/Auto Testing) → 
+Progress Tracking & Alerts
+```
+
+**8. Performance Optimizations:**
+- **Lookup Map**: O(1) silo finding with `buildSiloLookupMap()`
+- **Data Versioning**: Efficient re-renders with `dataVersion` state
+- **Sensor Cache**: Cached sensor readings for consistent display
+- **Memory Management**: Proper cleanup of intervals and timeouts
+
+### PREVIOUS BRANCH SETUP
 - [x] Created new branch `hot-fix/ui-modifications2` from `feature/Alert-Silo-Monitoring-API-Integration`
 - [x] Pushed branch to remote repository
 - [x] Set up tracking with origin
 - [x] Updated temperature warning thresholds from 30°C to 35°C across all graphs
-- [x] Test changes locally (Server running on http://localhost:8081)
-- [ ] Commit and push updates
+- [x] Test changes locally (Server running on <http://localhost:8081>)
+- [x] Commit and push updates (Commit: b118f52)
 
 ### TEMPERATURE THRESHOLD CHANGES COMPLETED
 - [x] Updated TEMPERATURE_THRESHOLDS in siloData.ts (30°C → 35°C)
