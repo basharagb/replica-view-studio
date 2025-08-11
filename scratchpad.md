@@ -62,6 +62,25 @@ User requires connecting the Live Readings system to real API endpoints:
 **Development Server**: Running on http://localhost:8084/
 **Browser Preview**: Available at http://127.0.0.1:64476
 
+### COLOR UPDATE FIX ✅
+
+**Issue Identified:**
+- Silo 1 was not changing from wheat color to green (#46d446) after API fetch
+- Color conversion function didn't recognize API color #46d446
+
+**Root Cause:**
+- `convertApiColorToTemperatureColor()` only handled specific colors
+- UI components weren't re-rendering after API data was cached
+- Missing pattern matching for API color variations
+
+**Solution Implemented:**
+1. **Enhanced Color Conversion**: Updated to recognize #46d446 and similar green patterns
+2. **Pattern Matching**: Added flexible color detection for API variations
+3. **UI Re-render Fix**: Added `regenerateAllSiloData()` calls after API fetches
+4. **Safer Defaults**: Default to green for unknown colors (better for real sensor data)
+
+**Latest Commit**: 11beaaf - "fix: Resolve silo color update issue after API fetch"
+
 ### TASK OVERVIEW - REAL PHYSICAL SILOS
 User clarified that these are **REAL PHYSICAL SILOS** on the ground, not simulated:
 
