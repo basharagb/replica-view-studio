@@ -89,7 +89,6 @@ const EnhancedSensorPanel: React.FC<EnhancedSensorPanelProps> = ({
                   }`}>
                     {isReading ? (
                       <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin" />
                         {reading.toFixed(1)}°C
                       </div>
                     ) : (

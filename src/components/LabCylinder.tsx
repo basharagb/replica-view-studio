@@ -85,7 +85,6 @@ const LabCylinderComponent = ({
                 }`}>
                   {readingSilo ? (
                     <span className="inline-flex items-center">
-                      <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin mr-1"></div>
                       {reading.toFixed(1)}°C
                     </span>
                   ) : (
