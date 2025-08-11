@@ -107,7 +107,7 @@ const generateAlarmStatus = (sensorReadings: SensorReading): 'Normal' | 'Warning
   const maxTemp = Math.max(...temps);
   
   if (maxTemp > 40) return 'Critical';
-  if (maxTemp >= 30) return 'Warning';
+  if (maxTemp >= 35) return 'Warning';
   return 'Normal';
 };
 

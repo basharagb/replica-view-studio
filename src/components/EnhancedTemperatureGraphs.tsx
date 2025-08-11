@@ -88,7 +88,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
           const dataPoint = history[Math.floor((i / dataPoints) * history.length)] || history[0];
           totalTemp += dataPoint.maxTemp;
           
-          const status = dataPoint.maxTemp > 40 ? 'critical' : dataPoint.maxTemp >= 30 ? 'warning' : 'normal';
+          const status = dataPoint.maxTemp > 40 ? 'critical' : dataPoint.maxTemp >= 35 ? 'warning' : 'normal';
           if (status === 'critical' || (status === 'warning' && maxStatus === 'normal')) {
             maxStatus = status;
           }
@@ -189,7 +189,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
           combinedData.push({
             time: format(currentTime, timeFormat),
             temperature: dataPoint.maxTemp,
-            status: dataPoint.maxTemp > 40 ? 'critical' : dataPoint.maxTemp >= 30 ? 'warning' : 'normal'
+            status: dataPoint.maxTemp > 40 ? 'critical' : dataPoint.maxTemp >= 35 ? 'warning' : 'normal'
           });
         } else {
           // Multiple silos - create data point with individual silo temperatures
@@ -211,7 +211,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
             dataPoint[`silo_${siloNum}`] = temp;
             totalTemp += temp;
             
-            const status = temp > 40 ? 'critical' : temp >= 30 ? 'warning' : 'normal';
+            const status = temp > 40 ? 'critical' : temp >= 35 ? 'warning' : 'normal';
             if (status === 'critical' || (status === 'warning' && maxStatus === 'normal')) {
               maxStatus = status;
             }
@@ -680,7 +680,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                               <Legend />
                               
                               {/* Temperature threshold lines */}
-                              <ReferenceLine y={30} stroke="#f59e0b" strokeDasharray="5 5" label="Warning (30°C)" />
+                              <ReferenceLine y={35} stroke="#f59e0b" strokeDasharray="5 5" label="Warning (35°C)" />
                               <ReferenceLine y={40} stroke="#ef4444" strokeDasharray="5 5" label="Critical (40°C)" />
                               
                               {/* Render lines based on active tab */}
@@ -690,7 +690,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                                   dataKey="temperature"
                                   stroke="#3b82f6"
                                   strokeWidth={3}
-                                  name={selectedSilo ? `Silo ${selectedSilo}` : 'General'}
+                                  name={selectedSilo ? `Silo ${selectedSilo}` : 'General Silos Readings'}
                                   dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                                   activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
                                 />

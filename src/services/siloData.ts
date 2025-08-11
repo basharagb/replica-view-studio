@@ -2,10 +2,10 @@ import { Silo, SiloGroup, TemperatureColor, SensorReading, AlertLevel, Temperatu
 
 // Temperature threshold constants for silo monitoring system
 export const TEMPERATURE_THRESHOLDS = {
-  GREEN_MIN: 20.0,      // Green: Low readings (20 to <30)
-  GREEN_MAX: 29.99,     // Green: Low readings (20 to <30)
-  YELLOW_MIN: 30.0,     // Yellow: Medium readings (30 to 40)
-  YELLOW_MAX: 40.0,     // Yellow: Medium readings (30 to 40)
+  GREEN_MIN: 20.0,      // Green: Low readings (20 to <35)
+  GREEN_MAX: 34.99,     // Green: Low readings (20 to <35)
+  YELLOW_MIN: 35.0,     // Yellow: Medium readings (35 to 40)
+  YELLOW_MAX: 40.0,     // Yellow: Medium readings (35 to 40)
   RED_MIN: 40.01,       // Red: High readings (>40)
 } as const;
 
@@ -349,7 +349,7 @@ export const getTemperatureTrend = (currentTemp: number, previousTemp?: number):
 };
 
 // Determine silo color based on sensor priority hierarchy
-// Priority: Red (>40°C) > Yellow (30-40°C) > Green (<30°C)
+// Priority: Red (>40°C) > Yellow (35-40°C) > Green (<35°C)
 export const getSiloColorFromSensors = (sensorReadings: number[]): TemperatureColor => {
   // Check for any red sensors (highest priority)
   const hasRedSensor = sensorReadings.some(temp => temp > TEMPERATURE_THRESHOLDS.YELLOW_MAX);

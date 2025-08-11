@@ -238,7 +238,7 @@ export class RealTimeSensorService {
    */
   private calculateStatus(temperature: number): 'normal' | 'warning' | 'critical' {
     if (temperature > 40) return 'critical';
-    if (temperature > 30) return 'warning';
+    if (temperature > 35) return 'warning';
     return 'normal';
   }
 

@@ -768,7 +768,7 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
                       {showLegend && <Legend />}
                       
                       {/* Temperature threshold lines */}
-                      <ReferenceLine y={30} stroke="#f59e0b" strokeDasharray="5 5" />
+                      <ReferenceLine y={35} stroke="#f59e0b" strokeDasharray="5 5" />
                       <ReferenceLine y={40} stroke="#ef4444" strokeDasharray="5 5" />
                       
                       {/* Silo temperature lines */}

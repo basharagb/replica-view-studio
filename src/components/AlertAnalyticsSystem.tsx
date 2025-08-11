@@ -140,7 +140,7 @@ const AlertAnalyticsSystem: React.FC<AlertAnalyticsSystemProps> = ({ className }
           // Generate alert events
           if (Math.random() < 0.15) { // 15% chance of alert
             const alertType = tempData.maxTemp > 40 ? 'critical' : 
-                            tempData.maxTemp > 30 ? 'warning' : 'maintenance';
+                            tempData.maxTemp > 35 ? 'warning' : 'maintenance';
             
             const alert: AlertEvent = {
               id: `alert_${siloNum}_${i}`,
@@ -418,7 +418,7 @@ const AlertAnalyticsSystem: React.FC<AlertAnalyticsSystemProps> = ({ className }
                           opacity={0.7}
                         />
                         
-                        <ReferenceLine yAxisId="temp" y={30} stroke="#f59e0b" strokeDasharray="5 5" />
+                        <ReferenceLine yAxisId="temp" y={35} stroke="#f59e0b" strokeDasharray="5 5" />
                         <ReferenceLine yAxisId="temp" y={40} stroke="#ef4444" strokeDasharray="5 5" />
                       </ComposedChart>
                     </ResponsiveContainer>
