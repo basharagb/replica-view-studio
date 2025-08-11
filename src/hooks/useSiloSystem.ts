@@ -48,6 +48,26 @@ export const useSiloSystem = () => {
   const [selectedSilo, setSelectedSilo] = useState<number>(112);
   const [selectedTemp, setSelectedTemp] = useState<number>(0.2);
   const [hoveredSilo, setHoveredSilo] = useState<Silo | null>(null);
+
+  // Auto-fetch API data when silo is selected to show accurate sensor readings
+  useEffect(() => {
+    const fetchSelectedSiloData = async () => {
+      if (selectedSilo) {
+        try {
+          const apiData = await fetchSiloDataWithRetry(selectedSilo, 2, 500);
+          console.log(`Auto-fetched data for selected silo ${selectedSilo}:`, apiData);
+          // Update selected temperature with real API data
+          setSelectedTemp(apiData.maxTemp);
+          // Force UI re-render to show accurate sensor readings
+          regenerateAllSiloData();
+        } catch (error) {
+          console.log(`Could not fetch data for silo ${selectedSilo}, using simulated data:`, error);
+        }
+      }
+    };
+
+    fetchSelectedSiloData();
+  }, [selectedSilo]);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition>({ x: 0, y: 0 });
 
   // Reading control states

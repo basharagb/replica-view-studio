@@ -513,25 +513,29 @@ const predefinedReadings: { [key: number]: number[] } = {
 
 // Get sensor readings for any silo - SORTED from highest to lowest
 export const getSensorReadings = (siloNum: number): number[] => {
-  // First check if we have real API data
+  // PRIORITY 1: Check if we have real API data (always use API data when available)
   const apiData = getSiloData(siloNum);
   if (apiData.isLoaded) {
+    console.log(`Using real API data for silo ${siloNum}:`, apiData.sensors);
     // Return real API sensor readings (already in S1-S8 order, need to sort highest to lowest)
     return [...apiData.sensors].sort((a, b) => b - a);
   }
   
-  // For silos that haven't been fetched from API yet, show default behavior
+  // PRIORITY 2: For silos that haven't been fetched from API yet, show simulated readings
   const silo = findSiloByNumber(siloNum);
   if (!silo) return [0, 0, 0, 0, 0, 0, 0, 0];
   
-  // If we have predefined readings, use them (already sorted)
+  // PRIORITY 3: If we have predefined readings, use them (already sorted)
   if (predefinedReadings[siloNum]) {
+    console.log(`Using predefined readings for silo ${siloNum}:`, predefinedReadings[siloNum]);
     return predefinedReadings[siloNum];
   }
   
-  // Generate new readings and sort them
-  const readings = generateSensorReadings(silo.temp);
+  // PRIORITY 4: Generate realistic sensor readings for silos without predefined data
+  const baseTemp = silo.temp === 0 ? 25 + (siloNum % 10) : silo.temp; // Use realistic base temp for wheat silos
+  const readings = generateSensorReadings(baseTemp);
   predefinedReadings[siloNum] = readings;
+  console.log(`Generated new readings for silo ${siloNum}:`, readings);
   return readings;
 };
 
