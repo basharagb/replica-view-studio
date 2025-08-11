@@ -44,9 +44,9 @@
 
 ## 🚀 Live Demo
 
-**Production Site:** https://replica-view-studio.netlify.app
+**Production Site:** https://exquisite-quokka-04409f.netlify.app
 
-**⚠️ Note:** If you're getting a "Site not found" error, make sure you're using the correct URL above. The old URL (incandescent-sprite-715bb3.netlify.app) is no longer active.
+**⚠️ Note:** If you encounter any issues, please ensure you're using the latest version of your browser. The application is optimized for Chrome, Firefox, and Edge.
 
 ## 🛠️ Technology Stack
 
