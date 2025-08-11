@@ -142,26 +142,47 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
     initializeData();
   }, []);
 
-  // Generate initial data
+  // Generate initial data using FIXED 24-UNIT SYSTEM
   const generateInitialData = useCallback(async (silos: number[], start: Date, end: Date) => {
     try {
       const dataPoints: TemperatureDataPoint[] = [];
-      const daysDiff = differenceInDays(end, start);
-      const hoursDiff = differenceInHours(end, start);
-      const isSingleDay = daysDiff === 0;
       
-      // Optimize data points based on time range
-      let numPoints: number;
-      if (isSingleDay) {
-        numPoints = Math.min(hoursDiff + 1, 24);
+      // FIXED 24-UNIT HORIZONTAL AXIS SYSTEM
+      // Calculate total hours between start and end dates
+      const totalHours = differenceInHours(end, start);
+      
+      // Minimum range validation: Cannot generate graphs for less than 24 hours
+      if (totalHours < 24) {
+        throw new Error('Cannot generate graphs for less than 24 hours. Please select a range of at least 24 hours.');
+      }
+      
+      // ALWAYS use exactly 24 data points (fixed horizontal units)
+      const numPoints = 24;
+      
+      // Calculate hours per unit: Total hours ÷ 24 units
+      const hoursPerUnit = totalHours / 24;
+      const timeInterval = hoursPerUnit * 60 * 60 * 1000; // Convert to milliseconds
+      
+      // Dynamic time format based on hours per unit
+      let timeFormat: string;
+      if (hoursPerUnit <= 1) {
+        // Each unit represents 1 hour or less
+        timeFormat = 'HH:mm';
+      } else if (hoursPerUnit < 24) {
+        // Each unit represents multiple hours but less than a day
+        timeFormat = 'MMM dd HH:mm';
+      } else if (hoursPerUnit === 24) {
+        // Each unit represents exactly 1 day
+        timeFormat = 'MMM dd';
       } else {
-        numPoints = Math.min(daysDiff * 4, dataPointLimit); // 4 points per day max
+        // Each unit represents multiple days
+        timeFormat = 'MMM dd';
       }
       
       for (let i = 0; i < numPoints; i++) {
-        const currentTime = new Date(start.getTime() + (i * (end.getTime() - start.getTime()) / (numPoints - 1)));
+        const currentTime = new Date(start.getTime() + (i * timeInterval));
         const dataPoint: TemperatureDataPoint = {
-          time: format(currentTime, isSingleDay ? 'HH:mm' : 'MMM dd'),
+          time: format(currentTime, timeFormat),
           timestamp: currentTime.getTime()
         };
         

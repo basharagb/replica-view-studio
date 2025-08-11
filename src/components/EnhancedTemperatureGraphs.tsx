@@ -65,21 +65,26 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
     }
   }, [activeTab, selectedSilo, selectedAlertSilos, startDate, endDate]);
   
-  // Generate default general graph
+  // Generate default general graph using 24-unit system
   const generateDefaultGraph = useCallback(async () => {
     setIsLoading(true);
     
     try {
-      // Generate general graph for last 7 days with sample silos
+      // Generate general graph for last 7 days with sample silos using 24-unit system
       const endDate = new Date();
       const startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
       const sampleSilos = allSilos.slice(0, 5); // First 5 silos as sample
       
+      // Apply 24-unit system to default graph
+      const totalHours = differenceInHours(endDate, startDate); // 7 days = 168 hours
+      const dataPoints = 24; // Fixed 24 units
+      const hoursPerUnit = totalHours / 24; // 168 / 24 = 7 hours per unit
+      const timeInterval = hoursPerUnit * 60 * 60 * 1000; // Convert to milliseconds
+      
       const generalData: TemperatureDataPoint[] = [];
-      const dataPoints = 7; // One point per day
       
       for (let i = 0; i < dataPoints; i++) {
-        const currentTime = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
+        const currentTime = new Date(startDate.getTime() + (i * timeInterval));
         let totalTemp = 0;
         let maxStatus: 'normal' | 'warning' | 'critical' = 'normal';
         
@@ -94,8 +99,9 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
           }
         });
         
+        // Use appropriate time format for 7-hour intervals
         generalData.push({
-          time: format(currentTime, 'MMM dd'),
+          time: format(currentTime, 'MMM dd HH:mm'),
           temperature: totalTemp / sampleSilos.length,
           status: maxStatus
         });
@@ -147,35 +153,37 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
         ? [selectedSilo!] 
         : selectedAlertSilos;
       
-      // Enhanced dynamic time scale based on user requirements
-      const daysDiff = differenceInDays(end, start);
+      // FIXED 24-UNIT HORIZONTAL AXIS SYSTEM
+      // Calculate total hours between start and end dates
+      const totalHours = differenceInHours(end, start);
       
-      // Dynamic data points and time format based on date range
-      let dataPoints: number;
+      // Minimum range validation: Cannot generate graphs for less than 24 hours
+      if (totalHours < 24) {
+        throw new Error('Cannot generate graphs for less than 24 hours. Please select a range of at least 24 hours.');
+      }
+      
+      // ALWAYS use exactly 24 data points (fixed horizontal units)
+      const dataPoints = 24;
+      
+      // Calculate hours per unit: Total hours ÷ 24 units
+      const hoursPerUnit = totalHours / 24;
+      const timeInterval = hoursPerUnit * 60 * 60 * 1000; // Convert to milliseconds
+      
+      // Dynamic time format based on hours per unit
       let timeFormat: string;
-      let timeInterval: number; // milliseconds between data points
       
-      if (daysDiff === 1) {
-        dataPoints = 24;
-        timeFormat = 'HH:00';
-        timeInterval = 60 * 60 * 1000; // 1 hour
-      } else if (daysDiff === 2) {
-        dataPoints = 12;
-        timeFormat = 'MMM dd HH:00';
-        timeInterval = 2 * 60 * 60 * 1000; // 2 hours
-      } else if (daysDiff === 3) {
-        dataPoints = 24;
-        timeFormat = 'MMM dd HH:00';
-        timeInterval = 3 * 60 * 60 * 1000; // 3 hours
-      } else if (daysDiff <= 24) {
-        dataPoints = Math.min(daysDiff, 24);
+      if (hoursPerUnit <= 1) {
+        // Each unit represents 1 hour or less
+        timeFormat = 'HH:mm';
+      } else if (hoursPerUnit < 24) {
+        // Each unit represents multiple hours but less than a day
+        timeFormat = 'MMM dd HH:mm';
+      } else if (hoursPerUnit === 24) {
+        // Each unit represents exactly 1 day
         timeFormat = 'MMM dd';
-        timeInterval = 24 * 60 * 60 * 1000; // 1 day
       } else {
-        // More than 24 days = weekly aggregation
-        dataPoints = Math.ceil(daysDiff / 7);
+        // Each unit represents multiple days
         timeFormat = 'MMM dd';
-        timeInterval = 7 * 24 * 60 * 60 * 1000; // 1 week
       }
 
       for (let i = 0; i < dataPoints; i++) {

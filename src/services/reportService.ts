@@ -181,18 +181,32 @@ export const generateAlarmReportData = (
   });
 };
 
-// Generate temperature history for graphs
+// Generate temperature history for graphs using FIXED 24-UNIT SYSTEM
 export const generateTemperatureHistory = (
   siloNumber: number,
   startDate: Date,
   endDate: Date
 ): Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> => {
   const history: Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> = [];
-  const timeDiff = endDate.getTime() - startDate.getTime();
-  const dataPoints = Math.min(Math.max(Math.floor(timeDiff / (1000 * 60 * 60)), 24), 168); // 24 to 168 data points
+  
+  // FIXED 24-UNIT HORIZONTAL AXIS SYSTEM
+  // Calculate total hours between start and end dates
+  const totalHours = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60));
+  
+  // Minimum range validation: Cannot generate graphs for less than 24 hours
+  if (totalHours < 24) {
+    throw new Error('Cannot generate graphs for less than 24 hours. Please select a range of at least 24 hours.');
+  }
+  
+  // ALWAYS use exactly 24 data points (fixed horizontal units)
+  const dataPoints = 24;
+  
+  // Calculate hours per unit: Total hours ÷ 24 units
+  const hoursPerUnit = totalHours / 24;
+  const timeInterval = hoursPerUnit * 60 * 60 * 1000; // Convert to milliseconds
   
   for (let i = 0; i < dataPoints; i++) {
-    const currentTime = new Date(startDate.getTime() + (i * timeDiff / (dataPoints - 1)));
+    const currentTime = new Date(startDate.getTime() + (i * timeInterval));
     
     // Generate realistic temperature variations
     const baseSensorReadings = getSensorReadings(siloNumber);
