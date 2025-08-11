@@ -149,6 +149,9 @@ export const useSiloSystem = () => {
         // Update UI with real API data
         setSelectedTemp(apiData.maxTemp);
         
+        // Force a re-render by regenerating silo data to pick up API changes
+        regenerateAllSiloData();
+        
       } catch (error) {
         console.error(`Auto test: Failed to fetch data for silo ${currentSilo.num}:`, error);
         // Keep original temperature on API failure
@@ -221,11 +224,14 @@ export const useSiloSystem = () => {
 
       console.log(`Manual test completed for silo ${siloNum}:`, apiData);
       
-      // Update UI with real API data
+      // Update UI with real API data and force re-render
       setSelectedSilo(siloNum);
       setSelectedTemp(apiData.maxTemp);
       setIsReading(false);
       setReadingSilo(null);
+      
+      // Force a re-render by regenerating silo data to pick up API changes
+      regenerateAllSiloData();
       
     } catch (error) {
       console.error(`Manual test failed for silo ${siloNum}:`, error);

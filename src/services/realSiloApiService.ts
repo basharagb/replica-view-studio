@@ -246,19 +246,26 @@ export function clearSiloDataCache(): void {
 // Convert hex color to internal temperature color type
 export function convertApiColorToTemperatureColor(hexColor: string): TemperatureColor {
   // Convert API hex colors to internal color system
-  switch (hexColor.toLowerCase()) {
-    case '#c7c150':  // Yellow from API
-      return 'yellow';
-    case '#ff0000':  // Red
-    case '#ff4444':
-      return 'pink';
-    case '#00ff00':  // Green
-    case '#44ff44':
-      return 'green';
-    default:
-      // Default to wheat color for unknown colors
-      return 'beige';
+  const color = hexColor.toLowerCase();
+  
+  // Green colors (various shades)
+  if (color.startsWith('#46d4') || color.startsWith('#4') || color === '#00ff00' || color === '#44ff44' || color.startsWith('#46')) {
+    return 'green';
   }
+  
+  // Yellow colors
+  if (color.startsWith('#c7c1') || color === '#c7c150' || color.startsWith('#ff') && color.includes('c')) {
+    return 'yellow';
+  }
+  
+  // Red colors (critical temperatures)
+  if (color.startsWith('#ff') || color.startsWith('#f') || color === '#ff0000' || color === '#ff4444') {
+    return 'pink';
+  }
+  
+  // Default to green for unknown colors (safer than wheat for real sensor data)
+  console.log(`Unknown API color: ${hexColor}, defaulting to green`);
+  return 'green';
 }
 
 // Retry mechanism for failed API calls
