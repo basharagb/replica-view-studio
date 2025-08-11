@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Silo, SiloSystemState, ReadingMode, TooltipPosition } from '../types/silo';
 import { getAllSilos, findSiloByNumber, regenerateAllSiloData } from '../services/siloData';
+import { fetchSiloDataWithRetry } from '../services/realSiloApiService';
 
 // Persistent auto test state management
 interface AutoTestState {
@@ -114,11 +115,11 @@ export const useSiloSystem = () => {
     }
   }, []);
 
-  // Continue auto test from specific index
+  // Continue auto test from specific index with real API integration
   const continueAutoTest = useCallback((allSilos: Silo[], startIndex: number) => {
     let currentIndex = startIndex;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       if (currentIndex >= allSilos.length) {
         // Auto test complete
         clearInterval(interval);
@@ -128,15 +129,31 @@ export const useSiloSystem = () => {
         setAutoReadProgress(100);
         setAutoReadCompleted(true);
         clearAutoTestState();
+        console.log('Auto test completed - all 150 silos tested');
         return;
       }
 
       const currentSilo = allSilos[currentIndex];
       setReadingSilo(currentSilo.num);
       setSelectedSilo(currentSilo.num);
-      setSelectedTemp(currentSilo.temp);
       setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
       setCurrentAutoTestIndex(currentIndex);
+
+      console.log(`Auto test: Starting silo ${currentSilo.num} (${currentIndex + 1}/${allSilos.length})`);
+
+      // Fetch real silo data from API during the 24-second interval
+      try {
+        const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
+        console.log(`Auto test: Fetched real data for silo ${currentSilo.num}:`, apiData);
+        
+        // Update UI with real API data
+        setSelectedTemp(apiData.maxTemp);
+        
+      } catch (error) {
+        console.error(`Auto test: Failed to fetch data for silo ${currentSilo.num}:`, error);
+        // Keep original temperature on API failure
+        setSelectedTemp(currentSilo.temp);
+      }
 
       // Save current state
       saveAutoTestState({
@@ -148,7 +165,7 @@ export const useSiloSystem = () => {
       });
 
       currentIndex++;
-    }, 24000); // Fixed 24-second intervals
+    }, 24000); // Fixed 24-second intervals for real physical silo testing
 
     autoReadInterval.current = interval;
   }, []);
@@ -181,18 +198,46 @@ export const useSiloSystem = () => {
     setHoveredSilo(null);
   }, []);
 
-  // Start manual reading
-  const startManualRead = useCallback((siloNum: number, temp: number) => {
+  // Start manual reading with real API integration
+  const startManualRead = useCallback(async (siloNum: number, temp: number) => {
     setIsReading(true);
     setReadingSilo(siloNum);
 
-    // Use manual test duration (in minutes, convert to milliseconds)
-    setTimeout(() => {
+    console.log(`Starting manual test for silo ${siloNum}...`);
+
+    // Fetch real silo data from API during the test duration
+    try {
+      // Start API fetch immediately
+      const apiDataPromise = fetchSiloDataWithRetry(siloNum, 3, 1000);
+      
+      // Use manual test duration (in minutes, convert to milliseconds)
+      const testDuration = manualTestDuration * 60 * 1000;
+      
+      // Wait for both the test duration and API fetch to complete
+      const [apiData] = await Promise.all([
+        apiDataPromise,
+        new Promise(resolve => setTimeout(resolve, testDuration))
+      ]);
+
+      console.log(`Manual test completed for silo ${siloNum}:`, apiData);
+      
+      // Update UI with real API data
       setSelectedSilo(siloNum);
-      setSelectedTemp(temp);
+      setSelectedTemp(apiData.maxTemp);
       setIsReading(false);
       setReadingSilo(null);
-    }, manualTestDuration * 60 * 1000); // Convert minutes to milliseconds
+      
+    } catch (error) {
+      console.error(`Manual test failed for silo ${siloNum}:`, error);
+      
+      // Fallback to original behavior on error
+      setTimeout(() => {
+        setSelectedSilo(siloNum);
+        setSelectedTemp(temp);
+        setIsReading(false);
+        setReadingSilo(null);
+      }, manualTestDuration * 60 * 1000);
+    }
   }, [manualTestDuration]);
 
   // Fixed 24-second duration for real physical silo testing

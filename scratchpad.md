@@ -1,9 +1,66 @@
 # Scratchpad - Jarvis
 
-## Current Task: REAL SILO TESTING SYSTEM MODIFICATIONS
+## Current Task: REAL API INTEGRATION FOR LIVE SILO MONITORING
 
-**Status: 🔧 PLANNING REAL-WORLD API INTEGRATION**
-**Started:** 2025-08-11T14:00:06+03:00
+**Status: 🔧 IMPLEMENTING REAL API INTEGRATION**
+**Started:** 2025-08-11T15:01:41+03:00
+
+### TASK OVERVIEW - CONNECT TO REAL PHYSICAL SILO APIs
+User requires connecting the Live Readings system to real API endpoints:
+
+**API Integration Requirements:**
+- **Initial State**: All silos show wheat color (#93856b) with zero sensor readings
+- **API Endpoint**: `http://idealchiprnd.pythonanywhere.com/readings/avg/latest/by-silo-number?silo_number={number}`
+- **API Response Mapping**:
+  - level_0 → S1 sensor, level_1 → S2 sensor, ..., level_7 → S8 sensor
+  - color_0 → S1 color, color_1 → S2 color, ..., color_7 → S8 color
+  - silo_color → Overall silo color from API
+- **Caching**: Save fetched data to maintain readings between tests
+- **Manual/Auto Test**: Connect both modes to real API without UI changes
+- **Real Sensors**: System monitors actual physical silos with temperature sensors
+
+### IMPLEMENTATION PLAN
+
+**Phase 1: API Service Creation**
+- [x] Create realSiloApiService.ts for API communication
+- [x] Implement fetchSiloData() function for individual silo readings
+- [x] Add error handling and retry logic for API failures
+- [x] Create data caching mechanism for fetched readings
+
+**Phase 2: Data Structure Updates**
+- [x] Update silo data interfaces to match API response
+- [x] Map API response to existing sensor structure (level_0-7 → S1-S8)
+- [x] Implement wheat color (#93856b) as default state
+- [x] Add loading states for individual silos during fetch
+
+**Phase 3: Integration with Existing System**
+- [x] Connect manual test to API calls
+- [x] Connect auto test to API calls  
+- [x] Maintain existing UI structure and silo arrangements
+- [x] Update sensor display to show real API data
+- [x] Preserve all existing functionality (progress, alerts, etc.)
+
+### IMPLEMENTATION COMPLETED ✅
+
+**Key Features Implemented:**
+1. **Real API Service**: Created `realSiloApiService.ts` with full API integration
+2. **Wheat Color Default**: All silos start with wheat color (#93856b) and zero sensor readings
+3. **API Data Mapping**: level_0-7 maps to S1-S8 sensors, silo_color from API used directly
+4. **Caching System**: Fetched data cached to maintain readings between tests
+5. **Manual Test Integration**: API calls during manual test duration
+6. **Auto Test Integration**: API calls during 24-second intervals for each silo
+7. **Error Handling**: Retry logic with exponential backoff for API failures
+8. **UI Preservation**: No changes to silo arrangements or UI structure
+
+**API Integration Details:**
+- **Endpoint**: `http://idealchiprnd.pythonanywhere.com/readings/avg/latest/by-silo-number?silo_number={number}`
+- **Response Mapping**: level_0 → S1, level_1 → S2, ..., level_7 → S8
+- **Color Mapping**: API colors converted to internal temperature color system
+- **Timeout**: 10-second timeout with 3 retry attempts
+- **Caching**: localStorage-based caching for persistent data
+
+**Development Server**: Running on http://localhost:8084/
+**Browser Preview**: Available at http://127.0.0.1:64476
 
 ### TASK OVERVIEW - REAL PHYSICAL SILOS
 User clarified that these are **REAL PHYSICAL SILOS** on the ground, not simulated:

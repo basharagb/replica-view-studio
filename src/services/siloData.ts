@@ -1,4 +1,5 @@
 import { Silo, SiloGroup, TemperatureColor, SensorReading, AlertLevel, TemperatureTrend, TemperatureMonitoringState } from '../types/silo';
+import { getSiloData, isSiloDataLoaded, WHEAT_COLOR, convertApiColorToTemperatureColor } from './realSiloApiService';
 
 // Temperature threshold constants for silo monitoring system
 export const TEMPERATURE_THRESHOLDS = {
@@ -71,8 +72,31 @@ export const generateSensorReadings = (baseTemp: number): number[] => {
   return readings.sort((a, b) => b - a);
 };
 
+// Generate silo with wheat color (unloaded state) - all sensors zero
+const generateWheatSilo = (num: number): Silo => {
+  return {
+    num,
+    temp: 0 // Zero temperature for wheat color state
+  };
+};
+
 // Generate silo with 8 sensors and calculate temperature using priority hierarchy
 const generateSiloWithSensors = (num: number): Silo => {
+  // First check if we have real API data
+  const apiData = getSiloData(num);
+  if (apiData.isLoaded) {
+    return {
+      num,
+      temp: apiData.maxTemp
+    };
+  }
+  
+  // If not loaded from API, return wheat color silo (zero temperature)
+  if (!isSiloDataLoaded(num)) {
+    return generateWheatSilo(num);
+  }
+  
+  // Fallback to random generation (legacy behavior)
   const baseTemp = generateRandomTemp();
   const sensors = generateSensorReadings(baseTemp);
   const siloStatus = calculateSiloStatus(sensors);
@@ -326,10 +350,12 @@ export const regenerateAllSiloData = (): void => {
 
 // Temperature color mapping - Silo monitoring system with priority hierarchy
 export const getTemperatureColor = (temp: number): TemperatureColor => {
-  if (temp > TEMPERATURE_THRESHOLDS.YELLOW_MAX) return 'pink';        // Red: >40°C - Highest priority
-  if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'yellow';     // Yellow: 30-40°C - Medium priority
-  if (temp >= TEMPERATURE_THRESHOLDS.GREEN_MIN) return 'green';       // Green: 20-30°C - Lowest priority
-  return 'beige';                                                     // Default - Below range
+  // If temperature is 0, return wheat color (unloaded state)
+  if (temp === 0) return 'beige';
+  
+  if (temp >= TEMPERATURE_THRESHOLDS.RED_MIN) return 'pink';
+  if (temp >= TEMPERATURE_THRESHOLDS.YELLOW_MIN) return 'yellow';
+  return 'green';
 };
 
 // Calculate alert level based on temperature - Priority hierarchy
@@ -383,6 +409,18 @@ export const calculateSiloStatus = (sensorReadings: number[]) => {
 
 // Get silo color based on silo number using sensor priority hierarchy
 export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
+  // First check if we have real API data
+  const apiData = getSiloData(siloNum);
+  if (apiData.isLoaded) {
+    // Use API color directly if available, or convert from API color
+    return convertApiColorToTemperatureColor(apiData.siloColor);
+  }
+  
+  // If silo hasn't been fetched yet, return wheat color
+  if (!isSiloDataLoaded(siloNum)) {
+    return 'beige';
+  }
+  
   const sensorReadings = getSensorReadings(siloNum);
   return getSiloColorFromSensors(sensorReadings);
 };
@@ -475,6 +513,18 @@ const predefinedReadings: { [key: number]: number[] } = {
 
 // Get sensor readings for any silo - SORTED from highest to lowest
 export const getSensorReadings = (siloNum: number): number[] => {
+  // First check if we have real API data
+  const apiData = getSiloData(siloNum);
+  if (apiData.isLoaded) {
+    // Return real API sensor readings (already in S1-S8 order, need to sort highest to lowest)
+    return [...apiData.sensors].sort((a, b) => b - a);
+  }
+  
+  // If silo hasn't been fetched yet, return zeros (wheat color state)
+  if (!isSiloDataLoaded(siloNum)) {
+    return [0, 0, 0, 0, 0, 0, 0, 0];
+  }
+  
   const silo = findSiloByNumber(siloNum);
   if (!silo) return [0, 0, 0, 0, 0, 0, 0, 0];
   
