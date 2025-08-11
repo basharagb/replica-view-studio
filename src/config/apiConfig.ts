@@ -19,7 +19,7 @@ export interface DataSourceSettings {
   refreshInterval: number;
   fallbackEnabled: boolean;
 }
-//this is done to main 
+
 // Global API Configuration
 export const API_CONFIG: APIConfig = {
   baseURL: 'http://idealchiprnd.pythonanywhere.com',

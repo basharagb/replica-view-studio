@@ -14,6 +14,28 @@
 - **Responsive Design**: Optimized for desktop and mobile interfaces
 - **Performance Optimized**: React.memo implementation for smooth interactions
 
+## 📋 Recent Updates
+
+### Latest Changes (August 2025)
+
+#### API Configuration Enhancement
+- **API-First Architecture**: Updated system to prioritize real API data over mock data
+- **Production API Integration**: Configured to use `http://idealchiprnd.pythonanywhere.com` as the primary data source
+- **Intelligent Fallback System**: Maintains mock data fallback for reliability when API is unavailable
+- **Real-time Data Processing**: Enhanced 30-second refresh intervals for live sensor monitoring
+
+#### Performance & Stability Improvements
+- **Critical Issue Resolution**: Fixed all major performance bottlenecks and error handling
+- **Horizontal Axis System**: Implemented fixed 24-unit horizontal axis system for consistent graph visualization
+- **Enhanced Error Handling**: Improved retry mechanisms with 3-attempt fallback system
+- **Optimized Rendering**: React.memo implementation prevents unnecessary component re-renders
+
+#### System Architecture Updates
+- **TypeScript Configuration**: Enhanced type safety with comprehensive API interfaces
+- **Component Isolation**: Improved cylinder component isolation from hover state changes
+- **Debug Monitoring**: Added comprehensive console logging for performance tracking
+- **Responsive Design**: Further optimized for both desktop and mobile interfaces
+
 ## 👨‍💻 Developer Information
 
 **Developer:** Eng. Bashar Zabadani (engBasharZy)  
