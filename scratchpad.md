@@ -1074,5 +1074,22 @@ src/
 - The application appears to be a laboratory or scientific interface replica
 - Numbers seem to follow a specific pattern/sequence (1-195)
 - Built with Lovable platform for rapid prototyping
-- Ready for backend integration with TanStack Query setup
-- Could benefit from data modeling and API integration
+-- Could benefit from data modeling and API integration
+
+---
+
+### Mini Task: Flip Sensor Order in Silo Sensors Widget
+**Time:** 2025-08-11T17:06:15+03:00
+
+Goal: Display sensors upside down in the Silo Sensors panel so that S8 appears at the top and S1 at the bottom.
+
+Changes:
+- [x] Updated `src/components/LabCylinder.tsx`
+- [x] Replaced vertical stack spacing with reversed flex column to flip order visually
+  - From: `space-y-1`
+  - To: `flex flex-col-reverse gap-1`
+
+Notes:
+- Labels and data mapping remain unchanged (S1..S8), only visual order is inverted.
+- No functional logic was modified; purely presentational.
+

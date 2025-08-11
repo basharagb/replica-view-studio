@@ -517,8 +517,8 @@ export const getSensorReadings = (siloNum: number): number[] => {
   const apiData = getSiloData(siloNum);
   if (apiData.isLoaded) {
     console.log(`Using real API data for silo ${siloNum}:`, apiData.sensors);
-    // Return real API sensor readings (already in S1-S8 order, need to sort highest to lowest)
-    return [...apiData.sensors].sort((a, b) => b - a);
+    // Return real API sensor readings exactly in S1-S8 order for positional accuracy
+    return [...apiData.sensors];
   }
   
   // PRIORITY 2: For silos that haven't been fetched from API yet, show simulated readings

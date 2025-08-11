@@ -50,20 +50,19 @@ const LabCylinderComponent = ({
           )}
         </div>
         
-        {/* Display main temperature if available */}
-        {currentSilo && (
-          <div className="text-center mb-2">
-            <div className="text-xs text-lab-text">Main Temp:</div>
-            <div className={`text-sm font-bold ${
-              readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
-            }`}>
-              {currentSilo.temp.toFixed(1)}°C
-            </div>
+        {/* Display main temperature based on current sensor readings (API-aware) */}
+        <div className="text-center mb-2">
+          <div className="text-xs text-lab-text">Main Temp:</div>
+          <div className={`text-sm font-bold ${
+            readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
+          }`}>
+            {(sensorReadings.length ? Math.max(...sensorReadings) : (currentSilo?.temp ?? 0)).toFixed(1)}°C
           </div>
-        )}
+        </div>
         
-        <div className="space-y-1">
-          {sensorReadings.map((reading, sensorIndex) => {
+        <div className="flex flex-col gap-1">
+          {[...sensorReadings].reverse().map((reading, revIndex) => {
+            const sensorLabel = 8 - revIndex; // Keep S1..S8 labels aligned with physical mapping after visual flip
             const tempColor = getTemperatureColor(reading);
             const getBackgroundClass = () => {
               if (readingSilo) {
@@ -76,11 +75,11 @@ const LabCylinderComponent = ({
             };
 
             return (
-              <div key={sensorIndex} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundClass()}`}>
+              <div key={sensorLabel} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundClass()}`}>
                 {readingSilo && (
                   <div className="absolute inset-0 bg-blue-100 bg-opacity-40 rounded"></div>
                 )}
-                <span className="text-xs font-medium text-lab-text relative z-10">S{sensorIndex + 1}:</span>
+                <span className="text-xs font-medium text-lab-text relative z-10">S{sensorLabel}:</span>
                 <span className={`text-xs font-bold relative z-10 ${
                   readingSilo ? 'text-blue-600' : 'text-lab-text'
                 }`}>
