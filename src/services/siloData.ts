@@ -520,11 +520,7 @@ export const getSensorReadings = (siloNum: number): number[] => {
     return [...apiData.sensors].sort((a, b) => b - a);
   }
   
-  // If silo hasn't been fetched yet, return zeros (wheat color state)
-  if (!isSiloDataLoaded(siloNum)) {
-    return [0, 0, 0, 0, 0, 0, 0, 0];
-  }
-  
+  // For silos that haven't been fetched from API yet, show default behavior
   const silo = findSiloByNumber(siloNum);
   if (!silo) return [0, 0, 0, 0, 0, 0, 0, 0];
   
