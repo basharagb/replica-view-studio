@@ -95,9 +95,7 @@ export const generateTimePoints = (config: TimeScaleConfig): Date[] => {
     timePoints.push(timePoint);
   }
 
-  console.log(`TimeScaling: Generated ${timePoints.length} time points for ${config.selectedDays} days`);
-  console.log(`TimeScaling: Range ${config.startTime.toISOString()} to ${config.endTime.toISOString()}`);
-  console.log(`TimeScaling: ${config.hoursPerStep} hours per step, ${config.totalHours} total hours`);
+  // TimeScaling: Generated time points (logging removed for performance)
 
   return timePoints;
 };
@@ -263,8 +261,7 @@ export const createTimeScaleFromDays = (selectedDays: number, endTime?: Date): T
     console.error('TimeScaling: Configuration validation failed');
     console.error('Config:', config);
   } else {
-    console.log(`TimeScaling: Created valid configuration for ${config.selectedDays} days`);
-    console.log(`TimeScaling: ${config.hoursPerStep} hours/step, ${config.totalHours} total hours`);
+    // TimeScaling: Created valid configuration (logging removed for performance)
   }
 
   return config;
@@ -324,7 +321,7 @@ export const createTooltipInfo = (binIndex: number, config: TimeScaleConfig) => 
  * @returns Test results
  */
 export const testTimeScalingSystem = (testCases: number[] = [1, 2, 3, 4, 5, 6, 12, 24]) => {
-  console.log('TimeScaling: Running system tests...');
+  // TimeScaling: Running system tests (logging removed for performance)
 
   const results = testCases.map(days => {
     try {
@@ -355,7 +352,7 @@ export const testTimeScalingSystem = (testCases: number[] = [1, 2, 3, 4, 5, 6, 1
   console.table(results);
 
   const allValid = results.every(r => r.valid);
-  console.log(`TimeScaling: All tests ${allValid ? 'PASSED' : 'FAILED'}`);
+  // TimeScaling: System tests completed (logging removed for performance)
 
   return results;
 };

@@ -169,7 +169,7 @@ export async function fetchSiloData(siloNumber: number): Promise<ProcessedSiloDa
 
   try {
     const url = `${API_BASE_URL}${API_ENDPOINT}?silo_number=${siloNumber}`;
-    console.log(`Fetching silo ${siloNumber} data from: ${url}`);
+    // Fetching silo data from API (logging removed for performance)
 
     const response = await fetch(url, {
       method: 'GET',
@@ -196,7 +196,7 @@ export async function fetchSiloData(siloNumber: number): Promise<ProcessedSiloDa
     // Cache the processed data
     siloCache.set(siloNumber, processedData);
     
-    console.log(`Successfully fetched silo ${siloNumber} data:`, processedData);
+    // Successfully fetched silo data (logging removed for performance)
     return processedData;
 
   } catch (error) {
@@ -240,7 +240,7 @@ export function getLoadedSiloNumbers(): number[] {
 // Clear all cached silo data
 export function clearSiloDataCache(): void {
   siloCache.clear();
-  console.log('Silo data cache cleared');
+  // Silo data cache cleared
 }
 
 // Convert hex color to internal temperature color type
@@ -264,7 +264,7 @@ export function convertApiColorToTemperatureColor(hexColor: string): Temperature
   }
   
   // Default to green for unknown colors (safer than wheat for real sensor data)
-  console.log(`Unknown API color: ${hexColor}, defaulting to green`);
+  // Unknown API color, defaulting to green
   return 'green';
 }
 

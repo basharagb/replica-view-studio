@@ -180,10 +180,7 @@ export function getComponentConfig(component: keyof typeof COMPONENT_CONFIGS) {
 
 // Initialize system with API-first configuration
 export function initializeSystem(): void {
-  console.log('🚀 Initializing Replica View Studio with API-FIRST configuration');
-  console.log('📡 Primary Data Source: API');
-  console.log('🔄 Real-time Updates: Enabled');
-  console.log('🛡️ Fallback Mode: Mock data (emergency only)');
+  // Initializing Replica View Studio with API-FIRST configuration (logging removed for performance)
   
   // Force API mode on startup
   dataSourceManager.enableAPIMode();
@@ -198,10 +195,15 @@ export async function performSystemHealthCheck(): Promise<{
 }> {
   try {
     // Test API connectivity
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
     const response = await fetch(`${API_CONFIG.baseURL}/readings/by-silo-number?silo_number=1&start=2025-07-16T00:00&end=2025-07-16T19:00`, {
       method: 'GET',
-      timeout: 10000
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     
     const apiAvailable = response.ok;
     const realTimeWorking = isRealTimeEnabled();

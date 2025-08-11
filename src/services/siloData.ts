@@ -516,7 +516,7 @@ export const getSensorReadings = (siloNum: number): number[] => {
   // PRIORITY 1: Check if we have real API data (always use API data when available)
   const apiData = getSiloData(siloNum);
   if (apiData.isLoaded) {
-    console.log(`Using real API data for silo ${siloNum}:`, apiData.sensors);
+    // Using real API data for silo (logging removed for performance)
     // Return real API sensor readings exactly in S1-S8 order for positional accuracy
     return [...apiData.sensors];
   }
@@ -527,7 +527,7 @@ export const getSensorReadings = (siloNum: number): number[] => {
   
   // PRIORITY 3: If we have predefined readings, use them (already sorted)
   if (predefinedReadings[siloNum]) {
-    console.log(`Using predefined readings for silo ${siloNum}:`, predefinedReadings[siloNum]);
+    // Using predefined readings for silo (logging removed for performance)
     return predefinedReadings[siloNum];
   }
   
@@ -535,7 +535,7 @@ export const getSensorReadings = (siloNum: number): number[] => {
   const baseTemp = silo.temp === 0 ? 25 + (siloNum % 10) : silo.temp; // Use realistic base temp for wheat silos
   const readings = generateSensorReadings(baseTemp);
   predefinedReadings[siloNum] = readings;
-  console.log(`Generated new readings for silo ${siloNum}:`, readings);
+  // Generated new readings for silo (logging removed for performance)
   return readings;
 };
 

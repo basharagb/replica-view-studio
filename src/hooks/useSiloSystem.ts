@@ -55,13 +55,13 @@ export const useSiloSystem = () => {
       if (selectedSilo) {
         try {
           const apiData = await fetchSiloDataWithRetry(selectedSilo, 2, 500);
-          console.log(`Auto-fetched data for selected silo ${selectedSilo}:`, apiData);
+          // Auto-fetched data for selected silo (logging removed for performance)
           // Update selected temperature with real API data
           setSelectedTemp(apiData.maxTemp);
           // Force UI re-render to show accurate sensor readings
           regenerateAllSiloData();
         } catch (error) {
-          console.log(`Could not fetch data for silo ${selectedSilo}, using simulated data:`, error);
+          // Could not fetch data for silo, using simulated data (logging removed for performance)
         }
       }
     };
@@ -149,7 +149,7 @@ export const useSiloSystem = () => {
         setAutoReadProgress(100);
         setAutoReadCompleted(true);
         clearAutoTestState();
-        console.log('Auto test completed - all 150 silos tested');
+        // Auto test completed - all 150 silos tested
         return;
       }
 
@@ -159,12 +159,12 @@ export const useSiloSystem = () => {
       setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
       setCurrentAutoTestIndex(currentIndex);
 
-      console.log(`Auto test: Starting silo ${currentSilo.num} (${currentIndex + 1}/${allSilos.length})`);
+      // Auto test: Starting silo (logging removed for performance)
 
       // Fetch real silo data from API during the 24-second interval
       try {
         const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
-        console.log(`Auto test: Fetched real data for silo ${currentSilo.num}:`, apiData);
+        // Auto test: Fetched real data for silo (logging removed for performance)
         
         // Update UI with real API data
         setSelectedTemp(apiData.maxTemp);
@@ -226,7 +226,7 @@ export const useSiloSystem = () => {
     setIsReading(true);
     setReadingSilo(siloNum);
 
-    console.log(`Starting manual test for silo ${siloNum}...`);
+    // Starting manual test for silo (logging removed for performance)
 
     // Fetch real silo data from API during the test duration
     try {
@@ -242,7 +242,7 @@ export const useSiloSystem = () => {
         new Promise(resolve => setTimeout(resolve, testDuration))
       ]);
 
-      console.log(`Manual test completed for silo ${siloNum}:`, apiData);
+      // Manual test completed for silo (logging removed for performance)
       
       // Update UI with real API data and force re-render
       setSelectedSilo(siloNum);
@@ -306,7 +306,7 @@ export const useSiloSystem = () => {
       setReadingMode('none');
       setIsWaitingForRestart(false);
       setWaitTimeRemaining(0);
-      console.log(`Auto test stopped by user at silo ${currentAutoTestIndex + 1}`);
+      // Auto test stopped by user (logging removed for performance)
       return;
     }
 
