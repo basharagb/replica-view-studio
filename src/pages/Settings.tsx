@@ -39,7 +39,7 @@ import {
   Lock,
   Mail,
   Phone,
-  LogOut
+  MessageSquare
 } from 'lucide-react';
 
 interface SettingsData {
@@ -86,6 +86,7 @@ interface SettingsData {
   proxyServer: string;
   
   // User Profile
+  username: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -144,6 +145,7 @@ const Settings = () => {
     proxyServer: '',
     
     // User Profile
+    username: 'bashar',
     firstName: 'Bashar',
     lastName: 'Zabadani',
     email: 'bashar@idealchip.com',
@@ -154,6 +156,10 @@ const Settings = () => {
 
   const [activeTab, setActiveTab] = useState<string>('general');
   const [isSaving, setIsSaving] = useState(false);
+  
+  // SMS Receivers tab separate state
+  const [smsUsername, setSmsUsername] = useState('');
+  const [smsPhone, setSmsPhone] = useState('');
 
   const handleSettingChange = (key: keyof SettingsData, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -197,6 +203,7 @@ const Settings = () => {
       retryAttempts: 3,
       proxyEnabled: false,
       proxyServer: '',
+      username: 'bashar',
       firstName: 'Bashar',
       lastName: 'Zabadani',
       email: 'bashar@idealchip.com',
@@ -214,7 +221,8 @@ const Settings = () => {
     { id: 'security', name: 'Security', icon: Shield },
     { id: 'data', name: 'Data', icon: Database },
     { id: 'network', name: 'Network', icon: Wifi },
-    { id: 'profile', name: 'Profile', icon: User }
+    { id: 'profile', name: 'Profile', icon: User },
+    { id: 'sms-receivers', name: 'SMS Receivers', icon: MessageSquare }
   ];
 
   return (
@@ -746,6 +754,7 @@ const Settings = () => {
                     <Input
                       value={settings.firstName}
                       onChange={(e) => handleSettingChange('firstName', e.target.value)}
+                      placeholder="Enter first name"
                     />
                   </div>
                   <div>
@@ -753,6 +762,7 @@ const Settings = () => {
                     <Input
                       value={settings.lastName}
                       onChange={(e) => handleSettingChange('lastName', e.target.value)}
+                      placeholder="Enter last name"
                     />
                   </div>
                 </div>
@@ -764,32 +774,67 @@ const Settings = () => {
                       type="email"
                       value={settings.email}
                       onChange={(e) => handleSettingChange('email', e.target.value)}
+                      placeholder="Enter email address"
                     />
                   </div>
-                  <div>
-                    <Label>Phone</Label>
-                    <Input
-                      value={settings.phone}
-                      onChange={(e) => handleSettingChange('phone', e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Role</Label>
                     <Input
                       value={settings.role}
                       onChange={(e) => handleSettingChange('role', e.target.value)}
+                      placeholder="Enter role"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <Label>Department</Label>
                     <Input
                       value={settings.department}
                       onChange={(e) => handleSettingChange('department', e.target.value)}
+                      placeholder="Enter department"
                     />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* SMS Receivers Settings */}
+          {activeTab === 'sms-receivers' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  SMS Receivers Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Username</Label>
+                    <Input
+                      value={smsUsername}
+                      onChange={(e) => setSmsUsername(e.target.value)}
+                      placeholder="enter user name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Phone Number</Label>
+                    <Input
+                      type="tel"
+                      value={smsPhone}
+                      onChange={(e) => setSmsPhone(e.target.value)}
+                      placeholder="enter phone number"
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex justify-start">
+                  <Button className="px-6 py-2">
+                    Add
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -799,17 +844,6 @@ const Settings = () => {
 
       {/* Action Buttons */}
       <div className="mt-6 flex justify-end space-x-4">
-        <Button
-          variant="destructive"
-          className="mr-auto"
-          onClick={() => {
-            logout();
-            navigate('/login', { replace: true });
-          }}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Logout
-        </Button>
         <Button variant="outline" onClick={handleReset}>
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset to Defaults
