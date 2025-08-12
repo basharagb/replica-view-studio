@@ -176,8 +176,8 @@ export const useSiloSystem = () => {
         // Mark this silo as completed for sensor display logic
         markSiloCompleted(currentSilo.num);
         
-        // Force a re-render by regenerating silo data to pick up API changes
-        regenerateAllSiloData();
+        // Force a re-render without clearing cached API data
+        setDataVersion(prev => prev + 1);
         
       } catch (error) {
         console.error(`Auto test: Failed to fetch data for silo ${currentSilo.num}:`, error);
@@ -257,8 +257,8 @@ export const useSiloSystem = () => {
       setIsReading(false);
       setReadingSilo(null);
       
-      // Force a re-render by regenerating silo data to pick up API changes
-      regenerateAllSiloData();
+      // Force a re-render without clearing cached API data
+      setDataVersion(prev => prev + 1);
       
     } catch (error) {
       console.error(`Manual test failed for silo ${siloNum}:`, error);

@@ -44,7 +44,9 @@ const LabCylinderComponent = ({
         </div>
         <div className="text-xs text-center text-lab-text mb-3">
           {readingSilo ? (
-            <span className="text-blue-600 font-bold animate-pulse">Reading Silo {readingSilo}</span>
+            <span className="text-blue-600 font-bold animate-pulse">
+              Reading Silo {readingSilo === 1 ? 1 : readingSilo - 1}
+            </span>
           ) : (
             <span>Silo {selectedSilo || 112}</span>
           )}
@@ -75,7 +77,7 @@ const LabCylinderComponent = ({
             };
 
             return (
-              <div key={sensorLabel} className={`flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundClass()}`}>
+              <div key={sensorLabel} className={`h-6 flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundClass()}`}>
                 {readingSilo && (
                   <div className="absolute inset-0 bg-blue-100 bg-opacity-40 rounded"></div>
                 )}

@@ -3,6 +3,7 @@ import { LabGroup } from './LabGroup';
 import { LabCircle } from './LabCircle';
 import { LabNumberSquare } from './LabNumberSquare';
 import { LabCylinder } from './LabCylinder';
+import { GrainLevelCylinder } from './GrainLevelCylinder';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { useSiloSystem } from '../hooks/useSiloSystem';
@@ -10,6 +11,7 @@ import { topSiloGroups, bottomSiloGroups, temperatureScaleValues } from '../serv
 import EnhancedTemperatureDisplay from './EnhancedTemperatureDisplay';
 import EnhancedSensorPanel from './EnhancedSensorPanel';
 import AlertSystem from './AlertSystem';
+import ResetButtons from './ResetButtons';
 
 export const LabInterface = () => {
   const {
@@ -196,16 +198,28 @@ export const LabInterface = () => {
             </div>
           </div>
 
-          {/* Right side with cylinder, input, and controls */}
+          {/* Right side with cylinders, input, and controls */}
           <div className="flex flex-col items-center gap-4 2xl:gap-6 3xl:gap-8" data-testid="control-panel">
-            <LabCylinder
-              key={`cylinder-${dataVersion}`}
-              selectedSilo={selectedSilo}
-              readingSilo={readingSilo}
-              onSiloClick={handleSiloClick}
-              // LabCylinder is completely independent of hover state
-              // Only shows readings for selected or reading silo
-            />
+            {/* Cylinder Components Side by Side */}
+            <div className="flex items-start">
+              <div style={{ marginLeft: '-3px' }}>
+                <LabCylinder
+                  key={`cylinder-${dataVersion}`}
+                  selectedSilo={selectedSilo}
+                  readingSilo={readingSilo}
+                  onSiloClick={handleSiloClick}
+                  // LabCylinder is completely independent of hover state
+                  // Only shows readings for selected or reading silo
+                />
+              </div>
+              <GrainLevelCylinder
+                key={`grain-cylinder-${dataVersion}`}
+                selectedSilo={selectedSilo}
+                readingSilo={readingSilo}
+                onSiloClick={handleSiloClick}
+                isAutoTestRunning={isReading}
+              />
+            </div>
             <div className="w-20 2xl:w-24 3xl:w-28">
               <Input
                 value={selectedSilo}
@@ -270,7 +284,7 @@ export const LabInterface = () => {
               {isReading && readingSilo && (
                 <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
                   <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  Reading Silo {readingSilo}
+                  Reading Silo {readingSilo === 1 ? 1 : readingSilo - 1}
                 </div>
               )}
             </div>
@@ -292,8 +306,14 @@ export const LabInterface = () => {
         </div>
       )}
 
-      {/* Enhanced Alert System */}
-      <AlertSystem />
+      {/* Enhanced Alert System and Reset Buttons */}
+      <div className="flex items-center gap-4 justify-between">
+        <AlertSystem />
+        <ResetButtons 
+          onAutoTestStop={startAutoRead}
+          isAutoTestRunning={isReading}
+        />
+      </div>
     </div>
   );
 };
