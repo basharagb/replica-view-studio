@@ -82,8 +82,18 @@ const generateWheatSilo = (num: number): Silo => {
 
 // Generate silo with 8 sensors and calculate temperature using priority hierarchy
 const generateSiloWithSensors = (num: number): Silo => {
-  // Always return wheat color silo (zero temperature) initially
-  // Data will only be loaded after auto test completes for each silo
+  // Check if API data is available for this silo
+  const apiData = getSiloData(num);
+  
+  if (apiData && apiData.isLoaded) {
+    // Use API data - return silo with actual temperature from API
+    return {
+      num,
+      temp: apiData.maxTemp
+    };
+  }
+  
+  // Return wheat color silo (zero temperature) if no API data available
   return generateWheatSilo(num);
 };
 

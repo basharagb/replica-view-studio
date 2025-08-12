@@ -1,6 +1,14 @@
 import { SiloReportData, AlarmReportData, SensorReading } from '../types/reports';
 import { getSiloColorByNumber, getAlertLevel, getSensorReadings } from './siloData';
 import { topSiloGroups, bottomSiloGroups, cylinderSilos } from './siloData';
+import { 
+  fetchHistoricalSiloData, 
+  generateSiloReportData as generateApiSiloReportData,
+  generateTemperatureGraphData,
+  getAlarmedSilosFromApi,
+  HistoricalSiloData,
+  SiloReportRecord
+} from './historicalSiloApiService';
 
 // Get all available silo numbers from the system
 export const getAllSiloNumbers = (): number[] => {
@@ -33,8 +41,12 @@ let cachedAlarmedSilos: Array<{ number: number; status: string }> | null = null;
 let cacheTimestamp: number = 0;
 const CACHE_DURATION = 30000; // 30 seconds
 
-// Get silos that currently have alarms
-export const getAlarmedSilos = (forceRefresh: boolean = false): Array<{ number: number; status: string }> => {
+// Get silos that currently have alarms using REAL API DATA
+export const getAlarmedSilos = async (
+  forceRefresh: boolean = false,
+  startDate?: Date,
+  endDate?: Date
+): Promise<Array<{ number: number; status: string }>> => {
   const now = Date.now();
   
   // Use cached data if available and not expired, unless force refresh
@@ -42,26 +54,49 @@ export const getAlarmedSilos = (forceRefresh: boolean = false): Array<{ number: 
     return cachedAlarmedSilos;
   }
   
+  try {
+    // Use provided date range or default to last 24 hours for current alarms
+    const end = endDate || new Date();
+    const start = startDate || new Date(end.getTime() - 24 * 60 * 60 * 1000);
+    
+    const allSiloNumbers = getAllSiloNumbers();
+    const alarmedSilos = await getAlarmedSilosFromApi(allSiloNumbers, start, end);
+    
+    const result = alarmedSilos.map(silo => ({
+      number: silo.number,
+      status: silo.status
+    }));
+    
+    // Cache the results
+    cachedAlarmedSilos = result;
+    cacheTimestamp = now;
+    
+    return result;
+    
+  } catch (error) {
+    console.error('Error getting alarmed silos from API:', error);
+    
+    // Fallback to local data if API fails
+    console.warn('Falling back to local data for alarmed silos');
+    return getFallbackAlarmedSilos();
+  }
+};
+
+// Fallback function for local alarmed silos when API fails
+const getFallbackAlarmedSilos = (): Array<{ number: number; status: string }> => {
   const allSiloNumbers = getAllSiloNumbers();
   const alarmedSilos: Array<{ number: number; status: string }> = [];
   
   allSiloNumbers.forEach(siloNum => {
     const sensorReadings = getSensorReadings(siloNum);
     const maxTemp = Math.max(...sensorReadings);
-    const alertLevel = getAlertLevel(maxTemp);
     
-    // Consider Warning and Critical as alarmed states
-    if (alertLevel === 'warning' || alertLevel === 'critical') {
-      alarmedSilos.push({
-        number: siloNum,
-        status: alertLevel === 'critical' ? 'Critical' : 'Warning'
-      });
+    if (maxTemp >= 40.0) {
+      alarmedSilos.push({ number: siloNum, status: 'Critical' });
+    } else if (maxTemp >= 35.0) {
+      alarmedSilos.push({ number: siloNum, status: 'Warning' });
     }
   });
-  
-  // Update cache
-  cachedAlarmedSilos = alarmedSilos;
-  cacheTimestamp = now;
   
   return alarmedSilos;
 };
@@ -111,122 +146,262 @@ const generateAlarmStatus = (sensorReadings: SensorReading): 'Normal' | 'Warning
   return 'Normal';
 };
 
-// Generate silo report data for a specific silo and time period
-export const generateSiloReportData = (
+// Generate silo report data for a specific silo and time period using REAL API DATA
+export const generateSiloReportData = async (
+  siloNumber: number,
+  startDate: Date,
+  endDate: Date
+): Promise<SiloReportData[]> => {
+  try {
+    // Fetch real data from API
+    const apiReportData = await generateApiSiloReportData(siloNumber, startDate, endDate);
+    
+    // Convert to expected format matching SiloReportData interface
+    return apiReportData.map(record => {
+      const sensorReading = generateHistoricalSensorReadings(siloNumber, record.timestamp);
+      return {
+        dateTime: record.timestamp,
+        sensorReadings: sensorReading,
+        alarmStatus: record.alertStatus,
+        siloTemperature: record.maxTemp
+      };
+    }).sort((a, b) => b.dateTime.getTime() - a.dateTime.getTime());
+    
+  } catch (error) {
+    console.error('Error generating silo report data from API:', error);
+    
+    // Fallback to simulated data if API fails
+    console.warn('Falling back to simulated data for silo report');
+    return generateFallbackSiloReportData(siloNumber, startDate, endDate);
+  }
+};
+
+// Fallback function for simulated data when API fails
+const generateFallbackSiloReportData = (
   siloNumber: number,
   startDate: Date,
   endDate: Date
 ): SiloReportData[] => {
-  const data: SiloReportData[] = [];
+  const reportData: SiloReportData[] = [];
   const timeDiff = endDate.getTime() - startDate.getTime();
-  const intervalMinutes = Math.max(5, Math.floor(timeDiff / (1000 * 60 * 100))); // Max 100 records
   
-  let currentTime = new Date(startDate);
+  // Generate 24 data points regardless of time period (FIXED SYSTEM)
+  const dataPoints = 24;
+  const intervalMs = timeDiff / (dataPoints - 1);
   
-  while (currentTime <= endDate) {
-    const sensorReadings = generateHistoricalSensorReadings(siloNumber, currentTime);
-    const alarmStatus = generateAlarmStatus(sensorReadings);
-    const siloTemperature = Math.max(
-      sensorReadings.sensor1,
-      sensorReadings.sensor2,
-      sensorReadings.sensor3,
-      sensorReadings.sensor4,
-      sensorReadings.sensor5,
-      sensorReadings.sensor6,
-      sensorReadings.sensor7,
-      sensorReadings.sensor8
-    );
+  for (let i = 0; i < dataPoints; i++) {
+    const currentTime = new Date(startDate.getTime() + (intervalMs * i));
+    const sensorReading = generateHistoricalSensorReadings(siloNumber, currentTime);
+    const alarmStatus = generateAlarmStatus(sensorReading);
     
-    data.push({
-      dateTime: new Date(currentTime),
-      sensorReadings,
-      alarmStatus,
-      siloTemperature
+    const temps = [
+      sensorReading.sensor1, sensorReading.sensor2, sensorReading.sensor3, sensorReading.sensor4,
+      sensorReading.sensor5, sensorReading.sensor6, sensorReading.sensor7, sensorReading.sensor8
+    ];
+    const maxTemp = Math.max(...temps);
+    
+    reportData.push({
+      dateTime: currentTime,
+      sensorReadings: sensorReading,
+      alarmStatus: alarmStatus,
+      siloTemperature: maxTemp
     });
-    
-    // Move to next interval
-    currentTime = new Date(currentTime.getTime() + intervalMinutes * 60 * 1000);
   }
   
-  return data;
+  return reportData.sort((a, b) => b.dateTime.getTime() - a.dateTime.getTime());
 };
 
-// Generate alarm report data for multiple silos and time period
-export const generateAlarmReportData = (
+// Generate alarm report data for multiple silos and time period using REAL API DATA
+export const generateAlarmReportData = async (
+  siloNumbers: number[],
+  startDate: Date,
+  endDate: Date
+): Promise<AlarmReportData[]> => {
+  try {
+    // Fetch real historical data from API
+    const historicalData = await fetchHistoricalSiloData(siloNumbers, startDate, endDate);
+    
+    // Filter only records with alarms and convert to expected format
+    const alarmData: AlarmReportData[] = historicalData
+      .filter(record => record.alertLevel === 'Warning' || record.alertLevel === 'Critical')
+      .map(record => {
+        const sensorReading = generateHistoricalSensorReadings(record.siloNumber, record.timestamp);
+        return {
+          siloNumber: record.siloNumber,
+          dateTime: record.timestamp,
+          sensorReadings: sensorReading,
+          alarmStatus: record.alertLevel as 'Warning' | 'Critical',
+          siloTemperature: record.maxTemp
+        };
+      });
+    
+    return alarmData.sort((a, b) => b.dateTime.getTime() - a.dateTime.getTime());
+    
+  } catch (error) {
+    console.error('Error generating alarm report data from API:', error);
+    
+    // Fallback to simulated data if API fails
+    console.warn('Falling back to simulated data for alarm report');
+    return generateFallbackAlarmReportData(siloNumbers, startDate, endDate);
+  }
+};
+
+// Fallback function for simulated alarm data when API fails
+const generateFallbackAlarmReportData = (
   siloNumbers: number[],
   startDate: Date,
   endDate: Date
 ): AlarmReportData[] => {
-  const data: AlarmReportData[] = [];
+  const alarmData: AlarmReportData[] = [];
   
   siloNumbers.forEach(siloNumber => {
-    const siloData = generateSiloReportData(siloNumber, startDate, endDate);
+    const siloReportData = generateFallbackSiloReportData(siloNumber, startDate, endDate);
     
-    // Convert to alarm report data and filter only alarmed records
-    siloData.forEach(record => {
-      if (record.alarmStatus === 'Warning' || record.alarmStatus === 'Critical') {
-        data.push({
-          ...record,
-          siloNumber
-        });
-      }
+    // Filter only records with alarms (Warning or Critical)
+    const alarmedRecords = siloReportData.filter(record => 
+      record.alarmStatus === 'Warning' || record.alarmStatus === 'Critical'
+    );
+    
+    alarmedRecords.forEach(record => {
+      alarmData.push({
+        siloNumber: siloNumber,
+        dateTime: record.dateTime,
+        sensorReadings: record.sensorReadings,
+        alarmStatus: record.alarmStatus,
+        siloTemperature: record.siloTemperature
+      });
     });
   });
   
-  // Sort by date time and then by silo number
-  return data.sort((a, b) => {
-    const timeDiff = a.dateTime.getTime() - b.dateTime.getTime();
-    if (timeDiff !== 0) return timeDiff;
-    return a.siloNumber - b.siloNumber;
-  });
+  return alarmData.sort((a, b) => b.dateTime.getTime() - a.dateTime.getTime());
 };
 
-// Generate temperature history for graphs using FIXED 24-UNIT SYSTEM
-export const generateTemperatureHistory = (
+// Generate temperature history for graphs using REAL API DATA
+export const generateTemperatureHistory = async (
+  siloNumber: number,
+  startDate: Date,
+  endDate: Date
+): Promise<Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }>> => {
+  try {
+    // Fetch real historical data from API
+    const historicalData = await fetchHistoricalSiloData([siloNumber], startDate, endDate);
+    
+    // Convert to expected format with proper time formatting
+    const timeDiff = endDate.getTime() - startDate.getTime();
+    const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+    
+    return historicalData.map(record => {
+      // Format time based on the time period
+      let timeFormat: string;
+      
+      if (daysDiff <= 1) {
+        // For single day: show hours and minutes
+        timeFormat = record.timestamp.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      } else if (daysDiff <= 3) {
+        // For 1-3 days: show date and hour
+        timeFormat = record.timestamp.toLocaleDateString('en-US', {
+          month: 'short',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      } else {
+        // For longer periods: show date only
+        timeFormat = record.timestamp.toLocaleDateString('en-US', {
+          month: 'short',
+          day: '2-digit'
+        });
+      }
+      
+      return {
+        time: timeFormat,
+        maxTemp: record.maxTemp,
+        avgTemp: record.avgTemp,
+        minTemp: record.minTemp
+      };
+    }).sort((a, b) => {
+      // Sort by timestamp (convert back to compare)
+      const aTime = historicalData.find(h => h.maxTemp === a.maxTemp)?.timestamp.getTime() || 0;
+      const bTime = historicalData.find(h => h.maxTemp === b.maxTemp)?.timestamp.getTime() || 0;
+      return aTime - bTime;
+    });
+    
+  } catch (error) {
+    console.error('Error generating temperature history from API:', error);
+    
+    // Fallback to simulated data if API fails
+    console.warn('Falling back to simulated data for temperature history');
+    return generateFallbackTemperatureHistory(siloNumber, startDate, endDate);
+  }
+};
+
+// Fallback function for simulated temperature history when API fails
+const generateFallbackTemperatureHistory = (
   siloNumber: number,
   startDate: Date,
   endDate: Date
 ): Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> => {
-  const history: Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> = [];
+  const historyData: Array<{ time: string; maxTemp: number; avgTemp: number; minTemp: number }> = [];
+  const timeDiff = endDate.getTime() - startDate.getTime();
   
-  // FIXED 24-UNIT HORIZONTAL AXIS SYSTEM
-  // Calculate total hours between start and end dates
-  const totalHours = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60));
-  
-  // Minimum range validation: Cannot generate graphs for less than 24 hours
-  if (totalHours < 24) {
-    throw new Error('Cannot generate graphs for less than 24 hours. Please select a range of at least 24 hours.');
-  }
-  
-  // ALWAYS use exactly 24 data points (fixed horizontal units)
+  // Always generate exactly 24 data points for consistent graph display
   const dataPoints = 24;
-  
-  // Calculate hours per unit: Total hours ÷ 24 units
-  const hoursPerUnit = totalHours / 24;
-  const timeInterval = hoursPerUnit * 60 * 60 * 1000; // Convert to milliseconds
+  const intervalMs = timeDiff / (dataPoints - 1);
   
   for (let i = 0; i < dataPoints; i++) {
-    const currentTime = new Date(startDate.getTime() + (i * timeInterval));
+    const currentTime = new Date(startDate.getTime() + (intervalMs * i));
+    const sensorReading = generateHistoricalSensorReadings(siloNumber, currentTime);
     
-    // Generate realistic temperature variations
-    const baseSensorReadings = getSensorReadings(siloNumber);
-    const baseTemp = Math.max(...baseSensorReadings);
+    // Format time based on the time period
+    let timeFormat: string;
+    const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
     
-    // Add some historical variation (±5°C)
-    const variation = (Math.random() - 0.5) * 10;
-    const maxTemp = Math.max(20, Math.min(60, baseTemp + variation));
-    const avgTemp = maxTemp - (Math.random() * 3); // Average slightly lower
-    const minTemp = avgTemp - (Math.random() * 5); // Min lower than average
+    if (daysDiff <= 1) {
+      // For single day: show hours and minutes
+      timeFormat = currentTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } else if (daysDiff <= 3) {
+      // For 1-3 days: show date and hour
+      timeFormat = currentTime.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } else {
+      // For longer periods: show date only
+      timeFormat = currentTime.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit'
+      });
+    }
     
-    history.push({
-      time: currentTime.toISOString(),
-      maxTemp: parseFloat(maxTemp.toFixed(1)),
-      avgTemp: parseFloat(avgTemp.toFixed(1)),
-      minTemp: parseFloat(minTemp.toFixed(1))
+    const temps = [
+      sensorReading.sensor1, sensorReading.sensor2, sensorReading.sensor3, sensorReading.sensor4,
+      sensorReading.sensor5, sensorReading.sensor6, sensorReading.sensor7, sensorReading.sensor8
+    ];
+    const maxTemp = Math.max(...temps);
+    const avgTemp = temps.reduce((sum, temp) => sum + temp, 0) / temps.length;
+    const minTemp = Math.min(...temps);
+    
+    historyData.push({
+      time: timeFormat,
+      maxTemp: Math.round(maxTemp * 100) / 100,
+      avgTemp: Math.round(avgTemp * 100) / 100,
+      minTemp: Math.round(minTemp * 100) / 100
     });
   }
   
-  return history;
+  return historyData;
 };
 
 // Export report data to CSV format (for future use)
