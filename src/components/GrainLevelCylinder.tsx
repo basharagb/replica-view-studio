@@ -88,8 +88,8 @@ const GrainLevelCylinderComponent = ({
   };
 
   return (
-    <div className="relative">
-      <div className="bg-lab-cylinder border-2 border-gray-400 rounded-lg" style={{ width: '83px', padding: '6px' }} data-testid="grain-level-cylinder">
+    <div className="relative" style={{ height: '100%', minHeight: '350px' }}>
+      <div className="bg-lab-cylinder border-2 border-gray-400 rounded-lg" style={{ width: '83px', padding: '6px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} data-testid="grain-level-cylinder">
         <div className="text-xs font-bold text-center text-lab-text" style={{ marginBottom: '6px' }}>
           Grain Level
         </div>
@@ -117,7 +117,7 @@ const GrainLevelCylinderComponent = ({
         </div>
         
         {/* 8 Grain Level Indicators - displayed from top (L8) to bottom (L1) with liquid pouring animation */}
-        <div className="flex flex-col" style={{ gap: '3px', height: '208px', minHeight: '208px' }}>
+        <div className="flex flex-col" style={{ gap: '3px', flex: 1, overflow: 'hidden' }}>
           {[...Array(8)].map((_, index) => {
             const levelNumber = 8 - index; // L8 at top, L1 at bottom
             const currentLevel = readingSilo || isAutoTestRunning ? pouringLevel : Math.max(...grainLevels);

@@ -37,8 +37,8 @@ const LabCylinderComponent = ({
   // };
 
   return (
-    <div className="relative">
-      <div className="w-32 bg-lab-cylinder border-2 border-gray-400 rounded-lg p-2" data-testid="lab-cylinder">
+    <div className="relative" style={{ height: '100%', minHeight: '352px' }}>
+      <div className="w-32 bg-lab-cylinder border-2 border-gray-400 rounded-lg p-2" style={{ height: '100%', display: 'flex', flexDirection: 'column' }} data-testid="lab-cylinder">
         <div className="text-xs font-bold text-center text-lab-text mb-2">
           Silo Sensors
         </div>
@@ -62,7 +62,7 @@ const LabCylinderComponent = ({
           </div>
         </div>
         
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1" style={{ flex: 1, overflow: 'hidden' }}>
           {[...sensorReadings].reverse().map((reading, revIndex) => {
             const sensorLabel = 8 - revIndex; // Keep S1..S8 labels aligned with physical mapping after visual flip
             const tempColor = getTemperatureColor(reading);
