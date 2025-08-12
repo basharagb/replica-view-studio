@@ -1,11 +1,50 @@
 # Scratchpad - Jarvis
 
-## Current Task: FIX LOGIN AUTHENTICATION ISSUES
+## Current Task: MAJOR MAINTENANCE PAGE IMPLEMENTATION
 
-**Status: ✅ COMPLETED**
-**Started:** 2025-08-12T23:40:00+03:00
-**Completed:** 2025-08-12T23:45:00+03:00
-**Priority:** CRITICAL - Fix login authentication not working despite API returning 200 OK
+**Status: 🚧 IN PROGRESS**
+**Started:** 2025-08-12T23:45:34+03:00
+**Priority:** CRITICAL - Major system change for Maintenance page with cable/sensor visualization
+
+### REQUIREMENTS ANALYSIS
+1. **Maintenance Page**: Similar to Live Readings but with key differences
+   - Title: "Maintenance" (not "Live Readings")
+   - Manual mode only (no auto test functionality)
+   - Different silo interaction behavior
+
+2. **Silo Types & Cable Configuration**:
+   - **Circular Silos**: 2 cables, each with 8 sensors (16 total sensors)
+     - Cable 0: level_0_cable_0 to level_7_cable_0
+     - Cable 1: level_0_cable_1 to level_7_cable_1
+     - S1 = average(level_0_cable_0, level_0_cable_1)
+     - S2 = average(level_1_cable_0, level_1_cable_1), etc.
+   - **Square Silos**: 1 cable with 8 sensors (8 total sensors)
+     - Single cable: level_0 to level_7 directly
+
+3. **Interactive Behavior**:
+   - Click silo → Color changes immediately based on API
+   - Opens animated popup showing cable states
+   - Popup shows all cables and sensors for clicked silo
+   - Interactive and animated design
+
+4. **API Integration**:
+   - New API structure with cable-specific data
+   - Immediate color updates on silo click
+   - Cable state visualization in popup
+
+### IMPLEMENTATION PLAN
+- [x] Create new Maintenance page component (cleaned up Maintenance.tsx)
+- [x] Create MaintenanceInterface component
+- [x] Create animated cable state popup component (MaintenanceCablePopup)
+- [x] Fix API port configuration (changed from 5001 to 5000 for login)
+- [ ] Implement cable-aware silo data structure
+- [ ] Update API service for cable data
+- [ ] Integrate with existing silo layout
+- [ ] Add routing and navigation
+- [ ] Test and deploy to GitHub main branch
+
+### RECENT FIXES
+- **Login API Port Fix**: Changed authService API_BASE_URL from `192.168.1.14:5001` to `192.168.1.14:5000` to match user's API endpoint
 
 ### REQUIREMENTS
 1. **Token Validation Fix**: Fix isTokenValid logic (Date.now() < decoded.exp) ✅

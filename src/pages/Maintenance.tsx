@@ -1,183 +1,31 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { useTheme } from '../contexts/ThemeContext';
-import {
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  Thermometer,
-  Clock,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Wrench,
-  Settings,
-  Tool
-} from 'lucide-react';
-
-interface MaintenanceData {
-  totalTests: number;
-  successRate: number;
-  averageTemperature: number;
-  temperatureRange: { min: number; max: number };
-  totalSilos: number;
-  lastTestTime: Date;
-  performanceMetrics: {
-    responseTime: number;
-    throughput: number;
-    errorRate: number;
-  };
-  recentActivity: Array<{
-    id: string;
-    type: 'test' | 'alert' | 'maintenance';
-    message: string;
-    timestamp: Date;
-    status: 'success' | 'warning' | 'error';
-  }>;
-}
+import { MaintenanceInterface } from "../components/MaintenanceInterface";
 
 const Maintenance = () => {
-  const [timeRange, setTimeRange] = useState<string>('7d');
-  const [selectedMetric, setSelectedMetric] = useState<string>('temperature');
-  const { isDark } = useTheme();
-
-  // Mock maintenance data
-  const maintenanceData: MaintenanceData = {
-    totalTests: 156,
-    successRate: 94.2,
-    averageTemperature: 32.8,
-    temperatureRange: { min: 20.1, max: 49.8 },
-    totalSilos: 150,
-    lastTestTime: new Date(),
-    performanceMetrics: {
-      responseTime: 2.3,
-      throughput: 45.2,
-      errorRate: 2.1
-    },
-    recentActivity: [
-      {
-        id: '1',
-        type: 'test',
-        message: 'Auto readings completed - 150 silos tested',
-        timestamp: new Date('2024-08-04T12:30:00'),
-        status: 'success'
-      },
-      {
-        id: '2',
-        type: 'alert',
-        message: 'High temperature detected in silo 112',
-        timestamp: new Date('2024-08-04T12:25:00'),
-        status: 'warning'
-      },
-      {
-        id: '3',
-        type: 'test',
-        message: 'Manual test failed - connection timeout',
-        timestamp: new Date('2024-08-04T12:20:00'),
-        status: 'error'
-      },
-      {
-        id: '4',
-        type: 'maintenance',
-        message: 'System maintenance completed',
-        timestamp: new Date('2024-08-04T12:15:00'),
-        status: 'success'
-      }
-    ]
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'success': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'error': return <XCircle className="h-4 w-4 text-red-500" />;
-      default: return null;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'success': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'warning': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'error': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-    }
-  };
-
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Wrench className={`h-8 w-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Maintenance Dashboard
-          </h1>
-        </div>
-        <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          Industrial maintenance diagnostics and system performance monitoring
-        </p>
-      </div>
-
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            Time Range
-          </label>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
-              <SelectValue placeholder="Select time range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1d">Last 24 Hours</SelectItem>
-              <SelectItem value="7d">Last 7 Days</SelectItem>
-              <SelectItem value="30d">Last 30 Days</SelectItem>
-              <SelectItem value="90d">Last 90 Days</SelectItem>
-            </SelectContent>
-          </Select>
+    <div className="min-h-screen bg-background p-2 sm:p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6 lg:mb-8">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 sm:p-6 rounded-lg shadow-lg">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
+              Maintenance
+            </h1>
+            <p className="text-blue-100 text-sm sm:text-base lg:text-lg">
+              Cable and sensor maintenance interface with manual testing capabilities.
+            </p>
+          </div>
         </div>
 
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            Metric
-          </label>
-          <Select value={selectedMetric} onValueChange={setSelectedMetric}>
-            <SelectTrigger className={isDark ? 'bg-gray-800 border-gray-600 text-white' : ''}>
-              <SelectValue placeholder="Select metric" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="temperature">Temperature</SelectItem>
-              <SelectItem value="performance">Performance</SelectItem>
-              <SelectItem value="tests">Test Results</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-end">
-          <Button variant="outline" className={isDark ? 'border-gray-600 text-white hover:bg-gray-700' : ''}>
-            Export Data
-          </Button>
+        {/* Main Interface */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+          <MaintenanceInterface />
         </div>
       </div>
+    </div>
+  );
+};
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className={`text-sm font-medium ${isDark ? 'text-gray-200' : ''}`}>
-              Maintenance Checks
-            </CardTitle>
-            <Tool className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-muted-foreground'}`} />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${isDark ? 'text-white' : ''}`}>
-              {maintenanceData.totalTests}
-            </div>
-            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-muted-foreground'}`}>
-              +12% from last period
+export default Maintenance;
             </p>
           </CardContent>
         </Card>
@@ -210,7 +58,7 @@ const Maintenance = () => {
             <div className={`text-2xl font-bold ${isDark ? 'text-white' : ''}`}>
               {maintenanceData.averageTemperature}°C
             </div>
-            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-muted-foreground'}`}>
+            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
               Range: {maintenanceData.temperatureRange.min}°C - {maintenanceData.temperatureRange.max}°C
             </p>
           </CardContent>
