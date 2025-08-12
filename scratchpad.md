@@ -1,10 +1,60 @@
 # Scratchpad - Jarvis
 
-## Current Task: RESTORE ALERT SILO MONITORING FUNCTIONALITY
+## Current Task: IMPLEMENT FAST SEARCH FOR ALERTED SILOS
 
 **Status: ✅ COMPLETED**
-**Started:** 2025-08-12T22:14:10+03:00
-**Priority:** CRITICAL - Restore deleted Alert Silo Monitoring API integration
+**Started:** 2025-08-12T22:43:39+03:00
+**Completed:** 2025-08-12T22:52:42+03:00
+**Priority:** HIGH - Add fast search functionality for alerted silos across multiple components
+
+### REQUIREMENTS
+1. **Enhanced Temperature Graphs**: Fast search for alerted silos in "Alert Silos Graph" tab ✅
+2. **Alarm Report**: Fast search for alerted silos in silo selection dropdown ✅
+3. **Live Readings Page**: Add alerts search functionality with cached alerted silos ✅
+4. **Independence**: Must not affect manual/auto test functionality in Live Readings ✅
+5. **Caching**: Implement cached alerted silos for fast access across components ✅
+
+### IMPLEMENTATION PLAN
+- [x] Create enhanced search service for alerted silos with caching
+- [x] Update Enhanced Temperature Graphs with fast alerted silo search
+- [x] Update Alarm Report with improved search functionality
+- [x] Add alerts search panel to Live Readings page (separate from test silos)
+- [x] Ensure complete independence from manual/auto test systems
+- [x] **CRITICAL ONLY**: Modified to show only Critical alerts, filtered out Warning alerts
+
+### ISSUES IDENTIFIED
+1. **SiloReport**: Uses `datetime-local` (includes minutes) ❌ - Should use date + hour only like graphs
+2. **AlarmReport**: Already uses correct date + hour structure ✅
+3. **SiloReport**: Has pagination ✅
+4. **AlarmReport**: Missing pagination ❌ - Loads all data without pagination
+
+### REQUIREMENTS
+- **Date/Time Structure**: Must match Enhanced Temperature Graphs exactly
+  - Date input + Hour dropdown (no minutes)
+  - Format: `YYYY-MM-DDTHH:00` (always :00 for minutes)
+- **Pagination**: ALL reports must have pagination (24 rows per page)
+- **Consistency**: Same user experience across graphs and reports
+
+### IMPLEMENTATION PLAN
+- [x] Fix SiloReport date/time inputs (remove datetime-local, add date + hour)
+- [x] Add pagination to AlarmReport (24 rows per page)
+- [x] Test both reports to ensure consistency with graphs
+- [x] Build successful with no errors
+- [ ] Commit and deploy changes
+
+### CHANGES COMPLETED
+1. **SiloReport.tsx**: Fixed date/time inputs to match graphs
+   - Removed `datetime-local` inputs (with minutes)
+   - Added date input + hour dropdown (no minutes)
+   - Format: `YYYY-MM-DDTHH:00` (always :00 for minutes)
+   - Labels updated to "Start Date & Hour" and "End Date & Hour"
+
+2. **AlarmReport.tsx**: Added pagination functionality
+   - Added pagination state: `currentPage`, `ROWS_PER_PAGE = 24`
+   - Added pagination calculations: `totalPages`, `startIndex`, `endIndex`, `currentPageData`
+   - Updated table to use `currentPageData` instead of full `reportData`
+   - Added pagination controls with navigation buttons and page numbers
+   - Added page reset when generating new reports
 
 ### CRITICAL ISSUE
 User reports that Alert Silo Monitoring functionality was deleted and needs immediate restoration.
@@ -53,8 +103,16 @@ User reports that Alert Silo Monitoring functionality was deleted and needs imme
 - [x] ✅ **VERIFIED FEATURES**: Real-time alert display, alert type indicators, affected sensor levels, timestamps all implemented
 - [x] ✅ **STARTED DEV SERVER**: Running on http://localhost:8088/
 - [x] ✅ **CREATED BROWSER PREVIEW**: Available at http://127.0.0.1:55500
+- [x] ✅ **IDENTIFIED CRITICAL ERROR**: "getAlarmedSilos(...).map is not a function"
+- [ ] 🔧 **FIX API RESPONSE HANDLING**: API not returning array as expected
 - [ ] Test with real API data and verify functionality
 - [ ] Commit and push to main branch
+
+### 🚨 CRITICAL ERROR FOUND
+**Error:** `getAlarmedSilos(...).map is not a function`
+**Root Cause:** API endpoint `http://idealchiprnd.pythonanywhere.com/alerts/active` is not returning an array
+**Impact:** Alert Silo Monitoring page crashes with white screen
+**Status:** Investigating and fixing now
 
 ### RESTORATION STATUS: ✅ COMPLETED
 **The Alert Silo Monitoring functionality has been successfully restored!**

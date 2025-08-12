@@ -87,7 +87,7 @@ const MaintenanceSystem: React.FC<MaintenanceSystemProps> = ({ className }) => {
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        const alarmed = getAlarmedSilos();
+        const alarmed = await getAlarmedSilos();
         setAlarmedSilos(alarmed);
         
         // Initialize with first 3 alarmed silos
@@ -131,8 +131,8 @@ const MaintenanceSystem: React.FC<MaintenanceSystemProps> = ({ className }) => {
         let maintenanceCount = 0;
         const hourAlerts: AlertEvent[] = [];
         
-        silos.forEach(siloNum => {
-          const history = generateTemperatureHistory(siloNum, start, end);
+        for (const siloNum of silos) {
+          const history = await generateTemperatureHistory(siloNum, start, end);
           const historyIndex = Math.floor((i / numPoints) * history.length);
           const tempData = history[historyIndex] || history[0];
           avgTemp += tempData.maxTemp;

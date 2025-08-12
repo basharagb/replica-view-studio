@@ -295,24 +295,75 @@ export const SiloReport: React.FC = () => {
           {/* Date Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Start Date</label>
-              <Input
-                type="datetime-local"
-                value={filters.startDate ? format(filters.startDate, "yyyy-MM-dd'T'HH:mm") : ''}
-                onChange={handleStartDateChange}
-                className="w-full"
-              />
+              <label className="text-sm font-medium">Start Date & Hour</label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={filters.startDate ? format(filters.startDate, "yyyy-MM-dd") : ''}
+                  onChange={(e) => {
+                    const dateValue = e.target.value;
+                    const currentHour = filters.startDate ? format(filters.startDate, "HH") : '00';
+                    if (dateValue) {
+                      const event = { target: { value: `${dateValue}T${currentHour}:00` } };
+                      handleStartDateChange(event as React.ChangeEvent<HTMLInputElement>);
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <select
+                  value={filters.startDate ? format(filters.startDate, "HH") : '00'}
+                  onChange={(e) => {
+                    const hour = e.target.value;
+                    const currentDate = filters.startDate ? format(filters.startDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+                    const event = { target: { value: `${currentDate}T${hour}:00` } };
+                    handleStartDateChange(event as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  className="w-20 px-2 py-1 border border-gray-300 rounded"
+                >
+                  {Array.from({length: 24}, (_, i) => (
+                    <option key={i} value={i.toString().padStart(2, '0')}>
+                      {i.toString().padStart(2, '0')}:00
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">End Date</label>
-              <Input
-                type="datetime-local"
-                value={filters.endDate ? format(filters.endDate, "yyyy-MM-dd'T'HH:mm") : ''}
-                onChange={handleEndDateChange}
-                disabled={!isEndDateEnabled}
-                className="w-full"
-                min={filters.startDate ? format(filters.startDate, "yyyy-MM-dd'T'HH:mm") : undefined}
-              />
+              <label className="text-sm font-medium">End Date & Hour</label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={filters.endDate ? format(filters.endDate, "yyyy-MM-dd") : ''}
+                  onChange={(e) => {
+                    const dateValue = e.target.value;
+                    const currentHour = filters.endDate ? format(filters.endDate, "HH") : '23';
+                    if (dateValue) {
+                      const event = { target: { value: `${dateValue}T${currentHour}:00` } };
+                      handleEndDateChange(event as React.ChangeEvent<HTMLInputElement>);
+                    }
+                  }}
+                  disabled={!isEndDateEnabled}
+                  className="flex-1"
+                  min={filters.startDate ? format(filters.startDate, "yyyy-MM-dd") : undefined}
+                />
+                <select
+                  value={filters.endDate ? format(filters.endDate, "HH") : '23'}
+                  onChange={(e) => {
+                    const hour = e.target.value;
+                    const currentDate = filters.endDate ? format(filters.endDate, "yyyy-MM-dd") : (filters.startDate ? format(filters.startDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"));
+                    const event = { target: { value: `${currentDate}T${hour}:00` } };
+                    handleEndDateChange(event as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  disabled={!isEndDateEnabled}
+                  className="w-20 px-2 py-1 border border-gray-300 rounded"
+                >
+                  {Array.from({length: 24}, (_, i) => (
+                    <option key={i} value={i.toString().padStart(2, '0')}>
+                      {i.toString().padStart(2, '0')}:00
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

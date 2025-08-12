@@ -3,10 +3,11 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { AlertTriangle, FileText, Printer, Download, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, FileText, Printer, Download, Clock, CheckCircle, XCircle, Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MultiSelectDropdown } from './MultiSelectDropdown';
 import { AlarmReportData, ReportFilters } from '../types/reports';
 import { getAlarmedSilos, generateAlarmReportData, clearAlarmedSilosCache } from '../services/reportService';
+import { alertedSiloSearchService, AlertedSilo } from '../services/alertedSiloSearchService';
 import { format } from 'date-fns';
 import { clearCacheAndReload } from '../utils/cache';
 
@@ -21,23 +22,67 @@ export const AlarmReport: React.FC = () => {
   const [isGenerated, setIsGenerated] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  const ROWS_PER_PAGE = 24;
+  const totalPages = Math.ceil(reportData.length / ROWS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const endIndex = startIndex + ROWS_PER_PAGE;
+  const currentPageData = reportData.slice(startIndex, endIndex);
 
-  // Get all alarmed silos for dropdown with memoization for consistency
-  const alarmedSilos = useMemo(() => {
-    return getAlarmedSilos(refreshKey > 0).map(silo => ({
+  // Enhanced alarmed silos management with fast search
+  const [alertedSilos, setAlertedSilos] = useState<AlertedSilo[]>([]);
+  const [alertStats, setAlertStats] = useState({ total: 0, critical: 0, warning: 0 });
+  const [isLoadingAlerts, setIsLoadingAlerts] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Critical' | 'Warning'>('All');
+
+  // Load alerted silos data with enhanced search service
+  useEffect(() => {
+    const loadAlertedSilos = async () => {
+      try {
+        setIsLoadingAlerts(true);
+        const silos = await alertedSiloSearchService.getAllAlertedSilos(refreshKey > 0);
+        const stats = await alertedSiloSearchService.getAlertStats();
+        
+        setAlertedSilos(silos);
+        setAlertStats(stats);
+      } catch (error) {
+        console.error('Error loading alerted silos:', error);
+        setAlertedSilos([]);
+        setAlertStats({ total: 0, critical: 0, warning: 0 });
+      } finally {
+        setIsLoadingAlerts(false);
+      }
+    };
+
+    loadAlertedSilos();
+  }, [refreshKey]);
+
+  // Fast search and filtering for dropdown options
+  const filteredAlertedSilos = useMemo(() => {
+    return alertedSilos.filter(silo => {
+      const matchesSearch = searchTerm === '' || 
+        silo.number.toString().includes(searchTerm) ||
+        silo.searchText.includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'All' || silo.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [alertedSilos, searchTerm, statusFilter]);
+
+  // Convert to dropdown format
+  const alarmedSilosDropdownOptions = useMemo(() => {
+    return filteredAlertedSilos.map(silo => ({
       value: silo.number.toString(),
-      label: `Silo ${silo.number}`,
+      label: `Silo ${silo.number} (${silo.status})`,
       isAlarmed: true
     }));
-  }, [refreshKey]);
+  }, [filteredAlertedSilos]);
 
-  // Separate counts for better UI display
-  const totalAlarmedCount = alarmedSilos.length;
+  // Counts for UI display
   const selectedCount = filters.selectedSilos?.length || 0;
-  const criticalCount = useMemo(() => {
-    return getAlarmedSilos(refreshKey > 0).filter(silo => silo.status === 'Critical').length;
-  }, [refreshKey]);
-  const warningCount = totalAlarmedCount - criticalCount;
 
   // Progressive enabling logic
   const isEndDateEnabled = filters.startDate !== null;
@@ -98,6 +143,7 @@ export const AlarmReport: React.FC = () => {
   };
 
   const handleRefreshData = () => {
+    alertedSiloSearchService.clearCache();
     clearAlarmedSilosCache();
     setRefreshKey(prev => prev + 1);
     setIsGenerated(false);
@@ -317,11 +363,7 @@ export const AlarmReport: React.FC = () => {
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1">
                 <XCircle className="h-4 w-4 text-red-500" />
-                <span className="text-red-600 font-medium">{criticalCount} Critical</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                <span className="text-yellow-600 font-medium">{warningCount} Warning</span>
+                <span className="text-red-600 font-medium">{alertStats.critical} Critical Alerts Only</span>
               </div>
               <Button
                 variant="outline"
@@ -344,7 +386,7 @@ export const AlarmReport: React.FC = () => {
               </label>
               <div className="flex items-center gap-2 text-sm">
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  {totalAlarmedCount} Total Available
+                  {alertStats.total} Total Available
                 </Badge>
                 {selectedCount > 0 && (
                   <Badge variant="default" className="bg-green-100 text-green-700 border-green-200">
@@ -353,8 +395,44 @@ export const AlarmReport: React.FC = () => {
                 )}
               </div>
             </div>
+            
+            {/* Fast Search Controls */}
+            <div className="space-y-2">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Fast search alerted silos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-8 text-sm"
+                />
+              </div>
+              
+              {/* Status Filter Buttons - Only Critical alerts shown */}
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="text-xs h-6 px-2 flex-1"
+                  disabled
+                >
+                  Critical Only ({alertStats.critical})
+                </Button>
+              </div>
+              
+              {/* Search Results Info */}
+              {(searchTerm || statusFilter !== 'All') && (
+                <div className="text-xs text-gray-500">
+                  Showing {filteredAlertedSilos.length} of {alertStats.total} alerted silos
+                  {isLoadingAlerts && <RefreshCw className="inline h-3 w-3 animate-spin ml-2" />}
+                </div>
+              )}
+            </div>
+
             <MultiSelectDropdown
-              options={alarmedSilos}
+              options={alarmedSilosDropdownOptions}
               selectedValues={filters.selectedSilos?.map(s => s.toString()) || []}
               onSelectionChange={handleSilosChange}
               placeholder="Select alarmed silos..."

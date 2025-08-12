@@ -87,7 +87,7 @@ const AlertAnalyticsSystem: React.FC<AlertAnalyticsSystemProps> = ({ className }
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        const alarmed = getAlarmedSilos();
+        const alarmed = await getAlarmedSilos();
         setAlarmedSilos(alarmed);
         
         // Initialize with first 3 alarmed silos

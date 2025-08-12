@@ -104,7 +104,7 @@ const AdvancedSiloVisualization: React.FC<AdvancedSiloVisualizationProps> = ({ c
       setIsLoading(true);
       try {
         const silos = getAllSiloNumbers();
-        const alarmed = getAlarmedSilos();
+        const alarmed = await getAlarmedSilos();
         setAllSilos(silos);
         setAlarmedSilos(alarmed);
         
