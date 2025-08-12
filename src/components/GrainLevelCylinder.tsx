@@ -88,7 +88,7 @@ const GrainLevelCylinderComponent = ({
   };
 
   return (
-    <div className="relative" style={{ height: '100%', minHeight: '350px' }}>
+    <div className="relative" style={{ height: '95%', minHeight: '325px' }}>
       <div className="bg-lab-cylinder border-2 border-gray-400 rounded-lg" style={{ width: '83px', padding: '6px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} data-testid="grain-level-cylinder">
         <div className="text-xs font-bold text-center text-lab-text" style={{ marginBottom: '6px' }}>
           Grain Level
