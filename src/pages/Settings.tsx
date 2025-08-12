@@ -10,6 +10,8 @@ import { Textarea } from '../components/ui/textarea';
 import { Separator } from '../components/ui/separator';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSiloSystem } from '../hooks/useSiloSystem';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   Settings as SettingsIcon,
   Moon,
@@ -36,7 +38,8 @@ import {
   User,
   Lock,
   Mail,
-  Phone
+  Phone,
+  LogOut
 } from 'lucide-react';
 
 interface SettingsData {
@@ -94,6 +97,8 @@ interface SettingsData {
 const Settings = () => {
   const { theme, setTheme, isDark } = useTheme();
   const { readingMode } = useSiloSystem();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   
   const [settings, setSettings] = useState<SettingsData>({
     // Theme Settings
@@ -794,6 +799,17 @@ const Settings = () => {
 
       {/* Action Buttons */}
       <div className="mt-6 flex justify-end space-x-4">
+        <Button
+          variant="destructive"
+          className="mr-auto"
+          onClick={() => {
+            logout();
+            navigate('/login', { replace: true });
+          }}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Logout
+        </Button>
         <Button variant="outline" onClick={handleReset}>
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset to Defaults
