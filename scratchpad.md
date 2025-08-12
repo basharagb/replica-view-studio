@@ -1,6 +1,34 @@
 # Scratchpad - Jarvis
 
-## Current Task: FINAL SYSTEM VERIFICATION AND OPTIMIZATION
+## Current Task: INITIAL STATE AND AUTO TEST BEHAVIOR ENHANCEMENT
+
+**Status: 🔄 IN PROGRESS**
+**Started:** 2025-08-12T14:56:43+03:00
+**Git Status:** Working on feature branch
+
+### TASK REQUIREMENTS
+User wants specific behavior for readings page:
+
+**Initial State Requirements:**
+- All silos show wheat color when page first opens
+- All sensor readings show zeros initially
+- No data fetched until auto test starts
+
+**Auto Test Behavior Requirements:**
+- During scan of silo N: Show readings from silo N-1 (previous silo)
+- If N=0 (first silo): Show all zeros
+- While scanning: Display zeros for current silo being scanned
+- After 24 seconds: Show actual readings for completed silo
+- Move to next silo and repeat pattern
+
+### IMPLEMENTATION PLAN
+- [ ] Update initial state to show wheat color and zero readings
+- [ ] Modify auto test logic to show previous silo readings during scan
+- [ ] Implement proper display timing for sensor readings
+- [ ] Clear cache and test functionality
+- [ ] Commit changes to repository
+
+## Previous Task: FINAL SYSTEM VERIFICATION AND OPTIMIZATION
 
 **Status: ✅ ALL ISSUES RESOLVED - PRODUCTION READY**
 **Started:** 2025-08-11T15:01:41+03:00
@@ -564,13 +592,18 @@ Progress Tracking & Alerts
 - [x] Deploy live link: https://replica-view-studio-enhanced.windsurf.build (Fixed all issues and redeployed)
 - [x] Fix ReportSystem import issue (named vs default export)
 - [x] Fix function hoisting issue in EnhancedTemperatureGraphs
-- [x] Local development server working at http://localhost:8087
-- [x] Default general graphs now display properly on first load
+- [x] Start development server on http://localhost:8081/
+- [x] Fix sensor reading display logic for previous silo readings
+- [x] Test the full flow locally
+- [x] Fix silo color change after completion during auto test
+- [x] Test silo color changes during auto test ✅ WORKING PERFECTLY
+- [ ] Commit and push changes after successful testing
 
 ### Report System Enhancements - TODO List
 
 **Requirements:**
 - [x] Make the background color for the warning in alarm status yellow
+{{ ... }}
 - [x] Make Silo Reports View have pagination 24 rows per page
 - [x] Change the silo temp to max temp in Report table
 - [x] Enhance the UI for reports section with smooth animations

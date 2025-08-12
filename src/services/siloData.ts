@@ -82,29 +82,9 @@ const generateWheatSilo = (num: number): Silo => {
 
 // Generate silo with 8 sensors and calculate temperature using priority hierarchy
 const generateSiloWithSensors = (num: number): Silo => {
-  // First check if we have real API data
-  const apiData = getSiloData(num);
-  if (apiData.isLoaded) {
-    return {
-      num,
-      temp: apiData.maxTemp
-    };
-  }
-  
-  // If not loaded from API, return wheat color silo (zero temperature)
-  if (!isSiloDataLoaded(num)) {
-    return generateWheatSilo(num);
-  }
-  
-  // Fallback to random generation (legacy behavior)
-  const baseTemp = generateRandomTemp();
-  const sensors = generateSensorReadings(baseTemp);
-  const siloStatus = calculateSiloStatus(sensors);
-  
-  return {
-    num,
-    temp: siloStatus.temperature // Silo temperature is the MAX of all 8 sensors
-  };
+  // Always return wheat color silo (zero temperature) initially
+  // Data will only be loaded after auto test completes for each silo
+  return generateWheatSilo(num);
 };
 
 // Generate random silo data for a group
@@ -416,7 +396,18 @@ export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
     return convertApiColorToTemperatureColor(apiData.siloColor);
   }
   
-  // If silo hasn't been fetched yet, return wheat color
+  // During auto test, check if silo is completed or has data available
+  if (currentScanSilo !== null) {
+    // If silo is completed during auto test, show color based on sensor readings
+    if (autoTestCompletedSilos.has(siloNum)) {
+      const sensorReadings = getSensorReadings(siloNum);
+      return getSiloColorFromSensors(sensorReadings);
+    }
+    // If silo hasn't been scanned yet during auto test, return wheat color
+    return 'beige';
+  }
+  
+  // If not in auto test mode, check if silo data is loaded from API
   if (!isSiloDataLoaded(siloNum)) {
     return 'beige';
   }
@@ -511,32 +502,92 @@ const predefinedReadings: { [key: number]: number[] } = {
   112: [40.4, 40.3, 40.3, 40.2, 40.1, 40.1, 40.0, 39.9] // Sorted highest to lowest
 };
 
+// Auto test state management for sensor readings display
+const autoTestCompletedSilos: Set<number> = new Set();
+let currentScanSilo: number | null = null;
+let previousCompletedSilo: number | null = null;
+
+// Set current scanning silo (during 24-second scan period)
+export const setCurrentScanSilo = (siloNum: number | null) => {
+  currentScanSilo = siloNum;
+};
+
+// Mark silo as completed and update previous completed silo
+export const markSiloCompleted = (siloNum: number) => {
+  autoTestCompletedSilos.add(siloNum);
+  previousCompletedSilo = siloNum;
+};
+
+// Clear auto test state (reset to initial wheat color state)
+export const clearAutoTestState = () => {
+  autoTestCompletedSilos.clear();
+  currentScanSilo = null;
+  previousCompletedSilo = null;
+};
+
 // Get sensor readings for any silo - SORTED from highest to lowest
 export const getSensorReadings = (siloNum: number): number[] => {
-  // PRIORITY 1: Check if we have real API data (always use API data when available)
-  const apiData = getSiloData(siloNum);
-  if (apiData.isLoaded) {
-    // Using real API data for silo (logging removed for performance)
-    // Return real API sensor readings exactly in S1-S8 order for positional accuracy
-    return [...apiData.sensors];
+  // During auto test: show specific behavior based on silo state
+  if (currentScanSilo !== null) {
+    // If this is the silo currently being scanned
+    if (siloNum === currentScanSilo) {
+      // For the currently scanning silo, show the previous silo's readings if available
+      if (currentScanSilo > 1) {
+        const previousSiloNum = currentScanSilo - 1;
+        // Check if previous silo has been completed
+        if (autoTestCompletedSilos.has(previousSiloNum)) {
+          const apiData = getSiloData(previousSiloNum);
+          if (apiData.isLoaded) {
+            return apiData.sensors;
+          }
+          // Fallback to predefined readings for previous silo
+          if (predefinedReadings[previousSiloNum]) {
+            return predefinedReadings[previousSiloNum];
+          }
+        }
+      }
+      // If no previous silo or first silo (N=0), show zeros
+      return [0, 0, 0, 0, 0, 0, 0, 0];
+    }
+    
+    // If this silo has been completed, show its real readings
+    if (autoTestCompletedSilos.has(siloNum)) {
+      const apiData = getSiloData(siloNum);
+      if (apiData.isLoaded) {
+        return apiData.sensors;
+      }
+      // Fallback to predefined or generated readings
+      if (predefinedReadings[siloNum]) {
+        return predefinedReadings[siloNum];
+      }
+      const baseTemp = generateRandomTemp();
+      return generateSensorReadings(baseTemp);
+    }
+    
+    // For all other silos (not scanned yet), show zeros
+    return [0, 0, 0, 0, 0, 0, 0, 0];
   }
   
-  // PRIORITY 2: For silos that haven't been fetched from API yet, show simulated readings
-  const silo = findSiloByNumber(siloNum);
-  if (!silo) return [0, 0, 0, 0, 0, 0, 0, 0];
+  // Normal operation (not during auto test)
+  // First check if we have real API data
+  const apiData = getSiloData(siloNum);
+  if (apiData.isLoaded) {
+    return apiData.sensors;
+  }
   
-  // PRIORITY 3: If we have predefined readings, use them (already sorted)
+  // Check predefined readings for specific silos
   if (predefinedReadings[siloNum]) {
-    // Using predefined readings for silo (logging removed for performance)
     return predefinedReadings[siloNum];
   }
   
-  // PRIORITY 4: Generate realistic sensor readings for silos without predefined data
-  const baseTemp = silo.temp === 0 ? 25 + (siloNum % 10) : silo.temp; // Use realistic base temp for wheat silos
-  const readings = generateSensorReadings(baseTemp);
-  predefinedReadings[siloNum] = readings;
-  // Generated new readings for silo (logging removed for performance)
-  return readings;
+  // Generate random readings for other silos
+  const silo = findSiloByNumber(siloNum);
+  if (silo && silo.temp > 0) {
+    return generateSensorReadings(silo.temp);
+  }
+  
+  // Default fallback - all zeros for wheat color silos
+  return [0, 0, 0, 0, 0, 0, 0, 0];
 };
 
 // Cylinder measurements (from original LabCylinder) - updated for three-tier color demonstration

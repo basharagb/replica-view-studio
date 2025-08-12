@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Silo, SiloSystemState, ReadingMode, TooltipPosition } from '../types/silo';
-import { getAllSilos, findSiloByNumber, regenerateAllSiloData } from '../services/siloData';
+import { getAllSilos, findSiloByNumber, regenerateAllSiloData, setCurrentScanSilo, markSiloCompleted, clearAutoTestState as clearAutoTestSensorState } from '../services/siloData';
 import { fetchSiloDataWithRetry } from '../services/realSiloApiService';
 
 // Persistent auto test state management
@@ -149,6 +149,7 @@ export const useSiloSystem = () => {
         setAutoReadProgress(100);
         setAutoReadCompleted(true);
         clearAutoTestState();
+        clearAutoTestSensorState();
         // Auto test completed - all 150 silos tested
         return;
       }
@@ -158,6 +159,9 @@ export const useSiloSystem = () => {
       setSelectedSilo(currentSilo.num);
       setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
       setCurrentAutoTestIndex(currentIndex);
+      
+      // Set current scanning silo for sensor display logic
+      setCurrentScanSilo(currentSilo.num);
 
       // Auto test: Starting silo (logging removed for performance)
 
@@ -168,6 +172,9 @@ export const useSiloSystem = () => {
         
         // Update UI with real API data
         setSelectedTemp(apiData.maxTemp);
+        
+        // Mark this silo as completed for sensor display logic
+        markSiloCompleted(currentSilo.num);
         
         // Force a re-render by regenerating silo data to pick up API changes
         regenerateAllSiloData();
@@ -301,6 +308,9 @@ export const useSiloSystem = () => {
         });
       }
       
+      // Clear auto test sensor state when stopping
+      clearAutoTestSensorState();
+      
       setIsReading(false);
       setReadingSilo(null);
       setReadingMode('none');
@@ -355,6 +365,9 @@ export const useSiloSystem = () => {
     setSelectedSilo(currentSilo.num);
     setSelectedTemp(currentSilo.temp);
     setAutoReadProgress((1 / allSilos.length) * 100);
+    
+    // Set current scanning silo for sensor display logic
+    setCurrentScanSilo(currentSilo.num);
     
     // Save initial state
     saveAutoTestState({
