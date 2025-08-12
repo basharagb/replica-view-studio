@@ -13,15 +13,26 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Static login: simulate success, persist token
-    setTimeout(() => {
-      login("dummy-token");
-      navigate("/", { replace: true });
-    }, 500);
+    setLoginError('');
+    
+    try {
+      const response = await login(email, password);
+      
+      if (response.success) {
+        navigate("/", { replace: true });
+      } else {
+        setLoginError(response.message);
+      }
+    } catch (error) {
+      setLoginError('Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,12 +59,12 @@ const Login = () => {
               </Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 placeholder="Enter User Name"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
+                autoComplete="username"
               />
             </div>
 
@@ -73,7 +84,16 @@ const Login = () => {
               />
             </div>
 
-            
+            {loginError && (
+              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                {loginError}
+              </div>
+            )}
+
+            <div className="text-xs text-gray-500 mt-2">
+              <strong>Test Users:</strong><br/>
+              ahmed/ahmed (Admin), hussein/hussein (Technician), bashar/bashar (Operator)
+            </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
