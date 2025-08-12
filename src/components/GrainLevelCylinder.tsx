@@ -59,8 +59,8 @@ const GrainLevelCylinderComponent = ({
     }
   };
 
-  // Height style: 1% increase from 22px to 23px for responsive height adjustment
-  const heightStyle = { height: '23px', paddingTop: '2px', paddingBottom: '2px' };
+  // Height style: decreased by 3px total from 23px to 20px per user request
+  const heightStyle = { height: '20px', paddingTop: '2px', paddingBottom: '2px' };
 
   // Animation class for wheat color filling during testing with liquid pouring effect
   const getGrainLevelClass = (levelIndex: number, currentLevel: number) => {
