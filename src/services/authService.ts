@@ -20,11 +20,13 @@ export interface DecodedToken {
   exp: number;
 }
 
-const API_BASE_URL = 'http://localhost:5001';
+const API_BASE_URL = 'http://192.168.1.14:5001';
 
 export class AuthService {
   static async login(username: string, password: string): Promise<LoginResponse> {
     try {
+      console.log('Attempting login with:', { username, API_BASE_URL });
+      
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: {
@@ -33,7 +35,10 @@ export class AuthService {
         body: JSON.stringify({ username, password }),
       });
 
+      console.log('Login response status:', response.status);
+      
       const data = await response.json();
+      console.log('Login response data:', data);
       
       if (!response.ok) {
         return {
@@ -66,7 +71,8 @@ export class AuthService {
     const decoded = this.decodeToken(token);
     if (!decoded) return false;
     
-    return decoded.exp > Date.now();
+    // Check if token is not expired (current time should be less than expiration)
+    return Date.now() < decoded.exp;
   }
 
   static hasPermission(userPermissions: string[], requiredPermission: string): boolean {

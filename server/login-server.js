@@ -78,7 +78,7 @@ app.get('/health', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Login API server running on http://localhost:${PORT}`);
+  console.log(`Login API server running on http://192.168.1.14:${PORT}`);
   console.log('Available endpoints:');
   console.log('  POST /login - User authentication');
   console.log('  GET /health - Health check');
