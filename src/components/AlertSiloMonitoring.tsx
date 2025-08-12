@@ -76,7 +76,7 @@ const AlertSiloMonitoring: React.FC = () => {
   const fetchAlertSilos = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://192.168.1.14:5000/alerts/active');
+      const res = await fetch('http://idealchiprnd.pythonanywhere.com/alerts/active');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
