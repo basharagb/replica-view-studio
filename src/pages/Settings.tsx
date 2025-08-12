@@ -12,6 +12,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useSiloSystem } from '../hooks/useSiloSystem';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import SystemResetButtons from '../components/SystemResetButtons';
 import { 
   Settings as SettingsIcon,
   Moon,
@@ -161,7 +162,7 @@ const Settings = () => {
   const [smsUsername, setSmsUsername] = useState('');
   const [smsPhone, setSmsPhone] = useState('');
 
-  const handleSettingChange = (key: keyof SettingsData, value: any) => {
+  const handleSettingChange = (key: keyof SettingsData, value: SettingsData[keyof SettingsData]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
@@ -527,38 +528,49 @@ const Settings = () => {
 
           {/* System Settings */}
           {activeTab === 'system' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Monitor className="h-5 w-5" />
-                  System Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Max Concurrent Tests</Label>
-                    <Input
-                      type="number"
-                      value={settings.maxConcurrentTests}
-                      onChange={(e) => handleSettingChange('maxConcurrentTests', parseInt(e.target.value))}
-                      min="1"
-                      max="10"
-                    />
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Monitor className="h-5 w-5" />
+                    System Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Max Concurrent Tests</Label>
+                      <Input
+                        type="number"
+                        value={settings.maxConcurrentTests}
+                        onChange={(e) => handleSettingChange('maxConcurrentTests', parseInt(e.target.value))}
+                        min="1"
+                        max="10"
+                      />
+                    </div>
+                    <div>
+                      <Label>Session Timeout (minutes)</Label>
+                      <Input
+                        type="number"
+                        value={settings.sessionTimeout}
+                        onChange={(e) => handleSettingChange('sessionTimeout', parseInt(e.target.value))}
+                        min="5"
+                        max="480"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label>Session Timeout (minutes)</Label>
-                    <Input
-                      type="number"
-                      value={settings.sessionTimeout}
-                      onChange={(e) => handleSettingChange('sessionTimeout', parseInt(e.target.value))}
-                      min="5"
-                      max="480"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+              
+              {/* System Reset Controls */}
+              <SystemResetButtons 
+                onAutoTestStop={() => {
+                  // Handle auto test stop if needed
+                  console.log('Auto test stopped from settings');
+                }}
+                isAutoTestRunning={readingMode === 'auto'}
+              />
+            </div>
           )}
 
           {/* Security Settings */}

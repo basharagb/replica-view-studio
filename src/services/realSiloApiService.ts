@@ -46,10 +46,55 @@ export const WHEAT_COLOR = '#93856b';
 const API_BASE_URL = 'http://idealchiprnd.pythonanywhere.com';
 const API_ENDPOINT = '/readings/avg/latest/by-silo-number';
 
-// Cache for storing fetched silo data
+// Persistent storage key for silo data cache
+const SILO_CACHE_STORAGE_KEY = 'replica-view-studio-silo-data-cache';
+
+// Cache for storing fetched silo data with persistent storage
 class SiloDataCache {
   private cache = new Map<number, ProcessedSiloData>();
   private loadingStates = new Map<number, boolean>();
+
+  constructor() {
+    // Load cached data from localStorage on initialization
+    this.loadFromStorage();
+  }
+
+  // Load cached data from localStorage
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(SILO_CACHE_STORAGE_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        // Convert stored data back to Map format
+        Object.entries(data).forEach(([siloNum, siloData]: [string, ProcessedSiloData]) => {
+          const processedData: ProcessedSiloData = {
+            ...siloData,
+            timestamp: new Date(siloData.timestamp) // Convert timestamp back to Date
+          };
+          this.cache.set(parseInt(siloNum), processedData);
+        });
+        console.log(`Loaded ${this.cache.size} silos from persistent storage`);
+      }
+    } catch (error) {
+      console.warn('Failed to load silo cache from storage:', error);
+    }
+  }
+
+  // Save cached data to localStorage
+  private saveToStorage(): void {
+    try {
+      const dataToStore: Record<number, ProcessedSiloData> = {};
+      this.cache.forEach((data, siloNum) => {
+        // Only save loaded silos (not wheat-colored defaults)
+        if (data.isLoaded) {
+          dataToStore[siloNum] = data;
+        }
+      });
+      localStorage.setItem(SILO_CACHE_STORAGE_KEY, JSON.stringify(dataToStore));
+    } catch (error) {
+      console.warn('Failed to save silo cache to storage:', error);
+    }
+  }
 
   // Check if silo data is cached
   has(siloNumber: number): boolean {
@@ -65,6 +110,11 @@ class SiloDataCache {
   set(siloNumber: number, data: ProcessedSiloData): void {
     this.cache.set(siloNumber, data);
     this.loadingStates.set(siloNumber, false);
+    
+    // Save to persistent storage if this is loaded data
+    if (data.isLoaded) {
+      this.saveToStorage();
+    }
   }
 
   // Check if silo is currently loading
@@ -90,10 +140,17 @@ class SiloDataCache {
     };
   }
 
-  // Clear all cached data
+  // Clear all cached data (including persistent storage)
   clear(): void {
     this.cache.clear();
     this.loadingStates.clear();
+    // Clear persistent storage
+    try {
+      localStorage.removeItem(SILO_CACHE_STORAGE_KEY);
+      console.log('Cleared silo cache from persistent storage');
+    } catch (error) {
+      console.warn('Failed to clear silo cache from storage:', error);
+    }
   }
 
   // Get all cached silo numbers
@@ -237,10 +294,19 @@ export function getLoadedSiloNumbers(): number[] {
   );
 }
 
-// Clear all cached silo data
+// Clear all cached silo data (including persistent storage)
 export function clearSiloDataCache(): void {
   siloCache.clear();
-  // Silo data cache cleared
+}
+
+// Clear only persistent storage (keep in-memory cache for current session)
+export const clearPersistentSiloCache = (): void => {
+  try {
+    localStorage.removeItem(SILO_CACHE_STORAGE_KEY);
+    console.log('Cleared persistent silo cache storage');
+  } catch (error) {
+    console.warn('Failed to clear persistent silo cache:', error);
+  }
 }
 
 // Convert hex color to internal temperature color type

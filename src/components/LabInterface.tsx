@@ -11,7 +11,7 @@ import { topSiloGroups, bottomSiloGroups, temperatureScaleValues } from '../serv
 import EnhancedTemperatureDisplay from './EnhancedTemperatureDisplay';
 import EnhancedSensorPanel from './EnhancedSensorPanel';
 import AlertSystem from './AlertSystem';
-import ResetButtons from './ResetButtons';
+
 
 export const LabInterface = () => {
   const {
@@ -309,10 +309,9 @@ export const LabInterface = () => {
       {/* Enhanced Alert System and Reset Buttons */}
       <div className="flex items-center gap-4 justify-between">
         <AlertSystem />
-        <ResetButtons 
-          onAutoTestStop={startAutoRead}
-          isAutoTestRunning={isReading}
-        />
+        <div className="text-sm text-muted-foreground">
+          System reset controls moved to Settings → System tab
+        </div>
       </div>
     </div>
   );
