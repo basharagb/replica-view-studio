@@ -27,6 +27,7 @@ Clone the clean, minimal login dialog UI from the provided image to replace the 
 ### Implementation Status
 - [x] Branch created successfully
 - [x] Login dialog UI updated to match image design
+- [x] Added dynamic titles for different sections
 - [ ] Testing completed
 - [ ] Unit tests written
 
@@ -45,6 +46,16 @@ Clone the clean, minimal login dialog UI from the provided image to replace the 
   - Maintained loading state functionality
 - **Colors**: Removed dark mode styling to focus on clean white design
 - **Spacing**: Optimized padding and margins for better visual hierarchy
+
+### Latest Enhancement: Dynamic Dialog Titles
+- **Added State**: New `pendingSection` state to track which section triggered the dialog
+- **Updated Click Handler**: Now sets both `pendingHref` and `pendingSection` when Maintenance or Settings is clicked
+- **Dynamic Title**: Dialog title now shows "Maintenance Login" or "Settings Login" based on the triggering section
+- **Fallback**: Shows generic "Login" if no section is specified
+
+### Final Updates: Field Label and Placeholder Changes
+- **User Name Field**: Changed label from "Email address" to "User name"
+- **Placeholder Text**: Changed placeholder from "Enter email" to "Enter user name"
 
 ---
 

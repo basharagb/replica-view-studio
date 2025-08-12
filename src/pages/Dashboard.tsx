@@ -23,9 +23,11 @@ const Dashboard = () => {
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [pendingSection, setPendingSection] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigation = [
     { name: 'Live Readings', href: '/', icon: Activity, description: 'Real-time silo monitoring and readings' },
@@ -82,6 +84,7 @@ const Dashboard = () => {
                   if (item.name === 'Maintenance' || item.name === 'Settings') {
                     e.preventDefault();
                     setPendingHref(item.href);
+                    setPendingSection(item.name);
                     setLoginOpen(true);
                   }
                 }}
@@ -143,8 +146,10 @@ const Dashboard = () => {
       <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
         <DialogContent className="sm:max-w-sm p-8 bg-white border-0 shadow-xl rounded-lg flex flex-col justify-center items-center">
           <div className="w-full">
-            <DialogHeader className="text-center mb-6">
-              <DialogTitle className="text-2xl font-bold text-gray-900">Login</DialogTitle>
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-2xl font-normal text-gray-900">
+                {pendingSection ? `${pendingSection} Login` : 'Login'}
+              </DialogTitle>
             </DialogHeader>
             <form
               className="space-y-4"
@@ -160,13 +165,13 @@ const Dashboard = () => {
               }}
             >
               <div className="space-y-2">
-                <Label htmlFor="dlg-email" className="text-sm font-medium text-gray-800">Email address</Label>
+                <Label htmlFor="dlg-email" className="text-sm text-gray-700">User name</Label>
                 <Input
                   id="dlg-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email"
+                  placeholder="Enter user name"
                   className="h-11 px-3 text-base border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   required
                 />

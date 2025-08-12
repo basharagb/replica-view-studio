@@ -44,12 +44,12 @@ const Login = () => {
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                Email
+                User Name
               </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Enter User Name"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
