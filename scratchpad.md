@@ -1,28 +1,51 @@
-# Task: Align Silo Sensors (S1-S8) with Grain Level (L1-L8) Horizontally
+# Task: Modify Maintenance Section in Silo 45 - Cable Testing
 
 ## Problem Analysis
-From the screenshot, I can see that the Silo Sensors widget shows S1-S8 vertically, and the Grain Level widget shows L1-L8 vertically. The user wants these to be horizontally aligned so that S1 aligns with L1, S2 with L2, etc.
-
-## Current State
-- LabCylinder.tsx: Shows S1-S8 sensors from top to bottom
-- GrainLevelCylinder.tsx: Shows L1-L8 levels from top to bottom
-- Both components are already ordered correctly (1-8 from top to bottom)
+Need to modify the Maintenance section in Silo 45 - Cable Testing to:
+1. Remove average readings
+2. Handle disabled sensors (value -127) by coloring them grey
 
 ## Task Plan
-- [x] Analyze current component structure
 - [x] Create new branch for changes
-- [x] Review current alignment and spacing
-- [x] Adjust heights and spacing to ensure perfect horizontal alignment
-- [x] Fix widget height mismatch (made both widgets same height: 95%, minHeight: 325px)
-- [x] Standardize padding, margins, and spacing between both components
-- [x] Remove bottom space below L8 in Grain Level widget (removed flex: 1 expansion)
-- [x] Test the alignment
-- [x] Code cleanup and formatting completed by user
-- [x] Write unit tests (6 tests passing - alignment verification)
-- [ ] Commit changes and push to main (requires user approval)
+- [x] Find the Maintenance section in Silo 45 - Cable Testing
+- [x] Identify where average readings are displayed and remove them
+- [x] Add logic to detect -127 values (disabled sensors)
+- [x] Apply grey styling for disabled sensors
+- [x] Remove remaining averaging logic from API service
+- [ ] Test the changes
+- [ ] Write unit tests
+- [ ] Commit changes (requires user approval)
 
-## Notes
-- Both components use flex-col with gap spacing
-- LabCylinder uses h-6 for sensor items
-- GrainLevelCylinder uses heightStyle with 20px height
-- Need to ensure consistent heights and spacing for perfect alignment
+## Changes Made
+1. **MaintenanceCablePopup.tsx**:
+   - Removed "Avg Temp" statistic from Cable Statistics Summary
+   - Updated grid layout from 4 columns to 3 columns
+   - Removed "Averaged from both cables" badge
+   - Changed title from "Calculated Sensor Values" to "Sensor Values"
+   - Added logic to detect -127 values and display "DISABLED" with grey styling
+   - Updated Min/Max temp calculations to exclude disabled sensors (-127)
+
+2. **maintenanceApiService.ts**:
+   - Removed averaging logic for both circular and square silos
+   - Added -127 disabled sensor detection in both processing paths
+   - Set grey color (#9ca3af) for disabled sensors
+   - Now uses Cable 0 values directly instead of averaging with Cable 1
+
+## Lessons
+- **TypeScript Mock Data Fix**: When creating mock data for tests, ensure all required properties from the interface are included. The `MaintenanceSiloData` interface requires `timestamp` and `siloColor` properties that were missing from the mock data, causing TypeScript compilation errors.
+
+## Previous Task Completed
+- [x] Align Silo Sensors (S1-S8) with Grain Level (L1-L8) Horizontally - COMPLETED
+
+## Current Issue Fixed
+- [x] Fixed TypeScript error in MaintenanceCablePopup.test.tsx by adding missing `timestamp` and `siloColor` properties to mock data
+
+## Current Task: Map -127 Temperature to 'disabled' String
+- [x] Verified API service properly detects -127 values and sets grey color (#9ca3af)
+- [x] Verified UI component displays 'DISABLED' text instead of '-127.0°C' for disabled sensors
+- [x] Implementation is already complete and working correctly
+
+## New Task: Cable Temperature Comparison -127 Mapping
+- [x] Find Cable Temperature Comparison component/section
+- [x] Implement -127 to 'disabled' mapping in temperature comparison display
+- [x] Test the changes - Development server running on http://localhost:8085

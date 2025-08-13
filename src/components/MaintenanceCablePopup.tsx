@@ -230,11 +230,11 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                         Cable 1
                       </th>
                     )}
-                    {siloData?.cableCount === 2 && (
+                    {/* {siloData?.cableCount === 2 && (
                       <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
                         Average
                       </th>
-                    )}
+                    )} */}
                     <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
                       Status
                     </th>
@@ -271,10 +271,12 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                               <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
                                    style={{ borderColor: cable0Sensor.color }}>
                                 <div 
-                                  className="text-lg font-bold mb-1"
+                                  className={`font-bold mb-1 ${
+                                    cable0Sensor.level === -127 ? 'text-xs' : 'text-lg'
+                                  }`}
                                   style={{ color: cable0Sensor.color }}
                                 >
-                                  {cable0Sensor.level.toFixed(1)}°C
+                                  {cable0Sensor.level === -127 ? 'DISABLED' : `${cable0Sensor.level.toFixed(1)}°C`}
                                 </div>
                                 <div className="flex items-center justify-center">
                                   {getStatusIcon(cable0Sensor.color)}
@@ -296,10 +298,12 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                                 <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
                                      style={{ borderColor: cable1Sensor.color }}>
                                   <div 
-                                    className="text-lg font-bold mb-1"
+                                    className={`font-bold mb-1 ${
+                                      cable1Sensor.level === -127 ? 'text-xs' : 'text-lg'
+                                    }`}
                                     style={{ color: cable1Sensor.color }}
                                   >
-                                    {cable1Sensor.level.toFixed(1)}°C
+                                    {cable1Sensor.level === -127 ? 'DISABLED' : `${cable1Sensor.level.toFixed(1)}°C`}
                                   </div>
                                   <div className="flex items-center justify-center">
                                     {getStatusIcon(cable1Sensor.color)}
@@ -315,7 +319,7 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                         )}
                         
                         {/* Average (if 2 cables) */}
-                        {siloData?.cableCount === 2 && (
+                        {/* {siloData?.cableCount === 2 && (
                           <td className="py-4 px-4 text-center">
                             <div className="flex flex-col items-center">
                               <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
@@ -332,7 +336,7 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                               </div>
                             </div>
                           </td>
-                        )}
+                        )} */}
                         
                         {/* Status */}
                         <td className="py-4 px-4 text-center">
@@ -352,23 +356,17 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
             
             {/* Cable Statistics Summary */}
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                   <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Max Temp</div>
                   <div className="text-lg font-bold text-red-600">
-                    {siloData ? Math.max(...siloData.sensorValues).toFixed(1) : '0.0'}°C
-                  </div>
-                </div>
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Avg Temp</div>
-                  <div className="text-lg font-bold text-blue-600">
-                    {siloData ? (siloData.sensorValues.reduce((sum, val) => sum + val, 0) / siloData.sensorValues.length).toFixed(1) : '0.0'}°C
+                    {siloData ? Math.max(...siloData.sensorValues.filter(val => val !== -127)).toFixed(1) : '0.0'}°C
                   </div>
                 </div>
                 <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Min Temp</div>
                   <div className="text-lg font-bold text-green-600">
-                    {siloData ? Math.min(...siloData.sensorValues).toFixed(1) : '0.0'}°C
+                    {siloData ? Math.min(...siloData.sensorValues.filter(val => val !== -127)).toFixed(1) : '0.0'}°C
                   </div>
                 </div>
                 <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
@@ -388,36 +386,41 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Thermometer className="h-5 w-5 text-gray-600 mr-2" />
-                <span>Calculated Sensor Values (S1-S8)</span>
-                {siloData.cableCount === 2 && (
-                  <Badge variant="outline" className="ml-2">
-                    Averaged from both cables
-                  </Badge>
-                )}
+                <span>Sensor Values (S1-S8)</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-                {siloData.sensorValues.map((value, index) => (
-                  <div 
-                    key={index}
-                    className="text-center p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105"
-                    style={{ 
-                      backgroundColor: `${siloData.sensorColors[index]}15`,
-                      borderColor: siloData.sensorColors[index]
-                    }}
-                  >
-                    <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                      S{index + 1}
-                    </div>
+                {siloData.sensorValues.map((value, index) => {
+                  const isDisabled = value === -127;
+                  const displayColor = isDisabled ? '#9ca3af' : siloData.sensorColors[index];
+                  const displayValue = isDisabled ? 'DISABLED' : `${value.toFixed(1)}°C`;
+                  
+                  return (
                     <div 
-                      className="text-lg font-bold"
-                      style={{ color: siloData.sensorColors[index] }}
+                      key={index}
+                      className={`text-center p-3 rounded-lg border-2 transition-all duration-200 ${
+                        isDisabled ? 'opacity-60' : 'hover:scale-105'
+                      }`}
+                      style={{ 
+                        backgroundColor: `${displayColor}15`,
+                        borderColor: displayColor
+                      }}
                     >
-                      {value.toFixed(1)}°C
+                      <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                        S{index + 1}
+                      </div>
+                      <div 
+                        className={`text-lg font-bold ${
+                          isDisabled ? 'text-xs' : ''
+                        }`}
+                        style={{ color: displayColor }}
+                      >
+                        {displayValue}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
