@@ -1,6 +1,45 @@
 # Scratchpad - Jarvis
 
-## Current Task: TEMPERATURE SENSOR CARD ENHANCEMENTS
+## Current Task: FIX SILO SENSOR DISPLAY LOGIC DURING AUTO SCANNING
+
+**Status: 🔄 IN PROGRESS - FIXING SENSOR PANEL DISPLAY LOGIC**
+**Started:** 2025-08-13T12:09:12+03:00
+
+### PROBLEM IDENTIFIED
+- When scanning silo N, sensor panel shows zeros instead of readings from silo N-1
+- Expected: Show readings from previously scanned silo (N-1) while scanning current silo (N)
+- Current: Shows zeros during scanning process
+
+### TASK OBJECTIVES
+- [x] Examine current auto test logic in Live Readings
+- [x] Fix sensor panel display to show N-1 readings when scanning silo N
+- [x] Test the fix across all silos during auto scanning
+- [ ] Commit and push changes to GitHub
+
+## NEW ISSUE: Reports Page Blank/Empty
+
+### PROBLEM
+- Reports page at http://localhost:8093/reports shows completely blank content
+- User reports issues when trying to generate reports
+- Page loads but no content is visible
+
+### INVESTIGATION STATUS
+- [x] Confirmed reports page is blank via browser screenshot
+- [x] Checked ReportSystem component - structure looks correct
+- [x] Verified console logs - no JavaScript errors, API calls working
+- [ ] Check EnhancedTemperatureGraphs component render logic
+- [ ] Investigate CSS/styling issues
+- [ ] Test report generation functionality
+
+### SOLUTION IMPLEMENTED
+**Fixed `getSensorReadings()` function in `siloData.ts`:**
+- **Problem**: When scanning silo N, sensor panel showed zeros instead of readings from silo N-1
+- **Root Cause**: Logic only checked for `currentScanSilo - 1` instead of using `previousCompletedSilo`
+- **Solution**: Updated logic to use `previousCompletedSilo` variable which tracks the most recently completed silo
+- **New Logic**: When scanning silo N, show readings from `previousCompletedSilo` (the last silo that was successfully scanned)
+- **Fallback Hierarchy**: API data → predefined readings → generated readings → zeros (only for first silo)
+
+## Previous Task: TEMPERATURE SENSOR CARD ENHANCEMENTS
 
 **Status: ✅ COMPLETED - SENSOR CARDS IMPLEMENTED AND PUSHED TO GITHUB**
 **Started:** 2025-08-13T11:23:18+03:00
