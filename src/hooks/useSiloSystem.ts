@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Silo, SiloSystemState, ReadingMode, TooltipPosition } from '../types/silo';
 import { getAllSilos, findSiloByNumber, regenerateAllSiloData, setCurrentScanSilo, markSiloCompleted, clearAutoTestState as clearAutoTestSensorState } from '../services/siloData';
-import { fetchSiloDataWithRetry } from '../services/realSiloApiService';
+import { fetchSiloDataWithRetry, clearSiloCache } from '../services/realSiloApiService';
 
 // Persistent auto test state management
 interface AutoTestState {
@@ -238,6 +238,10 @@ export const useSiloSystem = () => {
 
     // Fetch real silo data from API during the test duration
     try {
+      // Clear silo cache to ensure fresh data on re-fetch
+      clearSiloCache(siloNum);
+      console.log(`🗑️ [MANUAL TEST] Cleared cache for silo ${siloNum} to ensure fresh data`);
+      
       // Start API fetch immediately
       const apiDataPromise = fetchSiloDataWithRetry(siloNum, 3, 1000);
       

@@ -142,6 +142,15 @@ class SiloDataCache {
     };
   }
 
+  // Clear specific silo from cache (including persistent storage)
+  clearSilo(siloNumber: number): void {
+    this.cache.delete(siloNumber);
+    this.loadingStates.delete(siloNumber);
+    // Update persistent storage
+    this.saveToStorage();
+    console.log(`Cleared silo ${siloNumber} from cache`);
+  }
+
   // Clear all cached data (including persistent storage)
   clear(): void {
     this.cache.clear();
@@ -302,6 +311,11 @@ export function getLoadedSiloNumbers(): number[] {
   return siloCache.getCachedSiloNumbers().filter(siloNumber => 
     isSiloDataLoaded(siloNumber)
   );
+}
+
+// Clear specific silo from cache (including persistent storage)
+export function clearSiloCache(siloNumber: number): void {
+  siloCache.clearSilo(siloNumber);
 }
 
 // Clear all cached silo data (including persistent storage)
