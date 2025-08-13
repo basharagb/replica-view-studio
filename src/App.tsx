@@ -69,4 +69,5 @@ function RedirectIfAuthed({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+
 export default App;
