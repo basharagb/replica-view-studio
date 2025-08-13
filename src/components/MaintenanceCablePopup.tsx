@@ -268,18 +268,23 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                         <td className="py-4 px-4 text-center">
                           {cable0Sensor ? (
                             <div className="flex flex-col items-center">
-                              <div 
-                                className="text-lg font-bold mb-1"
-                                style={{ color: cable0Sensor.color }}
-                              >
-                                {cable0Sensor.level.toFixed(1)}°C
-                              </div>
-                              <div className="flex items-center">
-                                {getStatusIcon(cable0Sensor.color)}
+                              <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
+                                   style={{ borderColor: cable0Sensor.color }}>
+                                <div 
+                                  className="text-lg font-bold mb-1"
+                                  style={{ color: cable0Sensor.color }}
+                                >
+                                  {cable0Sensor.level.toFixed(1)}°C
+                                </div>
+                                <div className="flex items-center justify-center">
+                                  {getStatusIcon(cable0Sensor.color)}
+                                </div>
                               </div>
                             </div>
                           ) : (
-                            <span className="text-gray-400">N/A</span>
+                            <div className="bg-gray-100 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 shadow-sm min-w-[80px]">
+                              <span className="text-gray-400">N/A</span>
+                            </div>
                           )}
                         </td>
                         
@@ -288,18 +293,23 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                           <td className="py-4 px-4 text-center">
                             {cable1Sensor ? (
                               <div className="flex flex-col items-center">
-                                <div 
-                                  className="text-lg font-bold mb-1"
-                                  style={{ color: cable1Sensor.color }}
-                                >
-                                  {cable1Sensor.level.toFixed(1)}°C
-                                </div>
-                                <div className="flex items-center">
-                                  {getStatusIcon(cable1Sensor.color)}
+                                <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
+                                     style={{ borderColor: cable1Sensor.color }}>
+                                  <div 
+                                    className="text-lg font-bold mb-1"
+                                    style={{ color: cable1Sensor.color }}
+                                  >
+                                    {cable1Sensor.level.toFixed(1)}°C
+                                  </div>
+                                  <div className="flex items-center justify-center">
+                                    {getStatusIcon(cable1Sensor.color)}
+                                  </div>
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-gray-400">N/A</span>
+                              <div className="bg-gray-100 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 shadow-sm min-w-[80px]">
+                                <span className="text-gray-400">N/A</span>
+                              </div>
                             )}
                           </td>
                         )}
@@ -308,14 +318,17 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                         {siloData?.cableCount === 2 && (
                           <td className="py-4 px-4 text-center">
                             <div className="flex flex-col items-center">
-                              <div 
-                                className="text-lg font-bold mb-1 px-2 py-1 rounded"
-                                style={{ 
-                                  color: avgColor,
-                                  backgroundColor: `${avgColor}15`
-                                }}
-                              >
-                                {avgTemp.toFixed(1)}°C
+                              <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
+                                   style={{ borderColor: avgColor, backgroundColor: `${avgColor}08` }}>
+                                <div 
+                                  className="text-lg font-bold mb-1"
+                                  style={{ color: avgColor }}
+                                >
+                                  {avgTemp.toFixed(1)}°C
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                  AVG
+                                </div>
                               </div>
                             </div>
                           </td>

@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { useSiloSystem } from '../hooks/useSiloSystem';
 import { topSiloGroups, bottomSiloGroups, temperatureScaleValues } from '../services/siloData';
 import EnhancedTemperatureDisplay from './EnhancedTemperatureDisplay';
-import EnhancedSensorPanel from './EnhancedSensorPanel';
+
 import AlertSystem from './AlertSystem';
 
 

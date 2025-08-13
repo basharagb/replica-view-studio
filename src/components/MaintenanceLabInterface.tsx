@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { useSiloSystem } from '../hooks/useSiloSystem';
 import { topSiloGroups, bottomSiloGroups } from '../services/siloData';
 import EnhancedTemperatureDisplay from './EnhancedTemperatureDisplay';
-import EnhancedSensorPanel from './EnhancedSensorPanel';
+
 import AlertSystem from './AlertSystem';
 
 interface MaintenanceLabInterfaceProps {
@@ -251,12 +251,7 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
                   siloNumber={selectedSiloData.num}
                   className="mb-4"
                 />
-                <EnhancedSensorPanel
-                  siloNumber={selectedSiloData.num}
-                  sensorReadings={selectedSiloData.sensors?.map(s => s.temperature) || [20, 21, 22, 23, 24, 25, 26, 27]}
-                  isReading={isReading}
-                  className="mb-4"
-                />
+
               </>
             )}
 
