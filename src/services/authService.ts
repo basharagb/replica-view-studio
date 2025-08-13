@@ -31,7 +31,9 @@ export interface DecodedToken {
   exp: number;
 }
 
-const API_BASE_URL = 'http://192.168.1.14:5000';
+import { Strings } from '../utils/Strings';
+
+const API_BASE_URL = Strings.BASE_URL;
 
 export class AuthService {
   static async login(username: string, password: string): Promise<LoginResponse> {

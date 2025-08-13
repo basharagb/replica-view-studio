@@ -1,5 +1,7 @@
 // Historical Silo API Service for fetching real data for reports and graphs
-// API Endpoint: http://192.168.1.14:5000/readings/avg/by-silo-number
+import { Strings } from '../utils/Strings';
+
+// API Endpoint: {BASE_URL}/readings/avg/by-silo-number
 
 import { RealSiloApiResponse } from './realSiloApiService';
 
@@ -33,7 +35,7 @@ export interface SiloReportRecord {
 }
 
 // API configuration
-const API_BASE_URL = 'http://192.168.1.14:5000';
+const API_BASE_URL = Strings.BASE_URL;
 const API_ENDPOINT = '/readings/avg/by-silo-number';
 
 // Temperature thresholds for alert levels

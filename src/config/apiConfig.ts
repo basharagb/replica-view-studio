@@ -3,6 +3,8 @@
  * Manages global API settings and data source preferences for the entire application
  */
 
+import { Strings } from '../utils/Strings';
+
 export interface APIConfig {
   baseURL: string;
   defaultDataSource: 'api' | 'mock';
@@ -22,7 +24,7 @@ export interface DataSourceSettings {
 
 // Global API Configuration
 export const API_CONFIG: APIConfig = {
-  baseURL: 'http://idealchiprnd.pythonanywhere.com',
+  baseURL: Strings.BASE_URL,
   defaultDataSource: 'api', // API-FIRST: Use real data by default
   enableRealTime: true,
   refreshInterval: 30000, // 30 seconds

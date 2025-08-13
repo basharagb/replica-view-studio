@@ -118,3 +118,34 @@ All changes have been successfully and safely merged to main:
 - Created backup branch `backup-main-before-merge` for safety
 - Main branch now contains all combined changes
 - Remote origin/main is up to date
+
+## New Task: Global Strings Class Implementation - COMPLETED ✅
+
+### Task Summary
+Created a centralized global Strings class to manage all base URLs and replaced hardcoded URLs throughout the system with the standardized `192.168.1.14:5000` base URL.
+
+### Changes Made
+1. **Created Global Strings Class**: `src/utils/Strings.ts`
+   - Centralized BASE_URL: `http://192.168.1.14:5000`
+   - Defined common API endpoints
+   - Added complete URLs for easy access
+   - Included application messages and labels
+
+2. **Updated All Services** to use Strings class:
+   - `maintenanceApiService.ts` ✅
+   - `authService.ts` ✅
+   - `historicalSiloApiService.ts` ✅
+   - `AlertSiloMonitoring.tsx` ✅
+   - `maintenanceCableService.ts` ✅
+   - `liveApiService.ts` ✅
+   - `realSiloApiService.ts` ✅
+   - `config/apiConfig.ts` ✅
+   - `types/api.ts` ✅
+
+3. **Fixed TypeScript Errors**: Resolved type casting issues in maintenanceCableService.ts
+
+### Benefits Achieved
+- **Centralized Configuration**: Single source of truth for all URLs
+- **Consistency**: All services now use the same base URL (192.168.1.14:5000)
+- **Maintainability**: Easy to change URLs system-wide from one location
+- **Type Safety**: Proper TypeScript support with readonly constants

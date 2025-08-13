@@ -4,7 +4,9 @@
  */
 
 // Base API Configuration
-export const API_BASE_URL = 'http://idealchiprnd.pythonanywhere.com';
+import { Strings } from '../utils/Strings';
+
+export const API_BASE_URL = Strings.BASE_URL;
 
 // Request Parameter Types
 export interface BaseRequestParams {

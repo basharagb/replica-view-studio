@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, AlertCircle, TrendingUp, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { Strings } from '../utils/Strings';
 
 // Sensor reading type
 interface SensorReading {
@@ -76,7 +77,7 @@ const AlertSiloMonitoring: React.FC = () => {
   const fetchAlertSilos = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://idealchiprnd.pythonanywhere.com/alerts/active');
+      const res = await fetch(Strings.URLS.ALERTS_ACTIVE);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
@@ -137,7 +138,7 @@ const AlertSiloMonitoring: React.FC = () => {
 
   useEffect(() => {
     fetchAlertSilos();
-    const interval = setInterval(fetchAlertSilos, 10000);
+    const interval = setInterval(fetchAlertSilos, 120000); // 2 minutes
     return () => clearInterval(interval);
   }, []);
 

@@ -32,7 +32,9 @@ export interface MaintenanceSiloData {
 }
 
 // API Configuration
-const MAINTENANCE_API_BASE = 'http://idealchiprnd.pythonanywhere.com';
+import { Strings } from '../utils/Strings';
+
+const MAINTENANCE_API_BASE = Strings.BASE_URL;
 const API_TIMEOUT = 15000; // 15 seconds
 
 /**
@@ -146,7 +148,7 @@ export class MaintenanceCableService {
       const sensors: CableSensor[] = [];
       
       for (let level = 0; level < 8; level++) {
-        const temp = apiData[`level_${level}`] || this.generateRandomTemp();
+        const temp = (apiData[`level_${level}`] as number) || this.generateRandomTemp();
         sensors.push({
           level,
           temperature: temp,

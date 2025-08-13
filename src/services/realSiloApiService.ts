@@ -1,5 +1,7 @@
 // Real Silo API Service for connecting to physical silo sensors
-// API Endpoint: http://idealchiprnd.pythonanywhere.com/readings/avg/latest/by-silo-number
+import { Strings } from '../utils/Strings';
+
+// API Endpoint: {BASE_URL}/readings/avg/latest/by-silo-number
 
 import { TemperatureColor } from '../types/silo';
 
@@ -43,7 +45,7 @@ export interface ProcessedSiloData {
 export const WHEAT_COLOR = '#93856b';
 
 // API configuration
-const API_BASE_URL = 'http://idealchiprnd.pythonanywhere.com';
+const API_BASE_URL = Strings.BASE_URL;
 const API_ENDPOINT = '/readings/avg/latest/by-silo-number';
 
 // Persistent storage key for silo data cache

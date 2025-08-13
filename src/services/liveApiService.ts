@@ -3,6 +3,7 @@
  * Fetches real sensor data from the provided API endpoint
  */
 import { Silo, SiloGroup, SensorReading } from '../types/silo';
+import { Strings } from '../utils/Strings';
 
 // API response type based on the provided sample
 interface APISiloResponse {
@@ -40,7 +41,7 @@ export interface CylinderSilo {
 export async function fetchLiveSensorData(): Promise<{ topSiloGroups: SiloGroup[]; bottomSiloGroups: SiloGroup[]; cylinderSilos: CylinderSilo[] }> {
   try {
     // Fetch data from the provided endpoint
-    const response = await fetch('http://idealchiprnd.pythonanywhere.com/readings/avg/latest/by-silo-number?start=2025-07-16T00:00');
+    const response = await fetch(`${Strings.BASE_URL}/readings/avg/latest/by-silo-number?start=2025-07-16T00:00`);
     
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
@@ -135,7 +136,7 @@ function processApiData(apiData: APISiloResponse[]): { topSiloGroups: SiloGroup[
 // Function to fetch data for a specific silo
 export async function fetchSiloData(siloNumber: number): Promise<Silo | null> {
   try {
-    const response = await fetch(`http://idealchiprnd.pythonanywhere.com/readings/avg/latest/by-silo-number?silo_number=${siloNumber}&start=2025-07-16T00:00`);
+    const response = await fetch(`${Strings.BASE_URL}/readings/avg/latest/by-silo-number?silo_number=${siloNumber}&start=2025-07-16T00:00`);
     
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);

@@ -1,5 +1,7 @@
 // API endpoint for maintenance cable data
-const MAINTENANCE_API_BASE = 'http://192.168.1.14:5000';
+import { Strings } from '../utils/Strings';
+
+const MAINTENANCE_API_BASE = Strings.BASE_URL;
 
 // Interface for cable sensor data from API
 export interface CableSensorData {
