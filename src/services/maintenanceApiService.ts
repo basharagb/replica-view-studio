@@ -155,23 +155,32 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
     }
     cables.push({ cableIndex: 1, sensors: cable1Sensors });
 
-    // Calculate S1-S8 as average of both cables for circular silos
+    // Use Cable 0 values directly for circular silos (no averaging)
     for (let i = 0; i < 8; i++) {
       const cable0Level = cable0Sensors[i].level;
-      const cable1Level = cable1Sensors[i].level;
-      const avgLevel = (cable0Level + cable1Level) / 2;
       
-      sensorValues.push(avgLevel);
-      // Use the more critical color (red > yellow > green)
-      const cable0Color = cable0Sensors[i].color;
-      const cable1Color = cable1Sensors[i].color;
-      sensorColors.push(getMoreCriticalColor(cable0Color, cable1Color));
+      // Handle disabled sensors (-127 values)
+      if (cable0Level === -127) {
+        sensorValues.push(-127);
+        sensorColors.push('#9ca3af'); // Grey color for disabled sensors
+      } else {
+        sensorValues.push(cable0Level);
+        sensorColors.push(cable0Sensors[i].color);
+      }
     }
   } else {
     // For square silos, S1-S8 are direct cable 0 values
     for (let i = 0; i < 8; i++) {
-      sensorValues.push(cable0Sensors[i].level);
-      sensorColors.push(cable0Sensors[i].color);
+      const cable0Level = cable0Sensors[i].level;
+      
+      // Handle disabled sensors (-127 values)
+      if (cable0Level === -127) {
+        sensorValues.push(-127);
+        sensorColors.push('#9ca3af'); // Grey color for disabled sensors
+      } else {
+        sensorValues.push(cable0Level);
+        sensorColors.push(cable0Sensors[i].color);
+      }
     }
   }
 
@@ -233,17 +242,20 @@ const generateSimulatedMaintenanceData = (siloNumber: number): MaintenanceSiloDa
     }
     cables.push({ cableIndex: 1, sensors: cable1Sensors });
 
-    // Calculate averaged sensor values
+    // Use Cable 0 values directly (no averaging)
     for (let i = 0; i < 8; i++) {
-      const avgLevel = (cable0Sensors[i].level + cable1Sensors[i].level) / 2;
-      sensorValues.push(avgLevel);
-      sensorColors.push(getMoreCriticalColor(cable0Sensors[i].color, cable1Sensors[i].color));
+      const level = cable0Sensors[i].level;
+      const isDisabled = level === -127;
+      sensorValues.push(level);
+      sensorColors.push(isDisabled ? '#9ca3af' : cable0Sensors[i].color);
     }
   } else {
     // Direct mapping for square silos
     for (let i = 0; i < 8; i++) {
-      sensorValues.push(cable0Sensors[i].level);
-      sensorColors.push(cable0Sensors[i].color);
+      const level = cable0Sensors[i].level;
+      const isDisabled = level === -127;
+      sensorValues.push(level);
+      sensorColors.push(isDisabled ? '#9ca3af' : cable0Sensors[i].color);
     }
   }
 
