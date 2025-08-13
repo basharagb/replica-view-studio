@@ -33,6 +33,7 @@ export interface MaintenanceSiloData {
 
 // API Configuration
 import { Strings } from '../utils/Strings';
+import { getSiloShape } from '../config/siloShapeConfig';
 
 const MAINTENANCE_API_BASE = Strings.BASE_URL;
 const API_TIMEOUT = 15000; // 15 seconds
@@ -104,9 +105,10 @@ export class MaintenanceCableService {
    * Transform API response to maintenance format with cable structure
    */
   private transformApiDataToMaintenanceFormat(apiData: Record<string, unknown>, siloNumber: number): MaintenanceSiloData {
-    const isCircular = siloNumber <= 61;
-    const siloType = isCircular ? 'circular' : 'square';
-    const cableCount = isCircular ? 2 : 1;
+    const siloShapeInfo = getSiloShape(siloNumber);
+    const isCircular = siloShapeInfo.shape === 'circular';
+    const siloType = siloShapeInfo.shape;
+    const cableCount = siloShapeInfo.cableCount;
 
     // Determine silo group
     let siloGroup = 'Unknown';
@@ -191,9 +193,10 @@ export class MaintenanceCableService {
    * Generate simulated maintenance data for fallback
    */
   private generateSimulatedMaintenanceData(siloNumber: number): MaintenanceSiloData {
-    const isCircular = siloNumber <= 61;
-    const siloType = isCircular ? 'circular' : 'square';
-    const cableCount = isCircular ? 2 : 1;
+    const siloShapeInfo = getSiloShape(siloNumber);
+    const isCircular = siloShapeInfo.shape === 'circular';
+    const siloType = siloShapeInfo.shape;
+    const cableCount = siloShapeInfo.cableCount;
 
     let siloGroup = 'Unknown';
     if (siloNumber <= 61) {

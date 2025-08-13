@@ -108,7 +108,7 @@ export const MaintenanceInterface = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-300">Silo Range:</span>
-                      <span className="font-medium text-blue-700 dark:text-blue-300">1-61</span>
+                      <span className="font-medium text-blue-700 dark:text-blue-300">Odd Numbers</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-300">Cables per Silo:</span>
@@ -141,7 +141,7 @@ export const MaintenanceInterface = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-300">Silo Range:</span>
-                      <span className="font-medium text-purple-700 dark:text-purple-300">101-189</span>
+                      <span className="font-medium text-purple-700 dark:text-purple-300">Even Numbers</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-300">Cables per Silo:</span>

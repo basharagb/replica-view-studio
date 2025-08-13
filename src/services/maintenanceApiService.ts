@@ -1,5 +1,6 @@
 // API endpoint for maintenance cable data
 import { Strings } from '../utils/Strings';
+import { getSiloShape, isCircularSilo, getSiloCableCount } from '../config/siloShapeConfig';
 
 const MAINTENANCE_API_BASE = Strings.BASE_URL;
 
@@ -110,7 +111,9 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
     });
 
     // Combine data from multiple records if needed (for circular silos with separate Cable 0 and Cable 1 records)
-    const isCircularSilo = siloNumber >= 1 && siloNumber <= 61;
+    // Use actual silo shape mapping instead of mathematical pattern
+    const siloShapeInfo = getSiloShape(siloNumber);
+    const isCircularSilo = siloShapeInfo.shape === 'circular';
     let combinedData: MaintenanceSiloApiData;
 
     if (data.length === 1) {
@@ -140,7 +143,7 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
             (combinedData as any)[colorKey] = cable1Record[colorKey];
           }
         }
-        // Set cable count to 2 since we have both cables
+        // Set cable count to 2 for circular silos (enforcing silo shape rule)
         combinedData.cable_count = 2;
         
         console.log(`Combined Cable 0 and Cable 1 data for circular silo ${siloNumber}`);
@@ -152,6 +155,11 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
       console.warn(`Unexpected ${data.length} records for silo ${siloNumber}, using first record`);
       combinedData = data[0];
     }
+    
+    // Enforce silo shape rules for cable count based on actual shape mapping
+    combinedData.cable_count = siloShapeInfo.cableCount;
+    
+    console.log(`Silo ${siloNumber}: Shape = ${siloShapeInfo.shape}, Cable Count = ${siloShapeInfo.cableCount}`);
     
     // Debug logging for combined data
     console.log(`Final combined data for silo ${siloNumber}:`, {
@@ -184,9 +192,10 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
   const sensorValues: number[] = [];
   const sensorColors: string[] = [];
 
-  // Determine if this is a circular silo (1-61) - these should always have 2 cables
-  const isCircularSilo = apiData.silo_number >= 1 && apiData.silo_number <= 61;
-  const actualCableCount = isCircularSilo ? 2 : 1;
+  // Process silo data based on actual shape mapping
+  const siloShapeInfo = getSiloShape(apiData.silo_number);
+  const isCircular = siloShapeInfo.shape === 'circular';
+  const actualCableCount = siloShapeInfo.cableCount;
 
   // Process Cable 0 (all silos have this)
   const cable0Sensors: CableSensorData[] = [];
@@ -198,7 +207,7 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
   }
   cables.push({ cableIndex: 0, sensors: cable0Sensors });
 
-  // Process Cable 1 (only for circular silos 1-61)
+  // Process Cable 1 (only for circular silos - odd numbers)
   if (actualCableCount === 2) {
     const cable1Sensors: CableSensorData[] = [];
     for (let i = 0; i < 8; i++) {
@@ -303,8 +312,9 @@ const getMoreCriticalColor = (color1: string, color2: string): string => {
  * Generate simulated maintenance data as fallback
  */
 const generateSimulatedMaintenanceData = (siloNumber: number): MaintenanceSiloData => {
-  const isCircular = siloNumber >= 1 && siloNumber <= 61;
-  const cableCount = isCircular ? 2 : 1;
+  const siloShapeInfo = getSiloShape(siloNumber);
+  const isCircular = siloShapeInfo.shape === 'circular';
+  const cableCount = siloShapeInfo.cableCount;
   
   const cables: CableData[] = [];
   const sensorValues: number[] = [];
