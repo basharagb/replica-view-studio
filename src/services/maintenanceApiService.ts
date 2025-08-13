@@ -79,12 +79,9 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
     console.log(`🔧 [DEBUG] Fetching maintenance data for silo ${siloNumber}...`);
     console.log(`🔧 [DEBUG] API URL: ${MAINTENANCE_API_BASE}/readings/latest/by-silo-number?silo_number=${siloNumber}`);
     
-    const response = await fetch(`${MAINTENANCE_API_BASE}/readings/latest/by-silo-number?silo_number=${siloNumber}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    // Add timestamp to prevent browser caching and avoid CORS preflight
+    const timestamp = new Date().getTime();
+    const response = await fetch(`${MAINTENANCE_API_BASE}/readings/latest/by-silo-number?silo_number=${siloNumber}&_t=${timestamp}`);
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.status}`);

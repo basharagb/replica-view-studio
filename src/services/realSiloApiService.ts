@@ -165,31 +165,39 @@ class SiloDataCache {
 const siloCache = new SiloDataCache();
 
 // Convert API response to processed silo data
-function processApiResponse(apiData: RealSiloApiResponse): ProcessedSiloData {
+const processApiResponse = (apiData: RealSiloApiResponse): ProcessedSiloData => {
   const sensors = [
-    apiData.level_0,  // S1
-    apiData.level_1,  // S2
-    apiData.level_2,  // S3
-    apiData.level_3,  // S4
-    apiData.level_4,  // S5
-    apiData.level_5,  // S6
-    apiData.level_6,  // S7
-    apiData.level_7   // S8
+    apiData.level_0, apiData.level_1, apiData.level_2, apiData.level_3,
+    apiData.level_4, apiData.level_5, apiData.level_6, apiData.level_7
   ];
-
+  
   const sensorColors = [
-    apiData.color_0,  // S1 color
-    apiData.color_1,  // S2 color
-    apiData.color_2,  // S3 color
-    apiData.color_3,  // S4 color
-    apiData.color_4,  // S5 color
-    apiData.color_5,  // S6 color
-    apiData.color_6,  // S7 color
-    apiData.color_7   // S8 color
+    apiData.color_0, apiData.color_1, apiData.color_2, apiData.color_3,
+    apiData.color_4, apiData.color_5, apiData.color_6, apiData.color_7
   ];
-
+  
   const maxTemp = Math.max(...sensors);
-
+  
+  // 🔍 COMPREHENSIVE DEBUG LOGGING FOR LIVE READINGS
+  console.log(`🔍 [LIVE READINGS DEBUG] Silo ${apiData.silo_number} API Response:`, {
+    endpoint: '/readings/avg/latest/by-silo-number',
+    siloGroup: apiData.silo_group,
+    cableNumber: apiData.cable_number,
+    sensors: {
+      S1: `${apiData.level_0}°C (${apiData.color_0})`,
+      S2: `${apiData.level_1}°C (${apiData.color_1})`,
+      S3: `${apiData.level_2}°C (${apiData.color_2})`,
+      S4: `${apiData.level_3}°C (${apiData.color_3})`,
+      S5: `${apiData.level_4}°C (${apiData.color_4})`,
+      S6: `${apiData.level_5}°C (${apiData.color_5})`,
+      S7: `${apiData.level_6}°C (${apiData.color_6})`,
+      S8: `${apiData.level_7}°C (${apiData.color_7})`
+    },
+    maxTemp: `${maxTemp}°C`,
+    siloColor: apiData.silo_color,
+    timestamp: apiData.timestamp
+  });
+  
   return {
     siloNumber: apiData.silo_number,
     sensors,
@@ -199,7 +207,7 @@ function processApiResponse(apiData: RealSiloApiResponse): ProcessedSiloData {
     timestamp: new Date(apiData.timestamp),
     isLoaded: true
   };
-}
+};
 
 // Fetch silo data from real API
 export async function fetchSiloData(siloNumber: number): Promise<ProcessedSiloData> {
@@ -230,11 +238,11 @@ export async function fetchSiloData(siloNumber: number): Promise<ProcessedSiloDa
     const url = `${API_BASE_URL}${API_ENDPOINT}?silo_number=${siloNumber}`;
     // Fetching silo data from API (logging removed for performance)
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    // Add timestamp to prevent caching and avoid CORS preflight
+    const timestamp = new Date().getTime();
+    const urlWithTimestamp = `${url}&_t=${timestamp}`;
+    
+    const response = await fetch(urlWithTimestamp, {
       // Add timeout to prevent hanging requests
       signal: AbortSignal.timeout(10000) // 10 second timeout
     });

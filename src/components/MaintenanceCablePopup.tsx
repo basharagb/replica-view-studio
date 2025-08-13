@@ -18,7 +18,8 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchSiloMaintenanceData = useCallback(async (isRefresh = false) => {
+  // Remove useCallback to ensure fresh API calls for manual testing
+  const fetchSiloMaintenanceData = async (isRefresh = false) => {
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -27,8 +28,10 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
       }
       setError(null);
 
+      console.log(`🔄 [MANUAL TEST DEBUG] Fetching ${isRefresh ? 'FRESH' : 'INITIAL'} data for silo ${siloNumber}...`);
       const data = await fetchMaintenanceSiloData(siloNumber);
       setSiloData(data);
+      console.log(`✅ [MANUAL TEST DEBUG] Successfully fetched ${isRefresh ? 'FRESH' : 'INITIAL'} data for silo ${siloNumber}`);
     } catch (err) {
       console.error('Failed to fetch silo maintenance data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load maintenance data');
@@ -36,11 +39,12 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
       setLoading(false);
       setRefreshing(false);
     }
-  }, [siloNumber]);
+  };
 
   useEffect(() => {
     fetchSiloMaintenanceData();
-  }, [fetchSiloMaintenanceData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siloNumber]); // Intentionally exclude fetchSiloMaintenanceData to ensure fresh API calls
 
   const handleRefresh = () => {
     fetchSiloMaintenanceData(true);

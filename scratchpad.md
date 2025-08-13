@@ -1,6 +1,40 @@
-# Task: Resolve Maintenance API Cable Count Issue
+# Task: Fix CORS Preflight OPTIONS Requests
 
-## Problem Analysis - UPDATED
+## CURRENT TASK COMPLETED ✅: RESTORE MANUAL TEST LOADING ANIMATIONS
+**User Request**: Make manual tests show loading animations as they were before with proper timing
+
+**Problem Identified**: Manual tests were giving instant results without loading feedback
+
+**Solution Implemented**:
+- [x] Restored manual test duration timing (15 minutes default)
+- [x] Restored loading states (`isReading`, `readingSilo`) during test
+- [x] Restored blocking condition to prevent multiple clicks during test
+- [x] API fetches during test duration with proper loading animations
+- [x] Users see visual feedback that test is in progress
+- [x] Fresh data fetched but displayed after test duration completes
+
+## PREVIOUS TASK COMPLETED ✅: REMOVE OPTIONS API CALLS
+**User Request**: Remove OPTIONS preflight requests - only GET requests should be made to APIs
+
+**Solution Implemented**:
+- [x] Removed custom headers from maintenance API (`maintenanceApiService.ts`)
+- [x] Removed custom headers from live readings API (`realSiloApiService.ts`) 
+- [x] Added cache-busting timestamps to prevent browser caching
+- [x] Maintained timeout functionality without triggering preflight
+- [x] Now only GET requests are made - no OPTIONS preflight
+
+## PREVIOUS TASK COMPLETED ✅: IMMEDIATE MANUAL READINGS
+**User Request**: Manual readings should fetch immediately on every click, even multiple rapid clicks.
+
+**Solution Implemented**:
+- [x] Removed blocking condition to allow immediate clicks
+- [x] Modified `handleSiloClick` to always allow manual reading
+- [x] Made each click trigger immediate API fetch without artificial delays
+- [x] Added instant visual feedback with immediate silo selection
+- [x] Enhanced debug logging for immediate response tracking
+- [x] Removed `useCallback` dependencies to ensure fresh function calls
+
+## Problem Analysis - PREVIOUS (RESOLVED)
 User identified cable count issue with maintenance API:
 - **NEW ISSUE**: API returns incorrect `cable_count: 2` for square silos (like silo 165)
 - Square silos (101-189) should have `cable_count: 1` but API returns `cable_count: 2`

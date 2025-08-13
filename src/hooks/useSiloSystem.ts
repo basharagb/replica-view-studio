@@ -200,10 +200,11 @@ export const useSiloSystem = () => {
     autoReadInterval.current = interval;
   }, []);
 
-  // Handle silo click
+  // Handle silo click - Block clicks during manual test loading
   const handleSiloClick = useCallback((siloNum: number, temp: number) => {
     if (readingMode === 'manual' && !isReading) {
-      // Start manual reading
+      // Start manual reading only if not already reading
+      console.log(`🔄 [MANUAL TEST] Manual test triggered for silo ${siloNum}`);
       startManualRead(siloNum, temp);
     } else if (readingMode === 'none') {
       // Normal selection
@@ -228,12 +229,12 @@ export const useSiloSystem = () => {
     setHoveredSilo(null);
   }, []);
 
-  // Start manual reading with real API integration
+  // Start manual reading with loading animation and real API integration
   const startManualRead = useCallback(async (siloNum: number, temp: number) => {
     setIsReading(true);
     setReadingSilo(siloNum);
-
-    // Starting manual test for silo (logging removed for performance)
+    
+    console.log(`🔄 [MANUAL TEST] Starting manual test for silo ${siloNum} with ${manualTestDuration} minute duration`);
 
     // Fetch real silo data from API during the test duration
     try {
@@ -249,7 +250,7 @@ export const useSiloSystem = () => {
         new Promise(resolve => setTimeout(resolve, testDuration))
       ]);
 
-      // Manual test completed for silo (logging removed for performance)
+      console.log(`✅ [MANUAL TEST] Manual test completed for silo ${siloNum} - got fresh data`);
       
       // Update UI with real API data and force re-render
       setSelectedSilo(siloNum);
@@ -257,13 +258,13 @@ export const useSiloSystem = () => {
       setIsReading(false);
       setReadingSilo(null);
       
-      // Force a re-render without clearing cached API data
+      // Force a re-render with fresh data
       setDataVersion(prev => prev + 1);
       
     } catch (error) {
-      console.error(`Manual test failed for silo ${siloNum}:`, error);
+      console.error(`❌ [MANUAL TEST] Manual test failed for silo ${siloNum}:`, error);
       
-      // Fallback to original behavior on error
+      // Fallback with proper timing
       setTimeout(() => {
         setSelectedSilo(siloNum);
         setSelectedTemp(temp);
