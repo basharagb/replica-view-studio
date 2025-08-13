@@ -15,7 +15,7 @@ import AlertSystem from './AlertSystem';
 interface MaintenanceLabInterfaceProps {
   onSiloClick?: (siloNumber: number) => void;
 }
-
+// test push
 export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterfaceProps) => {
   const {
     selectedSilo,
