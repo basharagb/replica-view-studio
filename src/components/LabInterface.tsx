@@ -40,6 +40,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
     startAutoRead,
     handleManualReadMode,
     setSelectedSilo,
+    getSiloByNumber,
     cleanup
   } = useSiloSystem();
 
@@ -58,8 +59,12 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
 
   // Combined click handler for maintenance integration
   const handleCombinedSiloClick = (siloNumber: number) => {
+    // Get the silo data to extract temperature
+    const silo = getSiloByNumber(siloNumber);
+    const temperature = silo?.temp || 0;
+    
     // Call the original silo click handler for existing functionality
-    handleSiloClick(siloNumber);
+    handleSiloClick(siloNumber, temperature);
     
     // Call the optional maintenance popup handler if provided
     if (onSiloClick) {
