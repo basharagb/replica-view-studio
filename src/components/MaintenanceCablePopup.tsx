@@ -1,24 +1,9 @@
-import { useEffect, useState } from 'react';
-import { X, Cable, Thermometer } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { AlertTriangle, CheckCircle, Activity, Cable, X, Clock, Thermometer, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-
-interface CableData {
-  cable_number: number;
-  sensors: {
-    level: number;
-    temperature: number;
-    color: string;
-  }[];
-}
-
-interface SiloMaintenanceData {
-  silo_number: number;
-  silo_group: string;
-  cable_count: number;
-  cables: CableData[];
-  overall_color: string;
-}
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { fetchMaintenanceSiloData, MaintenanceSiloData, CableData, CableSensorData } from '../services/maintenanceApiService';
 
 interface MaintenanceCablePopupProps {
   siloNumber: number;
@@ -26,299 +11,421 @@ interface MaintenanceCablePopupProps {
 }
 
 export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCablePopupProps) => {
-  const [siloData, setSiloData] = useState<SiloMaintenanceData | null>(null);
+  const [siloData, setSiloData] = useState<MaintenanceSiloData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchSiloMaintenanceData = async () => {
-      try {
+  const fetchSiloMaintenanceData = useCallback(async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
         setLoading(true);
-        setError(null);
-        
-        // API endpoint for maintenance data
-        const response = await fetch(
-          `http://192.168.1.14:5000/readings/latest/by-silo-number?silo_number=${siloNumber}&start=2025-07-16T00:00`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            signal: AbortSignal.timeout(15000), // 15 second timeout
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        // Transform API data to our expected format
-        if (data && data.length > 0) {
-          const apiSilo = data[0];
-          const transformedData: SiloMaintenanceData = {
-            silo_number: apiSilo.silo_number,
-            silo_group: apiSilo.silo_group,
-            cable_count: apiSilo.cable_count || 1,
-            overall_color: apiSilo.color || '#22c55e',
-            cables: []
-          };
-
-          // Process cables based on cable_count
-          if (apiSilo.cable_count === 2) {
-            // Circular silo - 2 cables with 8 sensors each
-            for (let cableNum = 0; cableNum < 2; cableNum++) {
-              const cable: CableData = {
-                cable_number: cableNum,
-                sensors: []
-              };
-
-              for (let level = 0; level < 8; level++) {
-                const tempKey = `level_${level}_cable_${cableNum}`;
-                const colorKey = `color_${level}_cable_${cableNum}`;
-                
-                cable.sensors.push({
-                  level: level,
-                  temperature: apiSilo[tempKey] || 25.0,
-                  color: apiSilo[colorKey] || '#22c55e'
-                });
-              }
-              
-              transformedData.cables.push(cable);
-            }
-          } else {
-            // Square silo - 1 cable with 8 sensors
-            const cable: CableData = {
-              cable_number: 0,
-              sensors: []
-            };
-
-            for (let level = 0; level < 8; level++) {
-              const tempKey = `level_${level}`;
-              const colorKey = `color_${level}`;
-              
-              cable.sensors.push({
-                level: level,
-                temperature: apiSilo[tempKey] || 25.0,
-                color: apiSilo[colorKey] || '#22c55e'
-              });
-            }
-            
-            transformedData.cables.push(cable);
-          }
-
-          setSiloData(transformedData);
-        } else {
-          throw new Error('No data received from API');
-        }
-      } catch (err) {
-        console.error('Failed to fetch maintenance data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
-        
-        // Fallback to mock data for development
-        setSiloData(generateMockSiloData(siloNumber));
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetchSiloMaintenanceData();
+      setError(null);
+      
+      const data = await fetchMaintenanceSiloData(siloNumber);
+      setSiloData(data);
+    } catch (err) {
+      console.error('Failed to fetch silo maintenance data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load maintenance data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [siloNumber]);
 
-  const generateMockSiloData = (siloNum: number): SiloMaintenanceData => {
-    const isCircular = siloNum <= 100; // Assume silos 1-100 are circular, 101+ are square
-    const cableCount = isCircular ? 2 : 1;
-    
-    const cables: CableData[] = [];
-    
-    for (let cableNum = 0; cableNum < cableCount; cableNum++) {
-      const cable: CableData = {
-        cable_number: cableNum,
-        sensors: []
-      };
+  useEffect(() => {
+    fetchSiloMaintenanceData();
+  }, [fetchSiloMaintenanceData]);
 
-      for (let level = 0; level < 8; level++) {
-        const temp = 20 + Math.random() * 25; // Random temp between 20-45°C
-        let color = '#22c55e'; // Green
-        
-        if (temp >= 40) color = '#ef4444'; // Red
-        else if (temp >= 30) color = '#eab308'; // Yellow
-        
-        cable.sensors.push({
-          level: level,
-          temperature: parseFloat(temp.toFixed(1)),
-          color: color
-        });
-      }
-      
-      cables.push(cable);
-    }
-
-    return {
-      silo_number: siloNum,
-      silo_group: `Group ${Math.ceil(siloNum / 25)}`,
-      cable_count: cableCount,
-      cables: cables,
-      overall_color: '#22c55e'
-    };
+  const handleRefresh = () => {
+    fetchSiloMaintenanceData(true);
   };
 
-  const getColorName = (color: string): string => {
-    switch (color.toLowerCase()) {
-      case '#22c55e':
-      case '#16a34a':
-      case 'green':
-        return 'Normal';
-      case '#eab308':
-      case '#ca8a04':
-      case 'yellow':
-        return 'Warning';
-      case '#ef4444':
-      case '#dc2626':
-      case 'red':
-        return 'Critical';
-      default:
-        return 'Unknown';
-    }
+  const getStatusIcon = (color: string) => {
+    if (color === '#d14141') return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    if (color === '#ff9800') return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+    return <CheckCircle className="h-4 w-4 text-green-500" />;
   };
 
-  const getStatusBadgeVariant = (color: string) => {
-    switch (color.toLowerCase()) {
-      case '#22c55e':
-      case '#16a34a':
-      case 'green':
-        return 'default';
-      case '#eab308':
-      case '#ca8a04':
-      case 'yellow':
-        return 'secondary';
-      case '#ef4444':
-      case '#dc2626':
-      case 'red':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
+  const getStatusText = (color: string) => {
+    if (color === '#d14141') return 'Critical';
+    if (color === '#ff9800') return 'Warning';
+    return 'Normal';
   };
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <span className="ml-4 text-lg text-gray-600 dark:text-gray-300">Loading maintenance data...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-red-600 flex items-center">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              Connection Error
+            </h2>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
+          <div className="flex gap-2">
+            <Button onClick={handleRefresh} variant="outline" className="flex-1">
+              Try Again
+            </Button>
+            <Button onClick={onClose} className="flex-1">
+              Close
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <Cable className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg mr-4">
+              <Cable className="h-6 w-6 text-white" />
+            </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Silo {siloNumber} - Cable Status
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Silo {siloNumber} - Cable Testing
               </h2>
-              {siloData && (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {siloData.silo_group} • {siloData.cable_count} Cable{siloData.cable_count > 1 ? 's' : ''} • {siloData.cable_count * 8} Sensors
+              <div className="flex items-center gap-4 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  {siloData?.siloGroup} • {siloData?.cableCount === 2 ? 'Circular' : 'Square'} • {siloData?.cableCount} Cable{siloData?.cableCount !== 1 ? 's' : ''}
                 </p>
-              )}
+                <Badge variant={siloData?.siloColor === '#d14141' ? 'destructive' : siloData?.siloColor === '#ff9800' ? 'secondary' : 'default'}>
+                  {getStatusIcon(siloData?.siloColor || '#46d446')}
+                  <span className="ml-1">{getStatusText(siloData?.siloColor || '#46d446')}</span>
+                </Badge>
+              </div>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={refreshing}
+            >
+              {refreshing ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              <span className="ml-1">Refresh</span>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600 dark:text-gray-400">Loading cable data...</span>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-              <p className="text-red-800 dark:text-red-200">
-                <strong>Error:</strong> {error}
-              </p>
-              <p className="text-sm text-red-600 dark:text-red-300 mt-1">
-                Showing mock data for demonstration.
-              </p>
-            </div>
-          )}
-
-          {siloData && (
-            <div className="space-y-6">
-              {/* Overall Status */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Overall Silo Status
-                  </h3>
-                  <Badge variant={getStatusBadgeVariant(siloData.overall_color)}>
-                    {getColorName(siloData.overall_color)}
-                  </Badge>
-                </div>
+        {/* System Overview */}
+        <Card className="mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Thermometer className="h-5 w-5 text-gray-600 mr-2" />
+                <span>System Overview</span>
               </div>
+              <div className="text-sm text-gray-500 flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                Last Updated: {siloData?.timestamp ? formatDateTime(siloData.timestamp) : 'N/A'}
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="text-2xl font-bold" style={{ color: siloData?.siloColor }}>
+                  {siloData ? Math.max(...siloData.sensorValues).toFixed(1) : '0.0'}°C
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Max Temperature</div>
+              </div>
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
+                  {siloData ? siloData.cables.reduce((total, cable) => total + cable.sensors.length, 0) : 0}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Total Sensors</div>
+              </div>
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {siloData?.cables.length || 0}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Active Cables</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Cables */}
-              {siloData.cables.map((cable) => (
-                <div key={cable.cable_number} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <Cable className="h-5 w-5" />
-                    Cable {cable.cable_number} 
-                    <span className="text-sm font-normal text-gray-600 dark:text-gray-400">
-                      ({cable.sensors.length} sensors)
-                    </span>
-                  </h4>
-
-                  {/* Sensors Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {cable.sensors.map((sensor) => (
-                      <div
-                        key={sensor.level}
-                        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            S{sensor.level + 1}
-                          </span>
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: sensor.color }}
-                          />
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Thermometer className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-mono text-gray-900 dark:text-white">
-                            {sensor.temperature}°C
-                          </span>
-                        </div>
-                        <div className="mt-1">
-                          <Badge 
-                            variant={getStatusBadgeVariant(sensor.color)}
-                            className="text-xs"
-                          >
-                            {getColorName(sensor.color)}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+        {/* Unified Cable Table */}
+        <Card className="overflow-hidden border-2 hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg mr-3">
+                  <Cable className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <span className="text-lg">Cable Temperature Comparison</span>
+                  <div className="text-sm text-gray-500 font-normal">
+                    {siloData?.cableCount === 2 ? 'Cable 0 & Cable 1' : 'Cable 0 Only'} • Temperature Sensors (Top to Bottom)
                   </div>
                 </div>
-              ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-white">
+                  <Activity className="h-3 w-3 mr-1" />
+                  Active
+                </Badge>
+                <Badge variant="outline">
+                  {siloData?.cables.reduce((total, cable) => total + cable.sensors.length, 0) || 0} Total Sensors
+                </Badge>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {/* Unified Sensor Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-gray-200 dark:border-gray-600">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                      Sensor
+                    </th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                      Cable 0
+                    </th>
+                    {siloData?.cableCount === 2 && (
+                      <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                        Cable 1
+                      </th>
+                    )}
+                    {siloData?.cableCount === 2 && (
+                      <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                        Average
+                      </th>
+                    )}
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 8 }, (_, sensorIndex) => {
+                    const cable0Sensor = siloData?.cables.find(c => c.cableIndex === 0)?.sensors[sensorIndex];
+                    const cable1Sensor = siloData?.cables.find(c => c.cableIndex === 1)?.sensors[sensorIndex];
+                    const avgTemp = siloData?.cableCount === 2 && cable0Sensor && cable1Sensor 
+                      ? (cable0Sensor.level + cable1Sensor.level) / 2 
+                      : cable0Sensor?.level || 0;
+                    const avgColor = siloData?.sensorColors[sensorIndex] || '#46d446';
+                    
+                    return (
+                      <tr 
+                        key={sensorIndex} 
+                        className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        {/* Sensor Label */}
+                        <td className="py-4 px-4">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: avgColor }}></div>
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              S{sensorIndex + 1}
+                            </span>
+                          </div>
+                        </td>
+                        
+                        {/* Cable 0 */}
+                        <td className="py-4 px-4 text-center">
+                          {cable0Sensor ? (
+                            <div className="flex flex-col items-center">
+                              <div 
+                                className="text-lg font-bold mb-1"
+                                style={{ color: cable0Sensor.color }}
+                              >
+                                {cable0Sensor.level.toFixed(1)}°C
+                              </div>
+                              <div className="flex items-center">
+                                {getStatusIcon(cable0Sensor.color)}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">N/A</span>
+                          )}
+                        </td>
+                        
+                        {/* Cable 1 (if exists) */}
+                        {siloData?.cableCount === 2 && (
+                          <td className="py-4 px-4 text-center">
+                            {cable1Sensor ? (
+                              <div className="flex flex-col items-center">
+                                <div 
+                                  className="text-lg font-bold mb-1"
+                                  style={{ color: cable1Sensor.color }}
+                                >
+                                  {cable1Sensor.level.toFixed(1)}°C
+                                </div>
+                                <div className="flex items-center">
+                                  {getStatusIcon(cable1Sensor.color)}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">N/A</span>
+                            )}
+                          </td>
+                        )}
+                        
+                        {/* Average (if 2 cables) */}
+                        {siloData?.cableCount === 2 && (
+                          <td className="py-4 px-4 text-center">
+                            <div className="flex flex-col items-center">
+                              <div 
+                                className="text-lg font-bold mb-1 px-2 py-1 rounded"
+                                style={{ 
+                                  color: avgColor,
+                                  backgroundColor: `${avgColor}15`
+                                }}
+                              >
+                                {avgTemp.toFixed(1)}°C
+                              </div>
+                            </div>
+                          </td>
+                        )}
+                        
+                        {/* Status */}
+                        <td className="py-4 px-4 text-center">
+                          <Badge 
+                            variant={avgColor === '#d14141' ? 'destructive' : avgColor === '#ff9800' ? 'secondary' : 'default'}
+                            className="text-xs"
+                          >
+                            {getStatusText(avgColor)}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
+            
+            {/* Cable Statistics Summary */}
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Max Temp</div>
+                  <div className="text-lg font-bold text-red-600">
+                    {siloData ? Math.max(...siloData.sensorValues).toFixed(1) : '0.0'}°C
+                  </div>
+                </div>
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Avg Temp</div>
+                  <div className="text-lg font-bold text-blue-600">
+                    {siloData ? (siloData.sensorValues.reduce((sum, val) => sum + val, 0) / siloData.sensorValues.length).toFixed(1) : '0.0'}°C
+                  </div>
+                </div>
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Min Temp</div>
+                  <div className="text-lg font-bold text-green-600">
+                    {siloData ? Math.min(...siloData.sensorValues).toFixed(1) : '0.0'}°C
+                  </div>
+                </div>
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Cables</div>
+                  <div className="text-lg font-bold text-purple-600">
+                    {siloData?.cables.length || 0}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Calculated Sensor Values (S1-S8) */}
+        {siloData && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Thermometer className="h-5 w-5 text-gray-600 mr-2" />
+                <span>Calculated Sensor Values (S1-S8)</span>
+                {siloData.cableCount === 2 && (
+                  <Badge variant="outline" className="ml-2">
+                    Averaged from both cables
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                {siloData.sensorValues.map((value, index) => (
+                  <div 
+                    key={index}
+                    className="text-center p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105"
+                    style={{ 
+                      backgroundColor: `${siloData.sensorColors[index]}15`,
+                      borderColor: siloData.sensorColors[index]
+                    }}
+                  >
+                    <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                      S{index + 1}
+                    </div>
+                    <div 
+                      className="text-lg font-bold"
+                      style={{ color: siloData.sensorColors[index] }}
+                    >
+                      {value.toFixed(1)}°C
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+              <Activity className="h-4 w-4 mr-2" />
+              <span>Real-time cable testing data from API: 192.168.1.14:5000</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
+                {refreshing ? 'Refreshing...' : 'Refresh Data'}
+              </Button>
+              <Button onClick={onClose}>
+                Close
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

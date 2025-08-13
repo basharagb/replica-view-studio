@@ -96,12 +96,17 @@ export class AuthService {
     }
   }
 
-  static isTokenValid(token: string): boolean {
+  static validateToken(token: string): boolean {
     const decoded = this.decodeToken(token);
     if (!decoded) return false;
     
-    // Check if token is not expired (current time should be less than expiration)
-    return Date.now() < decoded.exp;
+    // Check if token is not expired (current time in seconds should be less than expiration)
+    return Math.floor(Date.now() / 1000) < decoded.exp;
+  }
+
+  // Alias for backward compatibility
+  static isTokenValid(token: string): boolean {
+    return this.validateToken(token);
   }
 
   static hasPermission(userPermissions: string[], requiredPermission: string): boolean {
@@ -118,6 +123,7 @@ export class AuthService {
       '/monitoring': 'alerts_monitoring', 
       '/reports': 'reports',
       '/analytics': 'maintenance',
+      '/maintenance-panel': 'maintenance',
       '/settings': 'settings'
     };
 
