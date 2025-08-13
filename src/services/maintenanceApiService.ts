@@ -1,6 +1,5 @@
 // API endpoint for maintenance cable data
 import { Strings } from '../utils/Strings';
-import { getSiloShape, isCircularSilo, getSiloCableCount } from '../config/siloShapeConfig';
 
 const MAINTENANCE_API_BASE = Strings.BASE_URL;
 
@@ -77,16 +76,15 @@ export interface MaintenanceSiloData {
  */
 export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<MaintenanceSiloData> => {
   try {
-    const response = await fetch(
-      `${MAINTENANCE_API_BASE}/readings/latest/by-silo-number?silo_number=${siloNumber}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(10000), // 10 second timeout
-      }
-    );
+    console.log(`🔧 [DEBUG] Fetching maintenance data for silo ${siloNumber}...`);
+    console.log(`🔧 [DEBUG] API URL: ${MAINTENANCE_API_BASE}/readings/latest/by-silo-number?silo_number=${siloNumber}`);
+    
+    const response = await fetch(`${MAINTENANCE_API_BASE}/readings/latest/by-silo-number?silo_number=${siloNumber}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.status}`);
@@ -99,21 +97,10 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
     }
 
     // Debug logging for API response structure
-    console.log(`Raw API response for silo ${siloNumber}:`, {
-      recordCount: data.length,
-      records: data.map((record, index) => ({
-        index,
-        cable_count: record.cable_count,
-        hasCable0: record.cable_0_level_0 !== undefined,
-        hasCable1: record.cable_1_level_0 !== undefined,
-        timestamp: record.timestamp
-      }))
-    });
 
     // Combine data from multiple records if needed (for circular silos with separate Cable 0 and Cable 1 records)
-    // Use actual silo shape mapping instead of mathematical pattern
-    const siloShapeInfo = getSiloShape(siloNumber);
-    const isCircularSilo = siloShapeInfo.shape === 'circular';
+    const isCircularSilo = siloNumber >= 1 && siloNumber <= 61;
+    console.log(`🔧 [DEBUG] Silo ${siloNumber} is ${isCircularSilo ? 'CIRCULAR' : 'SQUARE'} silo`);
     let combinedData: MaintenanceSiloApiData;
 
     if (data.length === 1) {
@@ -139,8 +126,9 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
           const colorKey = `cable_1_color_${i}` as keyof MaintenanceSiloApiData;
           
           if (levelKey in cable1Record && colorKey in cable1Record) {
-            (combinedData as any)[levelKey] = cable1Record[levelKey];
-            (combinedData as any)[colorKey] = cable1Record[colorKey];
+            // Use index signature to safely assign cable 1 data
+            (combinedData as unknown as Record<string, unknown>)[levelKey] = cable1Record[levelKey];
+            (combinedData as unknown as Record<string, unknown>)[colorKey] = cable1Record[colorKey];
           }
         }
         // Set cable count to 2 for circular silos (enforcing silo shape rule)
@@ -156,10 +144,8 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
       combinedData = data[0];
     }
     
-    // Enforce silo shape rules for cable count based on actual shape mapping
-    combinedData.cable_count = siloShapeInfo.cableCount;
-    
-    console.log(`Silo ${siloNumber}: Shape = ${siloShapeInfo.shape}, Cable Count = ${siloShapeInfo.cableCount}`);
+    // Keep the API's original cable_count (we'll trust it in processMaintenanceSiloData)
+    console.log(`Silo ${siloNumber}: API returned cable_count = ${combinedData.cable_count}`);
     
     // Debug logging for combined data
     console.log(`Final combined data for silo ${siloNumber}:`, {
@@ -176,12 +162,41 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
       }
     });
     
-    return processMaintenanceSiloData(combinedData);
+    // Process the combined data
+    console.log(`🔧 [DEBUG] About to process combined data for silo ${siloNumber}:`, {
+      silo_number: combinedData.silo_number,
+      api_cable_count: combinedData.cable_count,
+      has_cable_0_data: combinedData.cable_0_level_0 !== undefined,
+      has_cable_1_data: combinedData.cable_1_level_0 !== undefined
+    });
+    
+    const processedData = processMaintenanceSiloData(combinedData);
+    console.log(`✅ [DEBUG] Final processed data for silo ${siloNumber}:`, {
+      siloNumber: processedData.siloNumber,
+      finalCableCount: processedData.cableCount,
+      cableData: processedData.cables.map(c => ({ cableIndex: c.cableIndex, sensorCount: c.sensors.length }))
+    });
+    
+    return processedData;
   } catch (error) {
     console.warn(`Failed to fetch maintenance data for silo ${siloNumber}:`, error);
     // Return simulated data as fallback
     return generateSimulatedMaintenanceData(siloNumber);
   }
+};
+
+/**
+ * Validate and determine correct cable count based on silo architecture
+ */
+const validateCableCount = (siloNumber: number, apiCableCount: number): { actualCount: number; isValid: boolean } => {
+  const isCircularSilo = siloNumber >= 1 && siloNumber <= 61;
+  const expectedCount = isCircularSilo ? 2 : 1;
+  const isValid = apiCableCount === expectedCount;
+  
+  return {
+    actualCount: expectedCount,
+    isValid
+  };
 };
 
 /**
@@ -192,10 +207,15 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
   const sensorValues: number[] = [];
   const sensorColors: string[] = [];
 
-  // Process silo data based on actual shape mapping
-  const siloShapeInfo = getSiloShape(apiData.silo_number);
-  const isCircular = siloShapeInfo.shape === 'circular';
-  const actualCableCount = siloShapeInfo.cableCount;
+  // Use API cable_count directly - trust the API response
+  const actualCableCount = apiData.cable_count;
+  const isCircularSilo = apiData.silo_number >= 1 && apiData.silo_number <= 61;
+  
+  console.log(`📡 Using API cable count for silo ${apiData.silo_number}:`, {
+    siloType: isCircularSilo ? 'Circular (1-61)' : 'Square (101-189)',
+    apiCableCount: apiData.cable_count,
+    willShow: apiData.cable_count === 2 ? '2 cables' : '1 cable'
+  });
 
   // Process Cable 0 (all silos have this)
   const cable0Sensors: CableSensorData[] = [];
@@ -210,18 +230,25 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
   // Process Cable 1 (only for circular silos - odd numbers)
   if (actualCableCount === 2) {
     const cable1Sensors: CableSensorData[] = [];
+    let cable1DataAvailable = false;
+    
+    // Check if any Cable 1 data is available in the API response
+    for (let i = 0; i < 8; i++) {
+      const cable1Level = apiData[`cable_1_level_${i}` as keyof MaintenanceSiloApiData] as number;
+      if (cable1Level !== undefined && cable1Level !== null && !isNaN(cable1Level)) {
+        cable1DataAvailable = true;
+        break;
+      }
+    }
+    
+    if (!cable1DataAvailable) {
+      console.warn(`No Cable 1 data available for circular silo ${apiData.silo_number}, using simulated data based on Cable 0`);
+    }
+    
     for (let i = 0; i < 8; i++) {
       // Check if Cable 1 data exists in API response
       const cable1Level = apiData[`cable_1_level_${i}` as keyof MaintenanceSiloApiData] as number;
       const cable1Color = apiData[`cable_1_color_${i}` as keyof MaintenanceSiloApiData] as string;
-      
-      // Debug logging for each sensor
-      console.log(`Cable 1 sensor ${i} for silo ${apiData.silo_number}:`, {
-        level: cable1Level,
-        color: cable1Color,
-        levelType: typeof cable1Level,
-        colorType: typeof cable1Color
-      });
       
       // Improved validation: -127 is a valid API response meaning "DISCONNECTED"
       const hasValidLevel = cable1Level !== undefined && cable1Level !== null && !isNaN(cable1Level);
@@ -229,7 +256,6 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
       
       if (hasValidLevel && hasValidColor) {
         // Use real API data (including -127 for disconnected sensors)
-        console.log(`Using real Cable 1 data for sensor ${i}: ${cable1Level}°C, color: ${cable1Color}`);
         cable1Sensors.push({
           level: cable1Level,
           color: cable1Color,
@@ -246,7 +272,11 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
           color: simulatedColor,
         });
         
-        console.warn(`Cable 1 sensor ${i} for silo ${apiData.silo_number}: Invalid data (level: ${cable1Level}, color: ${cable1Color}), using simulated data`);
+        if (!cable1DataAvailable) {
+          console.log(`Generated simulated Cable 1 sensor ${i} for silo ${apiData.silo_number}: ${simulatedLevel}°C`);
+        } else {
+          console.warn(`Cable 1 sensor ${i} for silo ${apiData.silo_number}: Invalid data (level: ${cable1Level}, color: ${cable1Color}), using simulated data`);
+        }
       }
     }
     cables.push({ cableIndex: 1, sensors: cable1Sensors });
@@ -283,7 +313,7 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
   return {
     siloNumber: apiData.silo_number,
     siloGroup: apiData.silo_group,
-    cableCount: actualCableCount,
+    cableCount: actualCableCount, // Use architecture-based cable count
     timestamp: apiData.timestamp,
     siloColor: apiData.silo_color,
     cables,
@@ -312,9 +342,8 @@ const getMoreCriticalColor = (color1: string, color2: string): string => {
  * Generate simulated maintenance data as fallback
  */
 const generateSimulatedMaintenanceData = (siloNumber: number): MaintenanceSiloData => {
-  const siloShapeInfo = getSiloShape(siloNumber);
-  const isCircular = siloShapeInfo.shape === 'circular';
-  const cableCount = siloShapeInfo.cableCount;
+  const isCircular = siloNumber >= 1 && siloNumber <= 61;
+  const cableCount = isCircular ? 2 : 1;
   
   const cables: CableData[] = [];
   const sensorValues: number[] = [];
