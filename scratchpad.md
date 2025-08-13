@@ -14,7 +14,7 @@
 - [x] Examine current auto test logic in Live Readings
 - [x] Fix sensor panel display to show N-1 readings when scanning silo N
 - [x] Test the fix across all silos during auto scanning
-- [ ] Commit and push changes to GitHub
+- [x] Commit and push changes to GitHub
 
 ## NEW ISSUE: Reports Page Blank/Empty
 
