@@ -79,7 +79,7 @@ export const SiloReport: React.FC = () => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      const data = generateSiloReportData(
+      const data = await generateSiloReportData(
         filters.selectedSilo!,
         filters.startDate!,
         filters.endDate!
