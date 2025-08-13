@@ -19,7 +19,7 @@ interface AlertSystemProps {
 const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true); // Start minimized by default
 
   // Check for new alerts every 5 seconds
   useEffect(() => {
@@ -29,7 +29,8 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
 
       silos.forEach(silo => {
         const alertLevel = getAlertLevel(silo.temp);
-        if (alertLevel !== 'none') {
+        // Only create alerts for critical temperatures (>40°C), not warnings
+        if (alertLevel === 'critical') {
           const existingAlert = alerts.find(a => 
             a.siloNumber === silo.num && !a.acknowledged
           );
@@ -121,7 +122,6 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
 
   const activeAlerts = alerts.filter(a => !a.acknowledged);
   const criticalAlerts = activeAlerts.filter(a => a.level === 'critical');
-  const warningAlerts = activeAlerts.filter(a => a.level === 'warning');
 
   if (isMinimized) {
     return (
@@ -131,14 +131,15 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
           className={`flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg transition-all ${
             criticalAlerts.length > 0 
               ? 'bg-red-500 text-white animate-pulse' 
-              : warningAlerts.length > 0
-              ? 'bg-yellow-500 text-white'
               : 'bg-gray-500 text-white'
           }`}
         >
           <Bell className="w-4 h-4" />
           <span className="text-sm font-medium">
-            {activeAlerts.length} Alert{activeAlerts.length !== 1 ? 's' : ''}
+            {criticalAlerts.length > 0 
+              ? `${criticalAlerts.length} Critical Alert${criticalAlerts.length !== 1 ? 's' : ''}`
+              : 'No Critical Alerts'
+            }
           </span>
         </button>
       </div>
@@ -152,10 +153,10 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-gray-600" />
-            <h3 className="font-semibold text-gray-800">Temperature Alerts</h3>
-            {activeAlerts.length > 0 && (
+            <h3 className="font-semibold text-gray-800">Critical Temperature Alerts</h3>
+            {criticalAlerts.length > 0 && (
               <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                {activeAlerts.length}
+                {criticalAlerts.length}
               </span>
             )}
           </div>
@@ -185,10 +186,7 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
           <div className="p-3 bg-gray-50 border-b border-gray-200">
             <div className="flex justify-between text-sm">
               <span className="text-red-600 font-medium">
-                {criticalAlerts.length} Critical
-              </span>
-              <span className="text-yellow-600 font-medium">
-                {warningAlerts.length} Warning
+                {criticalAlerts.length} Critical Alert{criticalAlerts.length !== 1 ? 's' : ''}
               </span>
               <button
                 onClick={clearAllAlerts}
@@ -202,20 +200,17 @@ const AlertSystem: React.FC<AlertSystemProps> = ({ className = '' }) => {
 
         {/* Alert list */}
         <div className="max-h-96 overflow-y-auto">
-          {activeAlerts.length === 0 ? (
+          {criticalAlerts.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
               <Bell className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-              <p>No active alerts</p>
-              <p className="text-xs">All temperatures within normal range</p>
+              <p>No critical alerts</p>
+              <p className="text-xs">All temperatures below critical threshold (40°C)</p>
             </div>
           ) : (
             <div className="p-2 space-y-2">
-              {activeAlerts
+              {criticalAlerts
                 .sort((a, b) => {
-                  // Sort by level (critical first) then by timestamp
-                  if (a.level !== b.level) {
-                    return a.level === 'critical' ? -1 : 1;
-                  }
+                  // Sort by timestamp (newest first)
                   return b.timestamp.getTime() - a.timestamp.getTime();
                 })
                 .map(alert => (

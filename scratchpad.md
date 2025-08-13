@@ -19,6 +19,11 @@ From the screenshot, I can see that the Silo Sensors widget shows S1-S8 vertical
 - [x] Test the alignment
 - [x] Code cleanup and formatting completed by user
 - [x] Write unit tests (6 tests passing - alignment verification)
+- [x] Modified Temperature Alerts popup to only show critical alerts (>40°C)
+- [x] Changed popup to start minimized by default (only opens when clicked)
+- [x] Removed automatic popup opening behavior
+- [x] Updated alert button text to show "Critical Alerts" instead of general alerts
+- [x] Fixed all references to warning alerts in the component
 - [ ] Commit changes and push to main (requires user approval)
 
 ## Notes
