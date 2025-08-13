@@ -37,12 +37,12 @@ const LabCylinderComponent = ({
   // };
 
   return (
-    <div className="relative" style={{ height: '100%', minHeight: '352px' }}>
-      <div className="w-32 bg-lab-cylinder border-2 border-gray-400 rounded-lg p-2" style={{ height: '100%', display: 'flex', flexDirection: 'column' }} data-testid="lab-cylinder">
-        <div className="text-xs font-bold text-center text-lab-text mb-2">
+    <div className="relative" style={{ height: '95%', minHeight: '325px' }}>
+      <div className="bg-lab-cylinder border-2 border-gray-400 rounded-lg" style={{ width: '128px', padding: '6px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} data-testid="lab-cylinder">
+        <div className="text-xs font-bold text-center text-lab-text" style={{ marginBottom: '6px' }}>
           Silo Sensors
         </div>
-        <div className="text-xs text-center text-lab-text mb-3">
+        <div className="text-xs text-center text-lab-text" style={{ marginBottom: '10px' }}>
           {readingSilo ? (
             <span className="text-blue-600 font-bold animate-pulse">
               Reading Silo {readingSilo === 1 ? 1 : readingSilo - 1}
@@ -53,7 +53,7 @@ const LabCylinderComponent = ({
         </div>
         
         {/* Display main temperature based on current sensor readings (API-aware) */}
-        <div className="text-center mb-2">
+        <div className="text-center" style={{ marginBottom: '6px' }}>
           <div className="text-xs text-lab-text">Main Temp:</div>
           <div className={`text-sm font-bold ${
             readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
@@ -62,9 +62,9 @@ const LabCylinderComponent = ({
           </div>
         </div>
         
-        <div className="flex flex-col gap-1" style={{ flex: 1, overflow: 'hidden' }}>
-          {[...sensorReadings].reverse().map((reading, revIndex) => {
-            const sensorLabel = 8 - revIndex; // Keep S1..S8 labels aligned with physical mapping after visual flip
+        <div className="flex flex-col" style={{ gap: '3px', flex: 1, overflow: 'hidden' }}>
+          {sensorReadings.map((reading, index) => {
+            const sensorLabel = index + 1; // S1 at top, S8 at bottom to align with L1-L8
             const tempColor = getTemperatureColor(reading);
             const getBackgroundClass = () => {
               if (readingSilo) {
@@ -77,7 +77,7 @@ const LabCylinderComponent = ({
             };
 
             return (
-              <div key={sensorLabel} className={`h-6 flex justify-between items-center rounded px-2 py-1 transition-all duration-300 ${getBackgroundClass()}`}>
+              <div key={sensorLabel} className={`flex justify-between items-center rounded px-2 transition-all duration-300 ${getBackgroundClass()}`} style={{ height: '20px', paddingTop: '2px', paddingBottom: '2px' }}>
                 {readingSilo && (
                   <div className="absolute inset-0 bg-blue-100 bg-opacity-40 rounded"></div>
                 )}
