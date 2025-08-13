@@ -46,13 +46,15 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
     fetchSiloMaintenanceData(true);
   };
 
-  const getStatusIcon = (color: string) => {
+  const getStatusIcon = (color: string, isDisconnected: boolean = false) => {
+    if (isDisconnected) return <X className="h-4 w-4 text-red-500" />;
     if (color === '#d14141') return <AlertTriangle className="h-4 w-4 text-red-500" />;
     if (color === '#ff9800') return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
     return <CheckCircle className="h-4 w-4 text-green-500" />;
   };
 
-  const getStatusText = (color: string) => {
+  const getStatusText = (color: string, isDisconnected: boolean = false) => {
+    if (isDisconnected) return 'Disconnected';
     if (color === '#d14141') return 'Critical';
     if (color === '#ff9800') return 'Warning';
     return 'Normal';
@@ -281,7 +283,7 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                                   {cable0Sensor.level === -127 ? 'DISCONNECTED' : `${cable0Sensor.level.toFixed(1)}°C`}
                                 </div>
                                 <div className="flex items-center justify-center">
-                                  {getStatusIcon(cable0Sensor.color)}
+                                  {getStatusIcon(cable0Sensor.color, cable0Sensor.level === -127)}
                                 </div>
                               </div>
                             </div>
@@ -310,7 +312,7 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                                     {cable1Sensor.level === -127 ? 'DISCONNECTED' : `${cable1Sensor.level.toFixed(1)}°C`}
                                   </div>
                                   <div className="flex items-center justify-center">
-                                    {getStatusIcon(cable1Sensor.color)}
+                                    {getStatusIcon(cable1Sensor.color, cable1Sensor.level === -127)}
                                   </div>
                                 </div>
                               </div>
