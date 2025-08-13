@@ -10,50 +10,20 @@ import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import SiloMonitoring from "./pages/SiloMonitoring";
+import Maintenance from "./pages/Maintenance";
+import TestPage from "./pages/TestPage";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { Component, ErrorInfo, ReactNode } from "react";
+import { ReactNode } from "react";
 import Login from "./pages/Login";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
-// Error boundary to catch JavaScript errors
-class ErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
 
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-          <h1>Something went wrong!</h1>
-          <p>Error: {this.state.error?.message}</p>
-          <button onClick={() => clearCacheAndReload()}>Reload Page</button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 const App = () => (
-  <ErrorBoundary>
-    <ThemeProvider>
+  <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
@@ -69,6 +39,8 @@ const App = () => (
                   <Route index element={<RequireAuth><LiveTest /></RequireAuth>} />
                   <Route path="reports" element={<RequireAuth><Reports /></RequireAuth>} />
                   <Route path="analytics" element={<RequireAuth><Analytics /></RequireAuth>} />
+                  <Route path="maintenance-panel" element={<Maintenance />} />
+                  <Route path="test" element={<TestPage />} />
                   <Route path="settings" element={<RequireAuth><Settings /></RequireAuth>} />
                   <Route path="monitoring" element={<RequireAuth><SiloMonitoring /></RequireAuth>} />
                   {/* Add more routes as needed */}
@@ -82,8 +54,7 @@ const App = () => (
           </AuthProvider>
         </TooltipProvider>
       </QueryClientProvider>
-    </ThemeProvider>
-  </ErrorBoundary>
+  </ThemeProvider>
 );
 
 function RequireAuth({ children }: { children: ReactNode }) {

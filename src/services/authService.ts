@@ -1,30 +1,43 @@
 export interface User {
+  id: number;
   username: string;
   role: 'admin' | 'technician' | 'operator';
-  permissions: string[];
+  permissions?: string[];
 }
 
 export interface LoginResponse {
   success: boolean;
   message: string;
   data?: {
-    token: string;
+    token?: string;
     user: User;
   };
 }
 
+export interface ApiLoginResponse {
+  message: string;
+  user: {
+    id: number;
+    username: string;
+    role: string;
+  };
+}
+
 export interface DecodedToken {
+  id: number;
   username: string;
   role: string;
   permissions: string[];
   exp: number;
 }
 
-const API_BASE_URL = 'http://localhost:5001';
+const API_BASE_URL = 'http://192.168.1.14:5000';
 
 export class AuthService {
   static async login(username: string, password: string): Promise<LoginResponse> {
     try {
+      console.log('Attempting login with:', { username, API_BASE_URL });
+      
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: {
@@ -33,16 +46,37 @@ export class AuthService {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      console.log('Login response status:', response.status);
+      
+      const apiData: ApiLoginResponse = await response.json();
+      console.log('Login response data:', apiData);
       
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'Login failed',
+          message: apiData.message || 'Login failed',
         };
       }
 
-      return data;
+      // Transform API response to match expected LoginResponse structure
+      const user: User = {
+        id: apiData.user.id,
+        username: apiData.user.username,
+        role: apiData.user.role as 'admin' | 'technician' | 'operator',
+        permissions: AuthService.getRolePermissions(apiData.user.role)
+      };
+
+      // Generate a simple token for session management
+      const token = AuthService.generateSessionToken(user);
+
+      return {
+        success: true,
+        message: apiData.message,
+        data: {
+          token,
+          user
+        }
+      };
     } catch (error) {
       console.error('Login error:', error);
       return {
@@ -62,11 +96,17 @@ export class AuthService {
     }
   }
 
-  static isTokenValid(token: string): boolean {
+  static validateToken(token: string): boolean {
     const decoded = this.decodeToken(token);
     if (!decoded) return false;
     
-    return decoded.exp > Date.now();
+    // Check if token is not expired (current time in seconds should be less than expiration)
+    return Math.floor(Date.now() / 1000) < decoded.exp;
+  }
+
+  // Alias for backward compatibility
+  static isTokenValid(token: string): boolean {
+    return this.validateToken(token);
   }
 
   static hasPermission(userPermissions: string[], requiredPermission: string): boolean {
@@ -83,6 +123,7 @@ export class AuthService {
       '/monitoring': 'alerts_monitoring', 
       '/reports': 'reports',
       '/analytics': 'maintenance',
+      '/maintenance-panel': 'maintenance',
       '/settings': 'settings'
     };
 
@@ -90,6 +131,29 @@ export class AuthService {
     if (!requiredPermission) return false;
 
     return this.hasPermission(userPermissions, requiredPermission);
+  }
+
+  static getRolePermissions(role: string): string[] {
+    const rolePermissions: Record<string, string[]> = {
+      admin: ['all'], // Full access
+      technician: ['live_readings', 'alerts_monitoring', 'reports', 'maintenance'],
+      operator: ['live_readings', 'alerts_monitoring', 'reports']
+    };
+    
+    return rolePermissions[role] || ['live_readings'];
+  }
+
+  private static generateSessionToken(user: User): string {
+    // Generate a simple session token (base64 encoded user data with timestamp)
+    const tokenData = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours from now
+    };
+    
+    // Use browser-compatible base64 encoding
+    return btoa(JSON.stringify(tokenData));
   }
 
   static getUserRoleDisplayName(role: string): string {

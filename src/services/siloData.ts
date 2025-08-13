@@ -541,22 +541,24 @@ export const getSensorReadings = (siloNum: number): number[] => {
   if (currentScanSilo !== null) {
     // If this is the silo currently being scanned
     if (siloNum === currentScanSilo) {
-      // For the currently scanning silo, show the previous silo's readings if available
-      if (currentScanSilo > 1) {
-        const previousSiloNum = currentScanSilo - 1;
-        // Check if previous silo has been completed
-        if (autoTestCompletedSilos.has(previousSiloNum)) {
-          const apiData = getSiloData(previousSiloNum);
-          if (apiData.isLoaded) {
-            return apiData.sensors;
-          }
-          // Fallback to predefined readings for previous silo
-          if (predefinedReadings[previousSiloNum]) {
-            return predefinedReadings[previousSiloNum];
-          }
+      // For the currently scanning silo, show the previous completed silo's readings
+      if (previousCompletedSilo !== null) {
+        // Show readings from the most recently completed silo
+        const apiData = getSiloData(previousCompletedSilo);
+        if (apiData.isLoaded) {
+          return apiData.sensors;
+        }
+        // Fallback to predefined readings for previous completed silo
+        if (predefinedReadings[previousCompletedSilo]) {
+          return predefinedReadings[previousCompletedSilo];
+        }
+        // Generate readings based on the previous completed silo's data
+        const previousSilo = findSiloByNumber(previousCompletedSilo);
+        if (previousSilo && previousSilo.temp > 0) {
+          return generateSensorReadings(previousSilo.temp);
         }
       }
-      // If no previous silo or first silo (N=0), show zeros
+      // If no previous completed silo, show zeros (only for the very first silo)
       return [0, 0, 0, 0, 0, 0, 0, 0];
     }
     

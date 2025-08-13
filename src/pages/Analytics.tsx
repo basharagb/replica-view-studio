@@ -108,10 +108,10 @@ const Analytics = () => {
     <div className="p-6">
       <div className="mb-6">
         <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Maintinance Dashboard
+          Analytics Dashboard
         </h1>
         <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          Performance metrics and system analytics
+          System performance metrics and data analytics
         </p>
       </div>
 
