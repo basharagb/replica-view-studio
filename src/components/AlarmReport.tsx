@@ -127,7 +127,7 @@ export const AlarmReport: React.FC = () => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const data = generateAlarmReportData(
+      const data = await generateAlarmReportData(
         filters.selectedSilos!,
         filters.startDate!,
         filters.endDate!

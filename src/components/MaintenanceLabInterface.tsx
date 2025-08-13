@@ -13,6 +13,7 @@ import AlertSystem from './AlertSystem';
 interface MaintenanceLabInterfaceProps {
   onSiloClick?: (siloNumber: number) => void;
 }
+
 // test push
 export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterfaceProps) => {
   const {
@@ -114,9 +115,9 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
                           />
                         ))}
                       </div>
-                      
+
                       {/* Row 2: squares - CENTERED */}
-                      <div className="flex gap-0 justify-center"> {/* ⬅ CHANGE */}
+                      <div className="flex gap-0 justify-center">
                         {(group.row2 || []).slice(0, 5).map((silo) => (
                           <LabNumberSquare
                             key={`row2-${silo.num}`}
@@ -131,7 +132,7 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
                           />
                         ))}
                       </div>
-                      
+
                       {/* Row 3: circles */}
                       <div className="flex gap-0">
                         {(group.row3 || []).slice(0, 3).map((circle) => (
@@ -149,9 +150,9 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
                           />
                         ))}
                       </div>
-                      
+
                       {/* Row 4: squares - CENTERED */}
-                      <div className="flex gap-0 justify-center"> {/* ⬅ CHANGE */}
+                      <div className="flex gap-0 justify-center">
                         {(group.row4 || []).slice(0, 5).map((silo) => (
                           <LabNumberSquare
                             key={`row4-${silo.num}`}
@@ -166,7 +167,7 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
                           />
                         ))}
                       </div>
-                      
+
                       {/* Row 5: circles */}
                       <div className="flex gap-0">
                         {(group.row5 || []).slice(0, 3).map((circle) => (
@@ -199,8 +200,9 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
             className="flex flex-col items-center gap-4 2xl:gap-6 3xl:gap-8"
             data-testid="control-panel"
           >
+            {/* لفّ الأسطوانات بـ shrink-0 لمنع أي تمدد أثناء الأنيميشن */}
             <div className="flex items-start" style={{ height: '352px', minHeight: '352px' }}>
-              <div style={{ marginLeft: '-3px' }}>
+              <div className="shrink-0" style={{ marginLeft: '-3px' }}>
                 <LabCylinder
                   key={`cylinder-${dataVersion}`}
                   selectedSilo={selectedSilo}
@@ -208,15 +210,19 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
                   onSiloClick={handleCombinedSiloClick}
                 />
               </div>
-              <GrainLevelCylinder
-                key={`grain-cylinder-${dataVersion}`}
-                selectedSilo={selectedSilo}
-                readingSilo={readingSilo}
-                onSiloClick={handleCombinedSiloClick}
-                isAutoTestRunning={false}
-              />
+
+              {/* قفل عرض حاوية GrainLevel (اختياري لكنه مفيد مع النبض) */}
+              <div className="shrink-0" style={{ width: 95 }}>
+                <GrainLevelCylinder
+                  key={`grain-cylinder-${dataVersion}`}
+                  selectedSilo={selectedSilo}
+                  readingSilo={readingSilo}
+                  onSiloClick={handleCombinedSiloClick}
+                  isAutoTestRunning={false}
+                />
+              </div>
             </div>
-            
+
             <div className="w-20 2xl:w-24 3xl:w-28">
               <Input
                 value={selectedSilo}
@@ -239,6 +245,20 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
           </div>
         </div>
       </div>
+
+      {/* Temperature Tooltip */}
+      {hoveredSilo && (
+        <div
+          className="temperature-tooltip"
+          style={{
+            left: tooltipPosition.x + 10,
+            top: tooltipPosition.y - 30,
+          }}
+          data-testid="temperature-tooltip"
+        >
+          Silo {hoveredSilo.num}: {hoveredSilo.temp.toFixed(1)}°C
+        </div>
+      )}
     </div>
   );
 };
