@@ -15,11 +15,15 @@ const LabCylinderComponent = ({
   readingSilo,
   onSiloClick
 }: LabCylinderProps) => {
-  // Get the current silo being displayed (only selected or reading silo, not hovered)
-  // Use a stable reference to prevent unnecessary re-renders
-  const currentSiloNum = readingSilo || selectedSilo || 112;
-  const currentSilo = findSiloByNumber(currentSiloNum);
-  const sensorReadings = getSensorReadings(currentSiloNum);
+  // Get the silo whose readings should be displayed
+  // When scanning silo n, show readings from completed silo (n-1)
+  // When not scanning, show selected silo
+  const displaySiloNum = readingSilo 
+    ? (readingSilo === 1 ? 1 : readingSilo - 1)  // Show previous completed silo
+    : (selectedSilo || 112);  // Show selected silo when not scanning
+  
+  const currentSilo = findSiloByNumber(displaySiloNum);
+  const sensorReadings = getSensorReadings(displaySiloNum);
 
   // Component render logic
 
@@ -45,10 +49,10 @@ const LabCylinderComponent = ({
         <div className="text-xs text-center text-lab-text" style={{ marginBottom: '10px' }}>
           {readingSilo ? (
             <span className="text-blue-600 font-bold animate-pulse">
-              Reading Silo {readingSilo === 1 ? 1 : readingSilo - 1}
+              Reading Silo {displaySiloNum}
             </span>
           ) : (
-            <span>Silo {selectedSilo || 112}</span>
+            <span>Silo {displaySiloNum}</span>
           )}
         </div>
         
