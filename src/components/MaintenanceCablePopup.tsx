@@ -396,10 +396,17 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                         S{sensorIndex + 1}
                       </div>
                       <div
-                        className={`text-lg font-bold ${isDisabled ? 'text-xs flex items-center justify-center text-center' : ''}`}
+                        className={`text-lg font-bold ${isDisabled ? 'text-xs flex items-center justify-center text-center flex-col gap-1' : ''}`}
                         style={{ color: displayColor }}
                       >
-                        {displayValue}
+                        {isDisabled ? (
+                          <>
+                            <AlertTriangle className="h-4 w-4" />
+                            <span>DISCONNECTED</span>
+                          </>
+                        ) : (
+                          displayValue
+                        )}
                       </div>
                     </div>
                   );
