@@ -128,6 +128,10 @@ All colors MUST be HSL.
   background: linear-gradient(135deg, #F44336 0%, #da190b 100%);
 }
 
+.temp-gray {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
 .temp-beige {
   background: linear-gradient(135deg, #F5DEB3 0%, #e6d0a3 100%);
 }

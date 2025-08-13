@@ -316,6 +316,11 @@ export function convertApiColorToTemperatureColor(hexColor: string): Temperature
   // Convert API hex colors to internal color system
   const color = hexColor.toLowerCase();
   
+  // Gray colors (disconnected sensors)
+  if (color === '#9ca3af' || color.startsWith('#9ca') || color.startsWith('#6b7280')) {
+    return 'gray';
+  }
+  
   // Green colors (various shades)
   if (color.startsWith('#46d4') || color.startsWith('#4') || color === '#00ff00' || color === '#44ff44' || color.startsWith('#46')) {
     return 'green';

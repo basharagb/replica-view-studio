@@ -340,6 +340,9 @@ export const regenerateAllSiloData = (): void => {
 
 // Temperature color mapping - Silo monitoring system with priority hierarchy
 export const getTemperatureColor = (temp: number): TemperatureColor => {
+  // Handle disconnected sensors (-127 values)
+  if (temp === -127) return 'gray';
+  
   // If temperature is 0, return wheat color (unloaded state)
   if (temp === 0) return 'beige';
   

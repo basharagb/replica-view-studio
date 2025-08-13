@@ -46,7 +46,7 @@ export interface SiloGroup {
 
 export type ReadingMode = 'none' | 'manual' | 'auto';
 
-export type TemperatureColor = 'green' | 'yellow' | 'pink' | 'beige';
+export type TemperatureColor = 'green' | 'yellow' | 'pink' | 'beige' | 'gray';
 
 export interface ReadingState {
   mode: ReadingMode;
