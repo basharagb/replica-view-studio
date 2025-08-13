@@ -62,9 +62,9 @@ const LabCylinderComponent = ({
           </div>
         </div>
         
-        <div className="flex flex-col" style={{ gap: '3px', flex: 1, overflow: 'hidden' }}>
+        <div className="flex flex-col-reverse" style={{ gap: '3px', flex: 1, overflow: 'hidden' }}>
           {sensorReadings.map((reading, index) => {
-            const sensorLabel = index + 1; // S1 at top, S8 at bottom to align with L1-L8
+            const sensorLabel = index + 1; // S1 at bottom, S8 at top (reversed order)
             const tempColor = getTemperatureColor(reading);
             const getBackgroundClass = () => {
               if (readingSilo) {

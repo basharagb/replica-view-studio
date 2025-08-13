@@ -1,20 +1,44 @@
-# Task: Modify Maintenance Section in Silo 45 - Cable Testing
+# Task: Debug Maintenance API Cable Data Processing
 
 ## Problem Analysis
-Need to modify the Maintenance section in Silo 45 - Cable Testing to:
-1. Remove average readings
-2. Handle disabled sensors (value -127) by coloring them grey
+User identified critical issue with maintenance API for silo 16:
+- API returns TWO separate records for circular silos (1-61)
+- Record 1: `cable_count: 1` with Cable 0 data only
+- Record 2: `cable_count: 2` with Cable 1 data only
+- Current code only processes first record (`data[0]`) and ignores Cable 1 data
+- Result: Cable 1 shows "DISCONNECTED" instead of real sensor readings
+
+## Root Cause
+API endpoint `192.168.1.14:5000/readings/latest/by-silo-number?silo_number=16` returns:
+```json
+[
+  {
+    "cable_count": 1,
+    "cable_0_level_0": -127.0, // Cable 0 sensors
+    // ... more cable_0 data
+  },
+  {
+    "cable_count": 2, 
+    "cable_1_level_0": -127.0, // Cable 1 sensors
+    // ... more cable_1 data
+  }
+]
+```
 
 ## Task Plan
-- [x] Create new branch for changes
-- [x] Find the Maintenance section in Silo 45 - Cable Testing
-- [x] Identify where average readings are displayed and remove them
-- [x] Add logic to detect -127 values (disabled sensors)
-- [x] Apply grey styling for disabled sensors
-- [x] Remove remaining averaging logic from API service
-- [x] Test the changes
-- [x] Write unit tests
-- [x] Commit changes (requires user approval) ✅ COMPLETED
+- [x] Create/switch to branch fix/maintenance-cable-api-processing
+- [x] Update fetchMaintenanceSiloData() to handle multiple API records
+- [x] Implement logic to combine Cable 0 and Cable 1 data from separate records
+- [x] Add comprehensive debug logging for API response structure
+- [x] Verify maintenance interface is accessible at http://localhost:8083/maintenance-panel
+- [x] Confirm API returns two separate records for silo 16 (Cable 0 and Cable 1)
+- [ ] Test the fix with silo 16 maintenance popup (ready for user testing)
+- [ ] Verify Cable 1 sensors show -127.0 values instead of "DISCONNECTED"
+- [ ] Commit changes (requires user approval)
+
+## Previous Task: Reverse Cylinder Order and Animation Direction ✅ COMPLETED
+
+## Previous Task: Modify Maintenance Section in Silo 45 - Cable Testing ✅ COMPLETED
 
 ## Previous Task: Debug Reports Blank Screen Issue ✅ COMPLETED
 

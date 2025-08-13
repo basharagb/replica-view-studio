@@ -1,5 +1,5 @@
 // API endpoint for maintenance cable data
-const MAINTENANCE_API_BASE = '192.168.1.14:5000';
+const MAINTENANCE_API_BASE = 'http://192.168.1.14:5000';
 
 // Interface for cable sensor data from API
 export interface CableSensorData {
@@ -75,7 +75,7 @@ export interface MaintenanceSiloData {
 export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<MaintenanceSiloData> => {
   try {
     const response = await fetch(
-      `http://${MAINTENANCE_API_BASE}/readings/latest/by-silo-number?silo_number=${siloNumber}`,
+      `${MAINTENANCE_API_BASE}/readings/latest/by-silo-number?silo_number=${siloNumber}`,
       {
         method: 'GET',
         headers: {
@@ -95,8 +95,78 @@ export const fetchMaintenanceSiloData = async (siloNumber: number): Promise<Main
       throw new Error('No data received from API');
     }
 
-    const siloData = data[0]; // Get first silo data
-    return processMaintenanceSiloData(siloData);
+    // Debug logging for API response structure
+    console.log(`Raw API response for silo ${siloNumber}:`, {
+      recordCount: data.length,
+      records: data.map((record, index) => ({
+        index,
+        cable_count: record.cable_count,
+        hasCable0: record.cable_0_level_0 !== undefined,
+        hasCable1: record.cable_1_level_0 !== undefined,
+        timestamp: record.timestamp
+      }))
+    });
+
+    // Combine data from multiple records if needed (for circular silos with separate Cable 0 and Cable 1 records)
+    const isCircularSilo = siloNumber >= 1 && siloNumber <= 61;
+    let combinedData: MaintenanceSiloApiData;
+
+    if (data.length === 1) {
+      // Single record contains all data
+      combinedData = data[0];
+    } else if (data.length === 2 && isCircularSilo) {
+      // Two records: combine Cable 0 and Cable 1 data
+      const cable0Record = data.find(record => record.cable_0_level_0 !== undefined);
+      const cable1Record = data.find(record => record.cable_1_level_0 !== undefined);
+      
+      if (!cable0Record) {
+        throw new Error('Cable 0 data not found in API response');
+      }
+      
+      // Start with Cable 0 record as base
+      combinedData = { ...cable0Record };
+      
+      // Add Cable 1 data if available
+      if (cable1Record) {
+        // Copy all Cable 1 sensor data
+        for (let i = 0; i < 8; i++) {
+          const levelKey = `cable_1_level_${i}` as keyof MaintenanceSiloApiData;
+          const colorKey = `cable_1_color_${i}` as keyof MaintenanceSiloApiData;
+          
+          if (levelKey in cable1Record && colorKey in cable1Record) {
+            (combinedData as any)[levelKey] = cable1Record[levelKey];
+            (combinedData as any)[colorKey] = cable1Record[colorKey];
+          }
+        }
+        // Set cable count to 2 since we have both cables
+        combinedData.cable_count = 2;
+        
+        console.log(`Combined Cable 0 and Cable 1 data for circular silo ${siloNumber}`);
+      } else {
+        console.warn(`Cable 1 record not found for circular silo ${siloNumber}, using Cable 0 only`);
+      }
+    } else {
+      // Unexpected number of records, use first one
+      console.warn(`Unexpected ${data.length} records for silo ${siloNumber}, using first record`);
+      combinedData = data[0];
+    }
+    
+    // Debug logging for combined data
+    console.log(`Final combined data for silo ${siloNumber}:`, {
+      cable_count: combinedData.cable_count,
+      hasCable0Data: combinedData.cable_0_level_0 !== undefined,
+      hasCable1Data: combinedData.cable_1_level_0 !== undefined,
+      cable0Sample: {
+        level_0: combinedData.cable_0_level_0,
+        color_0: combinedData.cable_0_color_0
+      },
+      cable1Sample: {
+        level_0: combinedData.cable_1_level_0,
+        color_0: combinedData.cable_1_color_0
+      }
+    });
+    
+    return processMaintenanceSiloData(combinedData);
   } catch (error) {
     console.warn(`Failed to fetch maintenance data for silo ${siloNumber}:`, error);
     // Return simulated data as fallback
@@ -134,8 +204,21 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
       const cable1Level = apiData[`cable_1_level_${i}` as keyof MaintenanceSiloApiData] as number;
       const cable1Color = apiData[`cable_1_color_${i}` as keyof MaintenanceSiloApiData] as string;
       
-      if (cable1Level !== undefined && cable1Color !== undefined) {
-        // Use real API data
+      // Debug logging for each sensor
+      console.log(`Cable 1 sensor ${i} for silo ${apiData.silo_number}:`, {
+        level: cable1Level,
+        color: cable1Color,
+        levelType: typeof cable1Level,
+        colorType: typeof cable1Color
+      });
+      
+      // Improved validation: -127 is a valid API response meaning "DISCONNECTED"
+      const hasValidLevel = cable1Level !== undefined && cable1Level !== null && !isNaN(cable1Level);
+      const hasValidColor = cable1Color !== undefined && cable1Color !== null && cable1Color !== '';
+      
+      if (hasValidLevel && hasValidColor) {
+        // Use real API data (including -127 for disconnected sensors)
+        console.log(`Using real Cable 1 data for sensor ${i}: ${cable1Level}°C, color: ${cable1Color}`);
         cable1Sensors.push({
           level: cable1Level,
           color: cable1Color,
@@ -151,6 +234,8 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
           level: simulatedLevel,
           color: simulatedColor,
         });
+        
+        console.warn(`Cable 1 sensor ${i} for silo ${apiData.silo_number}: Invalid data (level: ${cable1Level}, color: ${cable1Color}), using simulated data`);
       }
     }
     cables.push({ cableIndex: 1, sensors: cable1Sensors });

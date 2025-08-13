@@ -3,12 +3,14 @@ import { AlertTriangle, CheckCircle, Activity, Cable, X, Clock, Thermometer, Ref
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { fetchMaintenanceSiloData, MaintenanceSiloData, CableData, CableSensorData } from '../services/maintenanceApiService';
+import { fetchMaintenanceSiloData, MaintenanceSiloData } from '../services/maintenanceApiService';
 
 interface MaintenanceCablePopupProps {
   siloNumber: number;
   onClose: () => void;
 }
+
+const SENSOR_COUNT = 8;
 
 export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCablePopupProps) => {
   const [siloData, setSiloData] = useState<MaintenanceSiloData | null>(null);
@@ -24,7 +26,7 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
         setLoading(true);
       }
       setError(null);
-      
+
       const data = await fetchMaintenanceSiloData(siloNumber);
       setSiloData(data);
     } catch (err) {
@@ -105,6 +107,9 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
     );
   }
 
+  // Precompute reversed indices for "flipped" (S8 at top → S1 at bottom)
+  const reversedIndices = Array.from({ length: SENSOR_COUNT }, (_, i) => SENSOR_COUNT - 1 - i);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
@@ -130,9 +135,9 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleRefresh}
               disabled={refreshing}
             >
@@ -198,7 +203,7 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                 <div>
                   <span className="text-lg">Cable Temperature Comparison</span>
                   <div className="text-sm text-gray-500 font-normal">
-                    {siloData?.cableCount === 2 ? 'Cable 0 & Cable 1' : 'Cable 0 Only'} • Temperature Sensors (Top to Bottom)
+                    {siloData?.cableCount === 2 ? 'Cable 0 & Cable 1' : 'Cable 0 Only'} • Sensors displayed top→bottom: S8 → S1
                   </div>
                 </div>
               </div>
@@ -230,28 +235,23 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                         Cable 1
                       </th>
                     )}
-                    {/* {siloData?.cableCount === 2 && (
-                      <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                        Average
-                      </th>
-                    )} */}
                     <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
                       Status
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {Array.from({ length: 8 }, (_, sensorIndex) => {
+                  {reversedIndices.map((sensorIndex) => {
                     const cable0Sensor = siloData?.cables.find(c => c.cableIndex === 0)?.sensors[sensorIndex];
                     const cable1Sensor = siloData?.cables.find(c => c.cableIndex === 1)?.sensors[sensorIndex];
-                    const avgTemp = siloData?.cableCount === 2 && cable0Sensor && cable1Sensor 
-                      ? (cable0Sensor.level + cable1Sensor.level) / 2 
+                    const avgTemp = siloData?.cableCount === 2 && cable0Sensor && cable1Sensor
+                      ? (cable0Sensor.level + cable1Sensor.level) / 2
                       : cable0Sensor?.level || 0;
                     const avgColor = siloData?.sensorColors[sensorIndex] || '#46d446';
-                    
+
                     return (
-                      <tr 
-                        key={sensorIndex} 
+                      <tr
+                        key={sensorIndex}
                         className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         {/* Sensor Label */}
@@ -263,20 +263,22 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                             </span>
                           </div>
                         </td>
-                        
+
                         {/* Cable 0 */}
                         <td className="py-4 px-4 text-center">
                           {cable0Sensor ? (
                             <div className="flex flex-col items-center">
-                              <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
-                                   style={{ borderColor: cable0Sensor.color }}>
-                                <div 
+                              <div
+                                className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
+                                style={{ borderColor: cable0Sensor.color }}
+                              >
+                                <div
                                   className={`font-bold mb-1 ${
                                     cable0Sensor.level === -127 ? 'text-xs' : 'text-lg'
                                   }`}
                                   style={{ color: cable0Sensor.color }}
                                 >
-                                  {cable0Sensor.level === -127 ? 'DISABLED' : `${cable0Sensor.level.toFixed(1)}°C`}
+                                  {cable0Sensor.level === -127 ? 'DISCONNECTED' : `${cable0Sensor.level.toFixed(1)}°C`}
                                 </div>
                                 <div className="flex items-center justify-center">
                                   {getStatusIcon(cable0Sensor.color)}
@@ -289,21 +291,23 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                             </div>
                           )}
                         </td>
-                        
+
                         {/* Cable 1 (if exists) */}
                         {siloData?.cableCount === 2 && (
                           <td className="py-4 px-4 text-center">
                             {cable1Sensor ? (
                               <div className="flex flex-col items-center">
-                                <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
-                                     style={{ borderColor: cable1Sensor.color }}>
-                                  <div 
+                                <div
+                                  className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
+                                  style={{ borderColor: cable1Sensor.color }}
+                                >
+                                  <div
                                     className={`font-bold mb-1 ${
                                       cable1Sensor.level === -127 ? 'text-xs' : 'text-lg'
                                     }`}
                                     style={{ color: cable1Sensor.color }}
                                   >
-                                    {cable1Sensor.level === -127 ? 'DISABLED' : `${cable1Sensor.level.toFixed(1)}°C`}
+                                    {cable1Sensor.level === -127 ? 'DISCONNECTED' : `${cable1Sensor.level.toFixed(1)}°C`}
                                   </div>
                                   <div className="flex items-center justify-center">
                                     {getStatusIcon(cable1Sensor.color)}
@@ -317,30 +321,10 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                             )}
                           </td>
                         )}
-                        
-                        {/* Average (if 2 cables) */}
-                        {/* {siloData?.cableCount === 2 && (
-                          <td className="py-4 px-4 text-center">
-                            <div className="flex flex-col items-center">
-                              <div className="bg-white dark:bg-gray-800 border-2 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow min-w-[80px]"
-                                   style={{ borderColor: avgColor, backgroundColor: `${avgColor}08` }}>
-                                <div 
-                                  className="text-lg font-bold mb-1"
-                                  style={{ color: avgColor }}
-                                >
-                                  {avgTemp.toFixed(1)}°C
-                                </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                  AVG
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                        )} */}
-                        
+
                         {/* Status */}
                         <td className="py-4 px-4 text-center">
-                          <Badge 
+                          <Badge
                             variant={avgColor === '#d14141' ? 'destructive' : avgColor === '#ff9800' ? 'secondary' : 'default'}
                             className="text-xs"
                           >
@@ -353,7 +337,7 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
                 </tbody>
               </table>
             </div>
-            
+
             {/* Cable Statistics Summary */}
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
@@ -386,34 +370,33 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Thermometer className="h-5 w-5 text-gray-600 mr-2" />
-                <span>Sensor Values (S1-S8)</span>
+                <span>Sensor Values (S8 → S1)</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-                {siloData.sensorValues.map((value, index) => {
+                {reversedIndices.map((sensorIndex) => {
+                  const value = siloData.sensorValues[sensorIndex];
                   const isDisabled = value === -127;
-                  const displayColor = isDisabled ? '#9ca3af' : siloData.sensorColors[index];
-                  const displayValue = isDisabled ? 'DISABLED' : `${value.toFixed(1)}°C`;
-                  
+                  const displayColor = isDisabled ? '#9ca3af' : siloData.sensorColors[sensorIndex];
+                  const displayValue = isDisabled ? 'DISCONNECTED' : `${value.toFixed(1)}°C`;
+
                   return (
-                    <div 
-                      key={index}
+                    <div
+                      key={sensorIndex}
                       className={`text-center p-3 rounded-lg border-2 transition-all duration-200 ${
                         isDisabled ? 'opacity-60' : 'hover:scale-105'
                       }`}
-                      style={{ 
+                      style={{
                         backgroundColor: `${displayColor}15`,
                         borderColor: displayColor
                       }}
                     >
                       <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                        S{index + 1}
+                        S{sensorIndex + 1}
                       </div>
-                      <div 
-                        className={`text-lg font-bold ${
-                          isDisabled ? 'text-xs' : ''
-                        }`}
+                      <div
+                        className={`text-lg font-bold ${isDisabled ? 'text-xs flex items-center justify-center text-center' : ''}`}
                         style={{ color: displayColor }}
                       >
                         {displayValue}

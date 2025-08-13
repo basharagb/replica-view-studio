@@ -122,14 +122,14 @@ const GrainLevelCylinderComponent = ({
               ? `${pouringLevel}/8`
               : `${Math.max(...grainLevels)}/8`}
             {isPouring && (
-              <span className="ml-1 text-yellow-600 animate-bounce">⬇</span>
+              <span className="ml-1 text-yellow-600 animate-bounce">⬆</span>
             )}
           </div>
         </div>
 
-        <div className="flex flex-col" style={{ gap: '3px' }}>
+        <div className="flex flex-col-reverse" style={{ gap: '3px' }}>
           {[...Array(8)].map((_, index) => {
-            const levelNumber = index + 1;
+            const levelNumber = index + 1; // L1 at bottom, L8 at top (reversed order)
             const currentLevel =
               readingSilo || isAutoTestRunning
                 ? pouringLevel
@@ -151,9 +151,9 @@ const GrainLevelCylinderComponent = ({
                 </span>
 
                 {isPouringLevel && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-yellow-500 via-yellow-400 to-transparent rounded-sm animate-pulse">
+                  <div className="absolute inset-0 bg-gradient-to-b from-yellow-500 via-yellow-400 to-transparent rounded-sm animate-pulse">
                     <div
-                      className="absolute bottom-0 left-0 right-0 h-full bg-gradient-to-t from-yellow-400 to-yellow-300 rounded-sm animate-bounce"
+                      className="absolute top-0 left-0 right-0 h-full bg-gradient-to-b from-yellow-400 to-yellow-300 rounded-sm animate-bounce"
                       style={{ animationDuration: '0.6s' }}
                     ></div>
                   </div>
