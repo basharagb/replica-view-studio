@@ -74,51 +74,7 @@ export const MaintenanceInterface = () => {
         </div>
 
         {/* Manual Test Controls - Compact Right Panel */}
-        <div className="w-full xl:w-80">
-          <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Wrench className="h-5 w-5 text-blue-600" />
-                Manual Test Controls
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Select Silo Number
-                </label>
-                <Input
-                  type="number"
-                  value={manualSiloInput}
-                  onChange={(e) => setManualSiloInput(e.target.value)}
-                  placeholder="Enter silo number (1-61, 101-189)"
-                  className="w-full"
-                  min="1"
-                  max="189"
-                />
-              </div>
-
-              <Button
-                onClick={handleManualTest}
-                disabled={!manualSiloInput || testingSilo !== null}
-                className="w-full"
-                variant="default"
-              >
-                {testingSilo ? 'Testing...' : 'Test Silo Cables'}
-              </Button>
-
-              <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded p-3">
-                <p className="font-medium mb-1">Cable Configuration:</p>
-                <ul className="space-y-1 text-xs">
-                  <li>• <strong>Circular Silos (1-61):</strong> 2 cables × 8 sensors</li>
-                  <li>• <strong>Square Silos (101-189):</strong> 1 cable × 8 sensors</li>
-                  <li>• Click any silo to test all cables</li>
-                  <li>• Manual testing mode only</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        
       </div>
 
       {/* Cable Connection Cards - Horizontal Panel Under Silos */}
