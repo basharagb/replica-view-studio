@@ -104,7 +104,8 @@ export async function fetchSingleSiloHistoricalData(
 }
 
 /**
- * Generate temperature graph data for multiple silos
+ * Generate temperature graph data for multiple silos with proper handling of missing readings
+ * Creates 24 evenly distributed horizontal time points across the date range
  */
 export async function generateTemperatureGraphData(
   siloNumbers: number[],
@@ -112,9 +113,12 @@ export async function generateTemperatureGraphData(
   endDate: Date
 ): Promise<TemperatureGraphData[]> {
   try {
-    const historicalData = await fetchHistoricalSiloData(siloNumbers, startDate, endDate);
+    console.log(`Generating graph data for silos [${siloNumbers.join(', ')}] from ${startDate.toISOString()} to ${endDate.toISOString()}`);
     
-    // Group data by timestamp
+    const historicalData = await fetchHistoricalSiloData(siloNumbers, startDate, endDate);
+    console.log(`Fetched ${historicalData.length} historical records`);
+    
+    // Group data by timestamp and silo
     const timeGroups = new Map<string, Map<number, HistoricalSiloData>>();
     
     historicalData.forEach(record => {
@@ -125,34 +129,89 @@ export async function generateTemperatureGraphData(
       timeGroups.get(timeKey)!.set(record.siloNumber, record);
     });
     
-    // Convert to graph data format
+    // Create 24 evenly distributed time points across the date range
+    const totalDurationMs = endDate.getTime() - startDate.getTime();
+    const intervalMs = totalDurationMs / 23; // 23 intervals for 24 points
+    
     const graphData: TemperatureGraphData[] = [];
     
-    timeGroups.forEach((siloMap, timeKey) => {
-      const timestamp = new Date(timeKey);
+    for (let i = 0; i < 24; i++) {
+      const pointTime = new Date(startDate.getTime() + (i * intervalMs));
+      
       const dataPoint: TemperatureGraphData = {
-        time: formatTimeForDisplay(timestamp),
-        timestamp: timestamp
+        time: formatTimeForDisplay(pointTime),
+        timestamp: pointTime
       };
       
-      // Add temperature data for each silo
+      // For each silo, find the closest reading to this time point
       siloNumbers.forEach(siloNum => {
-        const siloData = siloMap.get(siloNum);
-        if (siloData) {
-          dataPoint[`silo_${siloNum}`] = siloData.maxTemp;
+        const closestReading = findClosestReading(historicalData, siloNum, pointTime);
+        
+        if (closestReading) {
+          // Check if the closest reading is within a reasonable time window
+          const timeDiff = Math.abs(closestReading.timestamp.getTime() - pointTime.getTime());
+          const maxAllowedDiff = intervalMs * 0.5; // Allow readings within half an interval
+          
+          if (timeDiff <= maxAllowedDiff) {
+            dataPoint[`silo_${siloNum}`] = closestReading.maxTemp;
+          } else {
+            // No reading within reasonable time window - show as null/zero
+            dataPoint[`silo_${siloNum}`] = null;
+          }
+        } else {
+          // No readings found for this silo - show as null/zero
+          dataPoint[`silo_${siloNum}`] = null;
         }
       });
       
       graphData.push(dataPoint);
-    });
+    }
     
-    // Sort by timestamp
-    return graphData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    // Log statistics about data coverage
+    const totalPoints = graphData.length * siloNumbers.length;
+    const nullPoints = graphData.reduce((count, point) => {
+      return count + siloNumbers.filter(silo => point[`silo_${silo}`] === null).length;
+    }, 0);
+    const coveragePercent = ((totalPoints - nullPoints) / totalPoints * 100).toFixed(1);
+    
+    console.log(`Graph data generated: ${graphData.length} time points, ${coveragePercent}% data coverage`);
+    console.log(`Missing data points: ${nullPoints}/${totalPoints}`);
+    
+    return graphData;
     
   } catch (error) {
     console.error('Error generating temperature graph data:', error);
     throw error;
   }
+}
+
+/**
+ * Find the closest reading for a specific silo to a target timestamp
+ */
+function findClosestReading(
+  historicalData: HistoricalSiloData[], 
+  siloNumber: number, 
+  targetTime: Date
+): HistoricalSiloData | null {
+  const siloReadings = historicalData.filter(record => record.siloNumber === siloNumber);
+  
+  if (siloReadings.length === 0) {
+    return null;
+  }
+  
+  // Find the reading with minimum time difference
+  let closestReading = siloReadings[0];
+  let minTimeDiff = Math.abs(closestReading.timestamp.getTime() - targetTime.getTime());
+  
+  for (let i = 1; i < siloReadings.length; i++) {
+    const timeDiff = Math.abs(siloReadings[i].timestamp.getTime() - targetTime.getTime());
+    if (timeDiff < minTimeDiff) {
+      minTimeDiff = timeDiff;
+      closestReading = siloReadings[i];
+    }
+  }
+  
+  return closestReading;
 }
 
 /**

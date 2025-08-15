@@ -334,6 +334,61 @@ const actualCableCount = isCircularSilo ? 2 : 1;
 - [x] Update maintenanceCableService.ts to use correct shape data
 - [ ] Test with silos 158 (circular) and 43 (square)
 
+## NEW TASK: Fix Graph Time Period Handling with Missing Readings
+
+**User Request**: Fix graph generation to properly handle time periods with no readings:
+- When generating graphs for date ranges (e.g., 1/7/2025 to 1/8/2025), show 24 horizontal time points
+- If specific dates/times have no readings, show zero values or indicate no data
+- If entire periods have no readings (e.g., all of July), show small area indicating zero readings
+- Only use actual reading dates/times for graph points, don't interpolate missing data
+- Example: Graph from 1/7/2025 to 16/8/2025 where July has no readings should show July as zero area, then take 24 horizontal readings from August data
+
+**Task Plan**:
+- [x] Find and examine current graph implementation
+- [x] Understand existing dynamic structure 
+- [x] Create new branch `fix/graph-missing-readings-handling`
+- [x] Implement enhanced `generateTemperatureGraphData` function to handle missing readings
+- [x] Add 24-point horizontal distribution logic
+- [x] Handle periods with no data (show as null values, gaps in graph)
+- [x] Update graph components to handle null values with `connectNulls={false}`
+- [x] Enhanced CustomTooltip to show "No data available" for missing readings
+- [x] Added data coverage statistics and missing data warnings
+- [x] Started dev server on port 8083 for testing
+- [ ] Test with various date ranges including periods with no data
+- [ ] Debug API responses for different date scenarios
+- [ ] Apply changes carefully without breaking existing functionality
+
+**Current Understanding**:
+- Current `generateTemperatureGraphData` only creates points for timestamps with actual readings
+- Missing data periods are not handled - they just don't appear on graph
+- Need to create 24 evenly distributed points across date range
+- If no readings in period, show as zero or indicate no data
+- If readings exist, sample them intelligently for 24 points
+
+**CHANGES IMPLEMENTED**:
+
+1. **Enhanced `generateTemperatureGraphData` Function** (`historicalSiloApiService.ts`):
+   - Creates exactly 24 evenly distributed time points across the date range
+   - Uses `findClosestReading` helper to find nearest reading for each time point
+   - Sets values to `null` when no readings are within reasonable time window
+   - Added comprehensive logging for data coverage statistics
+   - Maintains backward compatibility with existing API structure
+
+2. **Updated Graph Components** (`EnhancedTemperatureGraphs.tsx`):
+   - Added `connectNulls={false}` to Line components to show gaps for missing data
+   - Enhanced CustomTooltip to handle null values and show "No data available"
+   - Updated TooltipPayload interface to include `name` and `dataKey` properties
+   - Added data coverage statistics showing percentage of valid readings
+   - Added missing data warning when >20% of data points are missing
+   - Enhanced graph info section with 4-column layout including coverage metrics
+
+3. **Key Features**:
+   - **24-Point Distribution**: Always creates 24 horizontal time points regardless of actual data availability
+   - **Gap Visualization**: Missing data appears as gaps in the graph lines
+   - **Smart Sampling**: Finds closest readings within reasonable time windows
+   - **Coverage Statistics**: Shows percentage of data coverage and missing data warnings
+   - **Null Handling**: Proper TypeScript types and null value handling throughout
+
 ## CHANGES MADE:
 
 1. **Created `siloShapeConfig.ts`**: New configuration file with actual silo shape mapping

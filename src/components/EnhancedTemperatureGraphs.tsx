@@ -409,24 +409,50 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
   interface TooltipPayload {
     payload: TemperatureDataPoint;
     value: number;
+    name?: string;
+    dataKey?: string;
   }
   
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayload[]; label?: string }) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
       return (
         <div className="bg-white p-3 border rounded-lg shadow-lg">
           <p className="font-medium">{`Time: ${label}`}</p>
-          <p className="text-blue-600">
-            {`Temperature: ${data.temperature.toFixed(1)}°C`}
-          </p>
-          <div className="flex items-center gap-1 mt-1">
-            <div className={`w-2 h-2 rounded-full ${
-              data.status === 'critical' ? 'bg-red-500' : 
-              data.status === 'warning' ? 'bg-yellow-500' : 'bg-green-500'
-            }`} />
-            <span className="text-xs capitalize">{data.status}</span>
-          </div>
+          {payload.map((entry, index) => {
+            const value = entry.value;
+            const siloName = entry.name || 'Temperature';
+            
+            if (value === null || value === undefined) {
+              return (
+                <p key={index} className="text-gray-500 text-sm">
+                  {`${siloName}: No data available`}
+                </p>
+              );
+            }
+            
+            // Determine status based on temperature value
+            let status: 'normal' | 'warning' | 'critical' = 'normal';
+            if (value >= 40) {
+              status = 'critical';
+            } else if (value >= 35) {
+              status = 'warning';
+            }
+            
+            return (
+              <div key={index}>
+                <p className="text-blue-600">
+                  {`${siloName}: ${value.toFixed(1)}°C`}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <div className={`w-2 h-2 rounded-full ${
+                    status === 'critical' ? 'bg-red-500' : 
+                    status === 'warning' ? 'bg-yellow-500' : 'bg-green-500'
+                  }`} />
+                  <span className="text-xs capitalize">{status}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -861,6 +887,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                                   name={selectedSilo ? `Silo ${selectedSilo}` : 'General Silos Readings'}
                                   dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                                   activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+                                  connectNulls={false}
                                 />
                               ) : (
                                 selectedAlertSilos.map((siloNum, index) => {
@@ -875,6 +902,7 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                                       name={`Silo ${siloNum}`}
                                       dot={{ fill: color, strokeWidth: 2, r: 3 }}
                                       activeDot={{ r: 5, stroke: color, strokeWidth: 2 }}
+                                      connectNulls={false}
                                     />
                                   );
                                 })
@@ -887,17 +915,84 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
                       {/* Graph Info */}
                       {graphData.length > 0 && !isLoading && (
                         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-sm">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-sm">
                             <div>
                               <span className="font-medium">Date Range:</span> {startDate && endDate ? `${format(new Date(startDate), 'MMM dd, yyyy')} - ${format(new Date(endDate), 'MMM dd, yyyy')}` : 'Not specified'}
                             </div>
                             <div>
-                              <span className="font-medium">Data Points:</span> {graphData.length}
+                              <span className="font-medium">Time Points:</span> {graphData.length} (24 distributed)
                             </div>
                             <div>
-                              <span className="font-medium">Avg Temp:</span> {(graphData.reduce((sum, d) => sum + d.temperature, 0) / graphData.length).toFixed(1)}°C
+                              <span className="font-medium">Data Coverage:</span> {(() => {
+                                const targetSilos = activeTab === 'silo' ? (selectedSilo ? [selectedSilo] : []) : selectedAlertSilos;
+                                if (targetSilos.length === 0) return 'N/A';
+                                
+                                const totalPoints = graphData.length * targetSilos.length;
+                                const validPoints = graphData.reduce((count, point) => {
+                                  return count + targetSilos.filter(silo => {
+                                    const key = activeTab === 'silo' ? 'temperature' : `silo_${silo}`;
+                                    return point[key] !== null && point[key] !== undefined;
+                                  }).length;
+                                }, 0);
+                                
+                                return `${((validPoints / totalPoints) * 100).toFixed(1)}%`;
+                              })()}
+                            </div>
+                            <div>
+                              <span className="font-medium">Avg Temp:</span> {(() => {
+                                const targetSilos = activeTab === 'silo' ? (selectedSilo ? [selectedSilo] : []) : selectedAlertSilos;
+                                if (targetSilos.length === 0) return 'N/A';
+                                
+                                let totalTemp = 0;
+                                let validCount = 0;
+                                
+                                graphData.forEach(point => {
+                                  targetSilos.forEach(silo => {
+                                    const key = activeTab === 'silo' ? 'temperature' : `silo_${silo}`;
+                                    const temp = point[key];
+                                    if (temp !== null && temp !== undefined && typeof temp === 'number') {
+                                      totalTemp += temp;
+                                      validCount++;
+                                    }
+                                  });
+                                });
+                                
+                                return validCount > 0 ? `${(totalTemp / validCount).toFixed(1)}°C` : 'No data';
+                              })()}
                             </div>
                           </div>
+                          
+                          {/* Missing data warning */}
+                          {(() => {
+                            const targetSilos = activeTab === 'silo' ? (selectedSilo ? [selectedSilo] : []) : selectedAlertSilos;
+                            if (targetSilos.length === 0) return null;
+                            
+                            const totalPoints = graphData.length * targetSilos.length;
+                            const validPoints = graphData.reduce((count, point) => {
+                              return count + targetSilos.filter(silo => {
+                                const key = activeTab === 'silo' ? 'temperature' : `silo_${silo}`;
+                                return point[key] !== null && point[key] !== undefined;
+                              }).length;
+                            }, 0);
+                            
+                            const missingPercent = ((totalPoints - validPoints) / totalPoints) * 100;
+                            
+                            if (missingPercent > 20) {
+                              return (
+                                <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                                  <div className="flex items-center gap-2 text-yellow-800">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <span className="font-medium">Missing Data Notice:</span>
+                                  </div>
+                                  <p className="text-yellow-700 mt-1">
+                                    {missingPercent.toFixed(1)}% of data points are missing for the selected time range. 
+                                    Gaps in the graph indicate periods with no sensor readings.
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                       )}
                     </CardContent>
