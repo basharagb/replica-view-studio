@@ -9,6 +9,7 @@ import { Button } from './ui/button';
 import { useSiloSystem } from '../hooks/useSiloSystem';
 import { topSiloGroups, bottomSiloGroups, temperatureScaleValues } from '../services/siloData';
 import EnhancedTemperatureDisplay from './EnhancedTemperatureDisplay';
+import CompanyLogos from './CompanyLogos';
 
 import AlertSystem from './AlertSystem';
 
@@ -83,6 +84,9 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
   return (
     <div className="min-h-screen bg-background p-8" data-testid="lab-interface">
       <div className="max-w-7xl mx-auto">
+        {/* Company Logos at the top */}
+        <CompanyLogos />
+        
         <div className="flex gap-8 2xl:gap-12 3xl:gap-16">
           {/* Main lab area */}
           <div className="flex-1 space-y-12 2xl:space-y-16 3xl:space-y-20">

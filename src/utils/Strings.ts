@@ -4,7 +4,7 @@
  */
 export class Strings {
   // API Configuration
-  static readonly BASE_URL = 'http://192.168.1.14:5000';
+  static readonly BASE_URL = 'http://localhost:5000';
   
   // API Endpoints
   static readonly ENDPOINTS = {
