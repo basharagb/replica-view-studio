@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 120">
+  <!-- IDEALCHIP Logo -->
+  <defs>
+    <linearGradient id="chipGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C41E3A;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2C5AA0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C41E3A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Circular chip icon -->
+  <circle cx="60" cy="60" r="45" fill="url(#chipGradient)" stroke="#fff" stroke-width="2"/>
+  
+  <!-- Inner circle -->
+  <circle cx="60" cy="60" r="15" fill="#fff"/>
+  
+  <!-- Chip segments -->
+  <rect x="20" y="15" width="15" height="15" fill="#C41E3A" rx="2"/>
+  <rect x="20" y="35" width="15" height="25" fill="#2C5AA0" rx="2"/>
+  <rect x="20" y="65" width="15" height="15" fill="#C41E3A" rx="2"/>
+  <rect x="20" y="85" width="15" height="15" fill="#2C5AA0" rx="2"/>
+  
+  <rect x="85" y="15" width="15" height="15" fill="#2C5AA0" rx="2"/>
+  <rect x="85" y="35" width="15" height="25" fill="#C41E3A" rx="2"/>
+  <rect x="85" y="65" width="15" height="15" fill="#2C5AA0" rx="2"/>
+  <rect x="85" y="85" width="15" height="15" fill="#C41E3A" rx="2"/>
+  
+  <!-- IDEALCHIP text -->
+  <text x="130" y="45" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#2C5AA0">iDEAL</text>
+  <text x="230" y="45" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#C41E3A">CHiP</text>
+  
+  <!-- Tagline -->
+  <text x="130" y="70" font-family="Arial, sans-serif" font-size="12" fill="#666">Industrial IoT Solutions</text>
+</svg>
