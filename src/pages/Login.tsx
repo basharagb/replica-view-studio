@@ -89,12 +89,6 @@ const Login = () => {
                 {loginError}
               </div>
             )}
-
-            <div className="text-xs text-gray-500 mt-2">
-              <strong>Test Users:</strong><br/>
-              ahmed/ahmed (Admin), hussein/hussein (Technician), bashar/bashar (Operator)
-            </div>
-
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
             </Button>

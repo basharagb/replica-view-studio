@@ -333,9 +333,6 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
       {/* Enhanced Alert System and Reset Buttons */}
       <div className="flex items-center gap-4 justify-between">
         <AlertSystem />
-        <div className="text-sm text-muted-foreground">
-          System reset controls moved to Settings → System tab
-        </div>
       </div>
     </div>
   );
