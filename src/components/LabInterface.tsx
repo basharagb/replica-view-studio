@@ -225,17 +225,13 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
           {/* Right side with cylinders, input, and controls */}
           <div className="flex flex-col items-center gap-4 2xl:gap-6 3xl:gap-8" data-testid="control-panel">
             {/* Cylinder Components Side by Side */}
-            <div className="flex items-start" style={{ height: '352px', minHeight: '352px' }}>
-              <div style={{ marginLeft: '-3px' }}>
-                <LabCylinder
-                  key={`cylinder-${dataVersion}`}
-                  selectedSilo={selectedSilo}
-                  readingSilo={readingSilo}
-                  onSiloClick={handleCombinedSiloClick}
-                  // LabCylinder is completely independent of hover state
-                  // Only shows readings for selected or reading silo
-                />
-              </div>
+            <div className="flex items-stretch justify-center gap-2">
+              <LabCylinder
+                key={`cylinder-${dataVersion}`}
+                selectedSilo={selectedSilo}
+                readingSilo={readingSilo}
+                onSiloClick={handleCombinedSiloClick}
+              />
               <GrainLevelCylinder
                 key={`grain-cylinder-${dataVersion}`}
                 selectedSilo={selectedSilo}

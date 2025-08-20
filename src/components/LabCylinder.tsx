@@ -41,32 +41,34 @@ const LabCylinderComponent = ({
   // };
 
   return (
-    <div className="relative" style={{ height: '95%', minHeight: '325px' }}>
-      <div className="bg-lab-cylinder border-2 border-gray-400 rounded-lg" style={{ width: '128px', padding: '6px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} data-testid="lab-cylinder">
-        <div className="text-xs font-bold text-center text-lab-text" style={{ marginBottom: '6px' }}>
-          Silo Sensors
-        </div>
-        <div className="text-xs text-center text-lab-text" style={{ marginBottom: '10px' }}>
-          {readingSilo ? (
-            <span className="text-blue-600 font-bold animate-pulse">
-              Reading Silo {displaySiloNum}
-            </span>
-          ) : (
-            <span>Silo {displaySiloNum}</span>
-          )}
-        </div>
-        
-        {/* Display main temperature based on current sensor readings (API-aware) */}
-        <div className="text-center" style={{ marginBottom: '6px' }}>
-          <div className="text-xs text-lab-text">Main Temp:</div>
-          <div className={`text-sm font-bold ${
-            readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
-          }`}>
-            {(sensorReadings.length ? Math.max(...sensorReadings) : (currentSilo?.temp ?? 0)).toFixed(1)}°C
+    <div className="relative">
+      <div className="bg-lab-cylinder border-2 border-gray-400 rounded-lg" style={{ width: '128px', padding: '2px 6px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} data-testid="lab-cylinder">
+        {/* Fixed-height header to align with GrainLevelCylinder */}
+        <div style={{ height: '56px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+          <div className="text-xs font-bold text-center text-lab-text" style={{ marginBottom: '2px' }}>
+            Silo Sensors
+          </div>
+          <div className="text-xs text-center text-lab-text" style={{ marginBottom: '2px' }}>
+            {readingSilo ? (
+              <span className="text-blue-600 font-bold animate-pulse">
+                Reading Silo {displaySiloNum}
+              </span>
+            ) : (
+              <span>Silo {displaySiloNum}</span>
+            )}
+          </div>
+          {/* Display main temperature based on current sensor readings (API-aware) */}
+          <div className="text-center" style={{ marginBottom: '0px' }}>
+            <div className="text-xs text-lab-text">Main Temp:</div>
+            <div className={`text-sm font-bold ${
+              readingSilo ? 'text-blue-600 animate-pulse' : 'text-lab-text'
+            }`}>
+              {(sensorReadings.length ? Math.max(...sensorReadings) : (currentSilo?.temp ?? 0)).toFixed(1)}°C
+            </div>
           </div>
         </div>
         
-        <div className="flex flex-col-reverse" style={{ gap: '3px', flex: 1, overflow: 'hidden' }}>
+        <div className="flex flex-col-reverse" style={{ gap: '3px' }}>
           {sensorReadings.map((reading, index) => {
             const sensorLabel = index + 1; // S1 at bottom, S8 at top (reversed order)
             const tempColor = getTemperatureColor(reading);

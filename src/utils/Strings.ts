@@ -4,7 +4,7 @@
  */
 export class Strings {
   // API Configuration
-  static readonly BASE_URL = 'http://localhost:5000';
+  static readonly BASE_URL = 'http://192.168.1.92:5000';
   
   // API Endpoints
   static readonly ENDPOINTS = {
@@ -18,6 +18,9 @@ export class Strings {
     // Readings
     READINGS_AVG_LATEST: '/readings/avg/latest/by-silo-number',
     READINGS_AVG_HISTORICAL: '/readings/avg/by-silo-number',
+    
+    // Silo level estimate
+    LEVEL_ESTIMATE_BY_NUMBER: '/silos/level-estimate/by-number',
     
     // Maintenance
     MAINTENANCE_SILO: '/maintenance/silo',
@@ -35,6 +38,7 @@ export class Strings {
     ALERTS_ACTIVE: `${this.BASE_URL}${this.ENDPOINTS.ALERTS_ACTIVE}`,
     READINGS_AVG_LATEST: `${this.BASE_URL}${this.ENDPOINTS.READINGS_AVG_LATEST}`,
     READINGS_AVG_HISTORICAL: `${this.BASE_URL}${this.ENDPOINTS.READINGS_AVG_HISTORICAL}`,
+    LEVEL_ESTIMATE_BY_NUMBER: `${this.BASE_URL}${this.ENDPOINTS.LEVEL_ESTIMATE_BY_NUMBER}`,
     MAINTENANCE_SILO: `${this.BASE_URL}${this.ENDPOINTS.MAINTENANCE_SILO}`,
     MAINTENANCE_CABLE: `${this.BASE_URL}${this.ENDPOINTS.MAINTENANCE_CABLE}`,
     REPORTS_SILO: `${this.BASE_URL}${this.ENDPOINTS.REPORTS_SILO}`,
