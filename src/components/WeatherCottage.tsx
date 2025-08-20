@@ -1,14 +1,26 @@
 import React from 'react';
-import { Card } from './ui/card';
+import { useCottageTemperature } from '../hooks/useCottageTemperature';
 
 interface WeatherCottageProps {
   className?: string;
 }
 
 const WeatherCottage: React.FC<WeatherCottageProps> = ({ className = '' }) => {
-  // Static temperature data until API is ready
-  const insideTemp = 22.5;
-  const outsideTemp = 18.3;
+  // Live cottage temperatures from API
+  const { data, isLoading } = useCottageTemperature({ autoRefresh: true, refreshInterval: 30000 });
+
+  const formatTemp = (temp: number, status: 'normal' | 'warning' | 'error' | 'disconnected') => {
+    if (status === 'disconnected') return 'Disconnected';
+    return `${temp.toFixed(1)}°C`;
+  };
+
+  const insideDisplay = data.inside
+    ? formatTemp(data.inside.temperature, data.inside.status)
+    : isLoading ? 'Loading…' : '--°C';
+
+  const outsideDisplay = data.outside
+    ? formatTemp(data.outside.temperature, data.outside.status)
+    : isLoading ? 'Loading…' : '--°C';
 
   return (
     <div className={`flex justify-center items-center py-8 ${className}`}>
@@ -68,7 +80,7 @@ const WeatherCottage: React.FC<WeatherCottageProps> = ({ className = '' }) => {
                 INSIDE
               </div>
               <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 text-emerald-200 font-mono text-3xl font-bold px-6 py-4 rounded-xl border-2 border-emerald-600 min-w-[140px] text-center shadow-xl shadow-emerald-900/50 glow-emerald">
-                {insideTemp.toFixed(1)}°C
+                {insideDisplay}
               </div>
             </div>
 
@@ -95,7 +107,7 @@ const WeatherCottage: React.FC<WeatherCottageProps> = ({ className = '' }) => {
                 OUTSIDE
               </div>
               <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 text-emerald-200 font-mono text-3xl font-bold px-6 py-4 rounded-xl border-2 border-emerald-600 min-w-[140px] text-center shadow-xl shadow-emerald-900/50 glow-emerald">
-                {outsideTemp.toFixed(1)}°C
+                {outsideDisplay}
               </div>
             </div>
           </div>
