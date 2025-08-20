@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/sms': {
+        target: 'http://192.168.1.96:8080',
+        changeOrigin: true,
+        secure: false,
+        // keep path as-is so /sms -> target/sms
+      },
+    },
   },
   test: {
     globals: true,

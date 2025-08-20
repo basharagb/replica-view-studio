@@ -5,13 +5,20 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Cable, Wrench, TestTube, Zap, Activity, AlertCircle, CheckCircle, Wifi } from 'lucide-react';
+import { Textarea } from './ui/textarea';
+import { Cable, Wrench, TestTube, Zap, Activity, AlertCircle, CheckCircle, Wifi, Send } from 'lucide-react';
+import { useToast } from '../hooks/use-toast';
+import { sendSMS } from '../services/smsService';
 
 export const MaintenanceInterface = () => {
   const [showCablePopup, setShowCablePopup] = useState(false);
   const [selectedSiloForPopup, setSelectedSiloForPopup] = useState<number | null>(null);
   const [testingSilo, setTestingSilo] = useState<number | null>(null);
   const [manualSiloInput, setManualSiloInput] = useState<string>('');
+  const { toast } = useToast();
+  const [smsPhone, setSmsPhone] = useState<string>('+962');
+  const [smsMessage, setSmsMessage] = useState<string>('');
+  const [sending, setSending] = useState<boolean>(false);
 
   const handleSiloClick = (siloNumber: number) => {
     // Start manual test
@@ -34,6 +41,26 @@ export const MaintenanceInterface = () => {
     const siloNumber = parseInt(manualSiloInput);
     if (!isNaN(siloNumber) && siloNumber > 0) {
       handleSiloClick(siloNumber);
+    }
+  };
+
+  const handleSendSMS = async () => {
+    if (!smsPhone || !smsPhone.startsWith('+')) {
+      toast({ title: 'Invalid phone number', description: 'Use E.164 format, e.g. +96279...', variant: 'destructive' });
+      return;
+    }
+    if (!smsMessage || smsMessage.trim().length === 0) {
+      toast({ title: 'Message required', description: 'Please enter an SMS message to send.', variant: 'destructive' });
+      return;
+    }
+    setSending(true);
+    const payload = { to: smsPhone.trim(), message: smsMessage.trim() };
+    const result = await sendSMS(payload);
+    setSending(false);
+    if (result.ok) {
+      toast({ title: 'SMS sent', description: 'Your message was accepted by the SMS service.' });
+    } else {
+      toast({ title: 'Failed to send SMS', description: result.error || `Status ${result.status}`, variant: 'destructive' });
     }
   };
 
@@ -67,14 +94,72 @@ export const MaintenanceInterface = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-col xl:flex-row gap-6">
+      <div className="flex flex-col gap-6">
         {/* Silo Interface */}
         <div className="flex-1">
           <MaintenanceLabInterface onSiloClick={handleSiloClick} />
         </div>
+      </div>
 
-        {/* Manual Test Controls - Compact Right Panel */}
-        
+      {/* Actions Row Under Silos */}
+      <div className="w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Manual Test */}
+          <Card className="bg-white dark:bg-gray-800 border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Wrench className="h-4 w-4" /> Manual Test
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  placeholder="Silo #"
+                  value={manualSiloInput}
+                  onChange={(e) => setManualSiloInput(e.target.value)}
+                />
+                <Button size="sm" onClick={handleManualTest}>Test</Button>
+              </div>
+              {selectedSiloForPopup && (
+                <p className="text-xs text-gray-500">Last tested: Silo {selectedSiloForPopup}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Send SMS */}
+          <Card className="bg-white dark:bg-gray-800 border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Send className="h-4 w-4" /> Send SMS
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Input
+                placeholder="Recipient phone (e.g. +962790123456)"
+                value={smsPhone}
+                onChange={(e) => setSmsPhone(e.target.value)}
+              />
+              <Textarea
+                placeholder="Type your message"
+                value={smsMessage}
+                onChange={(e) => setSmsMessage(e.target.value)}
+                rows={4}
+              />
+              <Button className="w-full" onClick={handleSendSMS} disabled={sending}>
+                {sending ? (
+                  <>
+                    <Zap className="h-4 w-4 mr-2 animate-pulse" /> Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" /> Send SMS
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Cable Connection Cards - Horizontal Panel Under Silos */}
