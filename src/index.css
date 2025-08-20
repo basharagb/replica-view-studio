@@ -195,3 +195,18 @@ All colors MUST be HSL.
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
+
+/* Glow effects for weather cottage */
+.glow-emerald {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), 0 0 40px rgba(16, 185, 129, 0.2);
+}
+
+/* Enhanced animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}

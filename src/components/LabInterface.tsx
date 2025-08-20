@@ -10,6 +10,7 @@ import { useSiloSystem } from '../hooks/useSiloSystem';
 import { topSiloGroups, bottomSiloGroups, temperatureScaleValues } from '../services/siloData';
 import EnhancedTemperatureDisplay from './EnhancedTemperatureDisplay';
 import CompanyLogos from './CompanyLogos';
+import WeatherCottage from './WeatherCottage';
 
 import AlertSystem from './AlertSystem';
 
@@ -82,17 +83,23 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
   }));
 
   return (
-    <div className="min-h-screen bg-background p-8" data-testid="lab-interface">
+    <div className="min-h-screen bg-background p-3" data-testid="lab-interface">
       <div className="max-w-7xl mx-auto">
-        {/* Company Logos at the top */}
-        <CompanyLogos />
-        
-        <div className="flex gap-8 2xl:gap-12 3xl:gap-16">
+        {/* Header area with absolute cottage at top-right */}
+        <div className="relative min-h-[220px] pb-5">
+          <CompanyLogos />
+          <div className="absolute top-0 right-0">
+            <div className="origin-top-right scale-[0.5] md:scale-[0.6]">
+              <WeatherCottage />
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-4">
           {/* Main lab area */}
-          <div className="flex-1 space-y-12 2xl:space-y-16 3xl:space-y-20">
+          <div className="flex-1 space-y-3">
             {/* Top section (1-55) - First 3 rows */}
-            <div className="bg-gray-50 p-6 2xl:p-8 3xl:p-10 rounded-lg border-2 border-gray-200" data-testid="top-silo-section" key={`top-${dataVersion}`}>
-              <div className="flex gap-6 2xl:gap-8 3xl:gap-10 justify-center">
+            <div className="bg-gray-50 p-3 rounded-lg border-2 border-gray-200" data-testid="top-silo-section" key={`top-${dataVersion}`}>
+              <div className="flex gap-3 justify-center">
                 {topSiloGroups.map((group, index) => (
                   <div key={index} className="relative">
                     <LabGroup
@@ -119,8 +126,8 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
             </div>
 
             {/* Bottom section (101-195) - All 5 rows */}
-            <div className="bg-gray-50 p-6 2xl:p-8 3xl:p-10 rounded-lg border-2 border-gray-200" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
-              <div className="flex gap-6 2xl:gap-8 3xl:gap-10 justify-center">
+            <div className="bg-gray-50 p-3 rounded-lg border-2 border-gray-200" data-testid="bottom-silo-section" key={`bottom-${dataVersion}`}>
+              <div className="flex gap-3 justify-center">
                 {bottomSiloGroups.map((group, index) => (
                   <div key={index} className="relative">
                     <div className="flex flex-col items-center gap-0">
@@ -223,7 +230,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
           </div>
 
           {/* Right side with cylinders, input, and controls */}
-          <div className="flex flex-col items-center gap-4 2xl:gap-6 3xl:gap-8" data-testid="control-panel">
+          <div className="flex flex-col items-center gap-3" data-testid="control-panel">
             {/* Cylinder Components Side by Side */}
             <div className="flex items-stretch justify-center gap-2">
               <LabCylinder
@@ -251,7 +258,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
             </div>
             
             {/* Manual/Auto Readings Controls */}
-            <div className="flex flex-col gap-2 items-center mt-4 2xl:mt-6 3xl:mt-8">
+            <div className="flex flex-col gap-2 items-center mt-2">
               <Button
                 variant={readingMode === 'manual' ? 'default' : 'outline'}
                 onClick={handleManualReadMode}
