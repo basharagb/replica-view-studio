@@ -1,6 +1,25 @@
-# Task: Fix CORS Preflight OPTIONS Requests
+# Task: Fix API Color Conversion Issues
 
-## CURRENT TASK COMPLETED ✅: RESTORE MANUAL TEST LOADING ANIMATIONS
+## CURRENT TASK COMPLETED ✅: FIX SILO COLOR CONVERSION FROM API
+**User Issue**: Silo 1 shows green in UI but API returns `"silo_color": "#8c9494"` (gray)
+**User Issue**: Silo 38 shows green in UI but API returns `"silo_color": "#d14141"` (red)
+
+**Root Cause**: Color conversion function `convertApiColorToTemperatureColor()` wasn't handling all API color patterns
+
+**Solution Implemented**:
+- [x] Fixed red color detection: Added `#d1*` and `#d14141` patterns for red colors
+- [x] Fixed gray color detection: Added `#8c94*`, `#8c*`, and `#8c9494` patterns for gray colors
+- [x] Enhanced all color pattern matching with comprehensive API color support
+- [x] Added debug logging to track color conversion process
+- [x] Changed default fallback from green to gray (more conservative for real sensor data)
+- [x] Updated color categories: Gray, Green, Yellow, Red with proper hex pattern matching
+
+**Color Mapping Fixed**:
+- `#8c9494` → `gray` (was defaulting to green)
+- `#d14141` → `pink` (displays as red, was defaulting to green)
+- All API colors now properly converted to internal color system
+
+## PREVIOUS TASK COMPLETED ✅: RESTORE MANUAL TEST LOADING ANIMATIONS
 **User Request**: Make manual tests show loading animations as they were before with proper timing
 
 **Problem Identified**: Manual tests were giving instant results without loading feedback

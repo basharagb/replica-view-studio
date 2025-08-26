@@ -338,29 +338,40 @@ export function convertApiColorToTemperatureColor(hexColor: string): Temperature
   // Convert API hex colors to internal color system
   const color = hexColor.toLowerCase();
   
-  // Gray colors (disconnected sensors)
-  if (color === '#9ca3af' || color.startsWith('#9ca') || color.startsWith('#6b7280')) {
+  console.log(`🎨 [COLOR CONVERSION] Converting API color: ${hexColor} → ${color}`);
+  
+  // Gray colors (disconnected/low temperature sensors)
+  if (color === '#9ca3af' || color.startsWith('#9ca') || color.startsWith('#6b7280') || 
+      color.startsWith('#8c94') || color === '#8c9494' || color.startsWith('#8c')) {
+    console.log(`🎨 [COLOR CONVERSION] Matched GRAY pattern for ${color}`);
     return 'gray';
   }
   
-  // Green colors (various shades)
-  if (color.startsWith('#46d4') || color.startsWith('#4') || color === '#00ff00' || color === '#44ff44' || color.startsWith('#46')) {
+  // Green colors (normal temperature range)
+  if (color.startsWith('#46d4') || color.startsWith('#4') || color === '#00ff00' || 
+      color === '#44ff44' || color.startsWith('#46') || color.startsWith('#22c55e')) {
+    console.log(`🎨 [COLOR CONVERSION] Matched GREEN pattern for ${color}`);
     return 'green';
   }
   
-  // Yellow colors
-  if (color.startsWith('#c7c1') || color === '#c7c150' || color.startsWith('#ff') && color.includes('c')) {
+  // Yellow colors (warning temperature range)
+  if (color.startsWith('#c7c1') || color === '#c7c150' || color.startsWith('#eab308') ||
+      color.startsWith('#f59e0b') || (color.startsWith('#ff') && color.includes('c'))) {
+    console.log(`🎨 [COLOR CONVERSION] Matched YELLOW pattern for ${color}`);
     return 'yellow';
   }
   
   // Red colors (critical temperatures)
-  if (color.startsWith('#ff') || color.startsWith('#f') || color === '#ff0000' || color === '#ff4444') {
+  if (color.startsWith('#ff') || color.startsWith('#f') || color === '#ff0000' || 
+      color === '#ff4444' || color.startsWith('#d1') || color.startsWith('#d14141') ||
+      color.startsWith('#ef4444') || color.startsWith('#dc2626')) {
+    console.log(`🎨 [COLOR CONVERSION] Matched RED pattern for ${color}`);
     return 'pink';
   }
   
-  // Default to green for unknown colors (safer than wheat for real sensor data)
-  // Unknown API color, defaulting to green
-  return 'green';
+  // Default to gray for unknown colors (most conservative approach for real sensor data)
+  console.log(`🎨 [COLOR CONVERSION] Unknown color ${color}, defaulting to GRAY`);
+  return 'gray';
 }
 
 // Retry mechanism for failed API calls
