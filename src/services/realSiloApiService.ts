@@ -263,7 +263,23 @@ export async function fetchSiloData(siloNumber: number): Promise<ProcessedSiloDa
     const apiData: RealSiloApiResponse[] = await response.json();
     
     if (!apiData || apiData.length === 0) {
-      throw new Error(`No data returned for silo ${siloNumber}`);
+      // API returned empty array - silo is disconnected
+      console.log(`🔌 [DISCONNECTED SILO] Silo ${siloNumber} returned empty array - setting disconnected color`);
+      
+      const disconnectedData: ProcessedSiloData = {
+        siloNumber,
+        sensors: [0, 0, 0, 0, 0, 0, 0, 0],  // All sensors zero
+        sensorColors: Array(8).fill('#8c9494'),  // All sensors gray
+        siloColor: '#8c9494',  // Disconnected gray color
+        maxTemp: 0,
+        timestamp: new Date(),
+        isLoaded: true  // Mark as loaded but disconnected
+      };
+      
+      // Cache the disconnected data
+      siloCache.set(siloNumber, disconnectedData);
+      
+      return disconnectedData;
     }
 
     // Process the first (and should be only) result

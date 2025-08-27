@@ -80,7 +80,8 @@ const WeatherCottage: React.FC<WeatherCottageProps> = ({ className = '' }) => {
                 INSIDE
               </div>
               <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 text-emerald-200 font-mono text-3xl font-bold px-6 py-4 rounded-xl border-2 border-emerald-600 min-w-[140px] text-center shadow-xl shadow-emerald-900/50 glow-emerald">
-                {insideDisplay}
+
+                     {outsideDisplay}
               </div>
             </div>
 
@@ -107,7 +108,7 @@ const WeatherCottage: React.FC<WeatherCottageProps> = ({ className = '' }) => {
                 OUTSIDE
               </div>
               <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 text-emerald-200 font-mono text-3xl font-bold px-6 py-4 rounded-xl border-2 border-emerald-600 min-w-[140px] text-center shadow-xl shadow-emerald-900/50 glow-emerald">
-                {outsideDisplay}
+                            {insideDisplay}
               </div>
             </div>
           </div>
