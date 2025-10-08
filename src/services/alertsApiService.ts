@@ -142,8 +142,9 @@ const processAlertResponse = (apiData: AlertApiResponse): ProcessedAlert => {
   const timestamp = new Date(apiData.timestamp);
   const activeSince = new Date(apiData.active_since);
   
-  // Create unique ID for the alert
-  const alertId = `${apiData.silo_number}-${apiData.alert_type}-${apiData.affected_levels.join(',')}-${apiData.active_since}`;
+  // Create unique ID for the alert based on silo number, alert type, and affected levels only
+  // This ensures alerts with same silo and levels but different sensor readings are consolidated
+  const alertId = `${apiData.silo_number}-${apiData.alert_type}-${apiData.affected_levels.sort().join(',')}`;
   
   console.log(`🚨 [ALERTS API] Processing alert for Silo ${apiData.silo_number}:`, {
     alertType: apiData.alert_type,
@@ -169,6 +170,37 @@ const processAlertResponse = (apiData: AlertApiResponse): ProcessedAlert => {
     activeSince,
     duration: calculateDuration(activeSince)
   };
+};
+
+// Consolidate duplicate alerts that have the same silo number and affected levels
+const consolidateAlerts = (alerts: ProcessedAlert[]): ProcessedAlert[] => {
+  const alertMap = new Map<string, ProcessedAlert>();
+  
+  alerts.forEach(alert => {
+    const key = `${alert.siloNumber}-${alert.alertType}-${alert.affectedLevels.sort().join(',')}`;
+    
+    if (alertMap.has(key)) {
+      const existingAlert = alertMap.get(key)!;
+      
+      // Keep the alert with the most recent timestamp (latest sensor readings)
+      if (alert.timestamp.getTime() > existingAlert.timestamp.getTime()) {
+        console.log(`🚨 [ALERTS API] Consolidating duplicate alert for Silo ${alert.siloNumber}, keeping newer reading (${alert.timestamp.toISOString()} > ${existingAlert.timestamp.toISOString()})`);
+        alertMap.set(key, alert);
+      } else {
+        console.log(`🚨 [ALERTS API] Consolidating duplicate alert for Silo ${alert.siloNumber}, keeping existing reading (${existingAlert.timestamp.toISOString()} >= ${alert.timestamp.toISOString()})`);
+      }
+    } else {
+      alertMap.set(key, alert);
+    }
+  });
+  
+  const consolidatedAlerts = Array.from(alertMap.values());
+  
+  if (alerts.length !== consolidatedAlerts.length) {
+    console.log(`🚨 [ALERTS API] Consolidated ${alerts.length} raw alerts into ${consolidatedAlerts.length} unique alerts (removed ${alerts.length - consolidatedAlerts.length} duplicates)`);
+  }
+  
+  return consolidatedAlerts;
 };
 
 // Fetch active alerts from API with improved error handling and loading states
@@ -236,11 +268,14 @@ export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<
       };
     }
 
-    // Process all alerts
+    // Process all alerts and consolidate duplicates
     const processedAlerts = apiData.map(processAlertResponse);
     
+    // Consolidate duplicate alerts (same silo_number and affected_levels)
+    const consolidatedAlerts = consolidateAlerts(processedAlerts);
+    
     // Sort alerts by severity and then by active time (most recent first)
-    processedAlerts.sort((a, b) => {
+    consolidatedAlerts.sort((a, b) => {
       // Priority order: critical > warning > disconnect
       const severityOrder = { critical: 3, warning: 2, disconnect: 1 };
       const severityDiff = severityOrder[b.alertType] - severityOrder[a.alertType];
@@ -254,11 +289,11 @@ export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<
     });
     
     // Cache the processed data
-    alertsCache.setAlerts(processedAlerts);
+    alertsCache.setAlerts(consolidatedAlerts);
     
-    console.log(`🚨 [ALERTS API] Successfully processed ${processedAlerts.length} alerts`);
+    console.log(`🚨 [ALERTS API] Successfully processed ${apiData.length} raw alerts, consolidated to ${consolidatedAlerts.length} unique alerts`);
     return {
-      alerts: processedAlerts,
+      alerts: consolidatedAlerts,
       isLoading: false,
       error: null
     };
