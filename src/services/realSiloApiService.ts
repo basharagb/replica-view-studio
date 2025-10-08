@@ -267,13 +267,13 @@ export async function fetchSiloData(siloNumber: number): Promise<ProcessedSiloDa
     
     if (!apiData || apiData.length === 0) {
       // API returned empty array - silo is disconnected
-      console.log(`🔌 [DISCONNECTED SILO] Silo ${siloNumber} returned empty array - setting disconnected color`);
+      console.log(`🔌 [DISCONNECTED SILO] Silo ${siloNumber} returned empty array - setting disconnected gray color`);
       
       const disconnectedData: ProcessedSiloData = {
         siloNumber,
         sensors: [0, 0, 0, 0, 0, 0, 0, 0],  // All sensors zero
-        sensorColors: Array(8).fill('#22c55e'),  // All sensors green
-        siloColor: '#22c55e',  // Disconnected green color
+        sensorColors: Array(8).fill('#9ca3af'),  // All sensors gray (disconnected)
+        siloColor: '#9ca3af',  // Disconnected gray color
         maxTemp: 0,
         timestamp: new Date(),
         isLoaded: true  // Mark as loaded but disconnected
@@ -359,11 +359,11 @@ export function convertApiColorToTemperatureColor(hexColor: string): Temperature
   
   console.log(`🎨 [COLOR CONVERSION] Converting API color: ${hexColor} → ${color}`);
   
-  // Gray colors (disconnected/low temperature sensors) - now converted to green
+  // Gray colors (disconnected sensors) - keep as gray for disconnected silos
   if (color === '#9ca3af' || color.startsWith('#9ca') || color.startsWith('#6b7280') || 
       color.startsWith('#8c94') || color === '#8c9494' || color.startsWith('#8c')) {
-    console.log(`🎨 [COLOR CONVERSION] Matched GRAY pattern for ${color} - converting to GREEN`);
-    return 'green';
+    console.log(`🎨 [COLOR CONVERSION] Matched GRAY pattern for ${color} - keeping as GRAY (disconnected)`);
+    return 'gray';
   }
   
   // Green colors (normal temperature range)
@@ -388,9 +388,9 @@ export function convertApiColorToTemperatureColor(hexColor: string): Temperature
     return 'pink';
   }
   
-  // Default to green for unknown colors (changed from gray as requested)
-  console.log(`🎨 [COLOR CONVERSION] Unknown color ${color}, defaulting to GREEN`);
-  return 'green';
+  // Default to gray for unknown colors (disconnected/unknown state)
+  console.log(`🎨 [COLOR CONVERSION] Unknown color ${color}, defaulting to GRAY (disconnected)`);
+  return 'gray';
 }
 
 // Retry mechanism for failed API calls
