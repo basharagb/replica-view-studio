@@ -10,21 +10,21 @@ export interface RealSiloApiResponse {
   silo_group: string;
   silo_number: number;
   cable_number: number | null;
-  level_0: number;  // S1 sensor
+  level_0: number | null;  // S1 sensor
   color_0: string;  // S1 color
-  level_1: number;  // S2 sensor
+  level_1: number | null;  // S2 sensor
   color_1: string;  // S2 color
-  level_2: number;  // S3 sensor
+  level_2: number | null;  // S3 sensor
   color_2: string;  // S3 color
-  level_3: number;  // S4 sensor
+  level_3: number | null;  // S4 sensor
   color_3: string;  // S4 color
-  level_4: number;  // S5 sensor
+  level_4: number | null;  // S5 sensor
   color_4: string;  // S5 color
-  level_5: number;  // S6 sensor
+  level_5: number | null;  // S6 sensor
   color_5: string;  // S6 color
-  level_6: number;  // S7 sensor
+  level_6: number | null;  // S7 sensor
   color_6: string;  // S7 color
-  level_7: number;  // S8 sensor
+  level_7: number | null;  // S8 sensor
   color_7: string;  // S8 color
   silo_color: string;
   timestamp: string;
@@ -175,9 +175,10 @@ const siloCache = new SiloDataCache();
 
 // Convert API response to processed silo data
 const processApiResponse = (apiData: RealSiloApiResponse): ProcessedSiloData => {
+  // Handle null values by converting them to 0
   const sensors = [
-    apiData.level_0, apiData.level_1, apiData.level_2, apiData.level_3,
-    apiData.level_4, apiData.level_5, apiData.level_6, apiData.level_7
+    apiData.level_0 ?? 0, apiData.level_1 ?? 0, apiData.level_2 ?? 0, apiData.level_3 ?? 0,
+    apiData.level_4 ?? 0, apiData.level_5 ?? 0, apiData.level_6 ?? 0, apiData.level_7 ?? 0
   ];
   
   const sensorColors = [
@@ -185,7 +186,9 @@ const processApiResponse = (apiData: RealSiloApiResponse): ProcessedSiloData => 
     apiData.color_4, apiData.color_5, apiData.color_6, apiData.color_7
   ];
   
-  const maxTemp = Math.max(...sensors);
+  // Filter out null/zero values when calculating max temperature
+  const validTemperatures = sensors.filter(temp => temp !== null && temp > 0);
+  const maxTemp = validTemperatures.length > 0 ? Math.max(...validTemperatures) : 0;
   
   // 🔍 COMPREHENSIVE DEBUG LOGGING FOR LIVE READINGS
   console.log(`🔍 [LIVE READINGS DEBUG] Silo ${apiData.silo_number} API Response:`, {
@@ -269,8 +272,8 @@ export async function fetchSiloData(siloNumber: number): Promise<ProcessedSiloDa
       const disconnectedData: ProcessedSiloData = {
         siloNumber,
         sensors: [0, 0, 0, 0, 0, 0, 0, 0],  // All sensors zero
-        sensorColors: Array(8).fill('#8c9494'),  // All sensors gray
-        siloColor: '#8c9494',  // Disconnected gray color
+        sensorColors: Array(8).fill('#22c55e'),  // All sensors green
+        siloColor: '#22c55e',  // Disconnected green color
         maxTemp: 0,
         timestamp: new Date(),
         isLoaded: true  // Mark as loaded but disconnected
@@ -356,11 +359,11 @@ export function convertApiColorToTemperatureColor(hexColor: string): Temperature
   
   console.log(`🎨 [COLOR CONVERSION] Converting API color: ${hexColor} → ${color}`);
   
-  // Gray colors (disconnected/low temperature sensors)
+  // Gray colors (disconnected/low temperature sensors) - now converted to green
   if (color === '#9ca3af' || color.startsWith('#9ca') || color.startsWith('#6b7280') || 
       color.startsWith('#8c94') || color === '#8c9494' || color.startsWith('#8c')) {
-    console.log(`🎨 [COLOR CONVERSION] Matched GRAY pattern for ${color}`);
-    return 'gray';
+    console.log(`🎨 [COLOR CONVERSION] Matched GRAY pattern for ${color} - converting to GREEN`);
+    return 'green';
   }
   
   // Green colors (normal temperature range)
@@ -385,9 +388,9 @@ export function convertApiColorToTemperatureColor(hexColor: string): Temperature
     return 'pink';
   }
   
-  // Default to gray for unknown colors (most conservative approach for real sensor data)
-  console.log(`🎨 [COLOR CONVERSION] Unknown color ${color}, defaulting to GRAY`);
-  return 'gray';
+  // Default to green for unknown colors (changed from gray as requested)
+  console.log(`🎨 [COLOR CONVERSION] Unknown color ${color}, defaulting to GREEN`);
+  return 'green';
 }
 
 // Retry mechanism for failed API calls

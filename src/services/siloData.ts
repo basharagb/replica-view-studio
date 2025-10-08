@@ -340,8 +340,8 @@ export const regenerateAllSiloData = (): void => {
 
 // Temperature color mapping - Silo monitoring system with priority hierarchy
 export const getTemperatureColor = (temp: number): TemperatureColor => {
-  // Handle disconnected sensors (-127 values)
-  if (temp === -127) return 'gray';
+  // Handle disconnected sensors (-127 values) - changed to green
+  if (temp === -127) return 'green';
   
   // If temperature is 0, return wheat color (unloaded state)
   if (temp === 0) return 'beige';
@@ -405,8 +405,17 @@ export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
   // First check if we have real API data
   const apiData = getSiloData(siloNum);
   if (apiData.isLoaded) {
-    // Use API color directly if available, or convert from API color
-    return convertApiColorToTemperatureColor(apiData.siloColor);
+    // Use DYNAMIC color calculation based on actual sensor readings, not static silo_color
+    // This ensures the silo color reflects the highest priority sensor reading
+    const sensorReadings = apiData.sensors.filter(temp => temp !== null && temp > 0);
+    
+    if (sensorReadings.length > 0) {
+      // Calculate dynamic color based on sensor priority hierarchy
+      return getSiloColorFromSensors(sensorReadings);
+    } else {
+      // If all sensors are null/zero, convert the API silo_color as fallback
+      return convertApiColorToTemperatureColor(apiData.siloColor);
+    }
   }
   
   // During auto test, check if silo is completed or has data available

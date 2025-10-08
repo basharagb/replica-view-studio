@@ -125,7 +125,29 @@ export const useSiloSystem = () => {
       const currentSilo = allSilos[currentIndex];
       setReadingSilo(currentSilo.num);
       setSelectedSilo(currentSilo.num);
-      setSelectedTemp(currentSilo.temp);
+      
+      // Clear cache and fetch fresh data for resumed silo
+      const fetchResumedSiloData = async () => {
+        try {
+          clearSiloCache(currentSilo.num);
+          console.log(`🗑️ [AUTO TEST RESUME] Cleared cache for resumed silo ${currentSilo.num} to ensure fresh data`);
+          
+          const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
+          setSelectedTemp(apiData.maxTemp);
+          
+          // Mark this silo as completed for sensor display logic
+          markSiloCompleted(currentSilo.num);
+          
+          // Force a re-render with fresh data
+          setDataVersion(prev => prev + 1);
+        } catch (error) {
+          console.error(`Auto test resume: Failed to fetch data for silo ${currentSilo.num}:`, error);
+          setSelectedTemp(currentSilo.temp);
+        }
+      };
+      
+      // Start fetching data for resumed silo
+      fetchResumedSiloData();
 
       // Continue with remaining time for current silo
       currentSiloTimeout.current = setTimeout(() => {
@@ -167,6 +189,10 @@ export const useSiloSystem = () => {
 
       // Fetch real silo data from API during the 24-second interval
       try {
+        // Clear silo cache to ensure fresh data on re-fetch
+        clearSiloCache(currentSilo.num);
+        console.log(`🗑️ [AUTO TEST] Cleared cache for silo ${currentSilo.num} to ensure fresh data`);
+        
         const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
         // Auto test: Fetched real data for silo (logging removed for performance)
         
@@ -368,11 +394,33 @@ export const useSiloSystem = () => {
     const currentSilo = allSilos[0];
     setReadingSilo(currentSilo.num);
     setSelectedSilo(currentSilo.num);
-    setSelectedTemp(currentSilo.temp);
     setAutoReadProgress((1 / allSilos.length) * 100);
     
     // Set current scanning silo for sensor display logic
     setCurrentScanSilo(currentSilo.num);
+    
+    // Clear cache and fetch fresh data for first silo
+    const fetchFirstSiloData = async () => {
+      try {
+        clearSiloCache(currentSilo.num);
+        console.log(`🗑️ [AUTO TEST] Cleared cache for first silo ${currentSilo.num} to ensure fresh data`);
+        
+        const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
+        setSelectedTemp(apiData.maxTemp);
+        
+        // Mark this silo as completed for sensor display logic
+        markSiloCompleted(currentSilo.num);
+        
+        // Force a re-render with fresh data
+        setDataVersion(prev => prev + 1);
+      } catch (error) {
+        console.error(`Auto test: Failed to fetch data for first silo ${currentSilo.num}:`, error);
+        setSelectedTemp(currentSilo.temp);
+      }
+    };
+    
+    // Start fetching data for first silo
+    fetchFirstSiloData();
     
     // Save initial state
     saveAutoTestState({

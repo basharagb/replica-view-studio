@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+        .error { background: #ffe6e6; color: #d00; }
+        .success { background: #e6ffe6; color: #080; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🚨 Alerts API Debug Test</h1>
+    
+    <button onclick="testAlertsAPI()">Test Alerts API</button>
+    <button onclick="testWithCORS()">Test with CORS Headers</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            console.log(`[${type.toUpperCase()}]`, message);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testAlertsAPI() {
+            log('🚨 Starting alerts API test...');
+            
+            try {
+                const url = 'http://192.168.1.92:5000/alerts/active';
+                log(`Fetching from: ${url}`);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                log(`Response status: ${response.status} ${response.statusText}`, 
+                    response.ok ? 'success' : 'error');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`✅ Received ${data.length} alerts`, 'success');
+                
+                // Count by type
+                const counts = data.reduce((acc, alert) => {
+                    acc[alert.alert_type] = (acc[alert.alert_type] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                log(`Alert counts: ${JSON.stringify(counts)}`, 'success');
+                log(`First alert sample: ${JSON.stringify(data[0], null, 2)}`, 'info');
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                log(`Error details: ${error.stack}`, 'error');
+            }
+        }
+
+        async function testWithCORS() {
+            log('🚨 Testing with CORS headers...');
+            
+            try {
+                const url = 'http://192.168.1.92:5000/alerts/active';
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                });
+                
+                log(`CORS Response status: ${response.status}`, 
+                    response.ok ? 'success' : 'error');
+                
+                const data = await response.json();
+                log(`✅ CORS test successful: ${data.length} alerts`, 'success');
+                
+            } catch (error) {
+                log(`❌ CORS Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run test on page load
+        window.onload = () => {
+            log('🚀 Page loaded, running automatic test...');
+            testAlertsAPI();
+        };
+    </script>
+</body>
+</html>

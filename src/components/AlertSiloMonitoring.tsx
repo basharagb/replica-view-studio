@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, AlertCircle, TrendingUp, CheckCircle } from 'lucide-react';
+import { AlertTriangle, AlertCircle, TrendingUp, CheckCircle, Clock, Calendar, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { Strings } from '../utils/Strings';
+import { fetchActiveAlerts, ProcessedAlert, formatAlertTimestamp, formatAlertDuration, clearAlertsCache } from '../services/alertsApiService';
 
 // Sensor reading type
 interface SensorReading {
@@ -20,8 +20,12 @@ interface AlertSiloStatus {
   maxTemp: number;
   alertCount: number;
   siloGroup?: string;
-  activeSince?: string;
-  siloColor?: string;  // added to keep silo_color for direct use
+  activeSince?: Date;
+  timestamp?: Date;
+  duration?: string;
+  siloColor?: string;
+  alertType?: 'critical' | 'warning' | 'disconnect';
+  affectedLevels?: number[];
 }
 
 /** Robust color -> status mapping */
@@ -73,27 +77,36 @@ const isColorDark = (color: string): boolean => {
 const AlertSiloMonitoring: React.FC = () => {
   const [alertSilos, setAlertSilos] = useState<AlertSiloStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchAlertSilos = async () => {
     setLoading(true);
     try {
-      const res = await fetch(Strings.URLS.ALERTS_ACTIVE);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      console.log('🚨 [ALERT SILO MONITORING] Fetching alerts...');
+      const result = await fetchActiveAlerts();
+      
+      console.log('🚨 [ALERT SILO MONITORING] Fetch result:', {
+        alertsCount: result.alerts.length,
+        isLoading: result.isLoading,
+        error: result.error
+      });
 
-      const mapped: AlertSiloStatus[] = data.map((silo: any) => {
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      const alerts = result.alerts;
+      const mapped: AlertSiloStatus[] = alerts.map((alert: ProcessedAlert) => {
         const sensors: SensorReading[] = [];
-        let maxTemp = -Infinity;
         let alertCount = 0;
 
+        // Convert sensor data to SensorReading format
         for (let i = 0; i <= 7; i++) {
-          const raw = silo[`level_${i}`];
-          const value = typeof raw === 'number' ? raw : Number(raw || 0);
-          const color = silo[`color_${i}`];
+          const value = alert.sensors[i] || 0;
+          const color = alert.sensorColors[i];
           const status = colorToStatus(color);
 
           if (status === 'red' || status === 'yellow') alertCount++;
-          maxTemp = Math.max(maxTemp, Number.isFinite(value) ? value : 0);
 
           sensors.push({
             id: `sensor-${i + 1}`,
@@ -102,34 +115,49 @@ const AlertSiloMonitoring: React.FC = () => {
           });
         }
 
-        const overallStatus = colorToStatus(silo.silo_color);
+        const overallStatus = colorToStatus(alert.siloColor);
         let priority: 'normal' | 'warning' | 'critical' = 'normal';
-        if (silo.alert_type === 'critical' || overallStatus === 'red') priority = 'critical';
-        else if (silo.alert_type === 'warn' || overallStatus === 'yellow' || alertCount > 0) priority = 'warning';
+        if (alert.alertType === 'critical' || overallStatus === 'red') priority = 'critical';
+        else if (alert.alertType === 'warning' || alert.alertType === 'disconnect' || overallStatus === 'yellow' || alertCount > 0) priority = 'warning';
 
         return {
-          siloNumber: silo.silo_number,
+          siloNumber: alert.siloNumber,
           overallStatus,
           priority,
           sensors,
-          maxTemp,
+          maxTemp: alert.maxTemp,
           alertCount,
-          siloGroup: silo.silo_group,
-          activeSince: silo.active_since,
-          siloColor: silo.silo_color || '#ffffff',
+          siloGroup: alert.siloGroup,
+          activeSince: alert.activeSince,
+          timestamp: alert.timestamp,
+          duration: alert.duration,
+          siloColor: alert.siloColor || '#ffffff',
+          alertType: alert.alertType,
+          affectedLevels: alert.affectedLevels,
         } as AlertSiloStatus;
       });
 
+      // Filter out normal priority alerts (only show warnings and critical)
       const filtered = mapped.filter(s => s.priority !== 'normal');
 
+      // Sort by priority and then by max temperature
       filtered.sort((a, b) => {
         if (a.priority !== b.priority) return a.priority === 'critical' ? -1 : 1;
         return b.maxTemp - a.maxTemp;
       });
 
+      console.log('🚨 [ALERT SILO MONITORING] Processed alerts:', {
+        totalMapped: mapped.length,
+        filtered: filtered.length,
+        priorityCounts: filtered.reduce((acc, silo) => {
+          acc[silo.priority] = (acc[silo.priority] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      });
+
       setAlertSilos(filtered);
     } catch (err) {
-      console.error('Failed to fetch alert silos:', err);
+      console.error('🚨 [ALERT SILO MONITORING] Failed to fetch alert silos:', err);
       setAlertSilos([]);
     } finally {
       setLoading(false);
@@ -137,10 +165,34 @@ const AlertSiloMonitoring: React.FC = () => {
   };
 
   useEffect(() => {
+    // Clear cache and fetch fresh data when component mounts (user navigates to Alert Monitoring)
+    console.log('🚨 [ALERT SILO MONITORING] Component mounted - clearing cache and fetching fresh data');
+    clearAlertsCache();
     fetchAlertSilos();
-    const interval = setInterval(fetchAlertSilos, 120000); // 2 minutes
+    
+    // Set up 1-hour interval for auto-refresh when page is left open
+    const interval = setInterval(() => {
+      console.log('🚨 [ALERT SILO MONITORING] 1-hour auto-refresh triggered');
+      clearAlertsCache(); // Clear cache before auto-refresh too
+      fetchAlertSilos();
+    }, 3600000); // 1 hour (3600 seconds)
+    
     return () => clearInterval(interval);
   }, []);
+
+  const handleManualRefresh = async () => {
+    if (refreshing) return; // Prevent multiple simultaneous refreshes
+    
+    setRefreshing(true);
+    console.log('🚨 [ALERT SILO MONITORING] Manual refresh triggered - clearing cache');
+    clearAlertsCache();
+    
+    try {
+      await fetchAlertSilos();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const getStatusIcon = (status: 'ok' | 'yellow' | 'red') => {
     if (status === 'red') return <AlertCircle className="w-5 h-5 text-red-500" />;
@@ -167,10 +219,21 @@ const AlertSiloMonitoring: React.FC = () => {
     <div className="alert-silo-monitoring p-6 space-y-6">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-          <AlertTriangle className="w-8 h-8 text-orange-500" />
-          Alert Silo Monitoring
-        </h1>
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <AlertTriangle className="w-8 h-8 text-orange-500" />
+            Alert Silo Monitoring
+          </h1>
+          <button
+            onClick={handleManualRefresh}
+            disabled={loading || refreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200"
+            title="Refresh alerts data"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
         <p className="text-gray-600 max-w-2xl mx-auto">
           Real-time monitoring of silos with critical temperature alerts. Displaying only silos with warnings or critical alerts.
         </p>
@@ -206,14 +269,14 @@ const AlertSiloMonitoring: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-gray-50 border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-500" />
+              <CheckCircle className="w-5 h-5 text-gray-500" />
               <div>
-                <p className="text-sm text-blue-600">Critical Alert Silos</p>
-                <p className="text-2xl font-bold text-blue-700">
-                  {alertSilos.filter(s => s.priority === 'critical').length}
+                <p className="text-sm text-gray-600">Disconnect Alerts</p>
+                <p className="text-2xl font-bold text-gray-700">
+                  {alertSilos.filter(s => s.alertType === 'disconnect').length}
                 </p>
               </div>
             </div>
@@ -291,6 +354,34 @@ const AlertSiloMonitoring: React.FC = () => {
                     })}
                   </div>
 
+                  {/* Time and Date Information */}
+                  {silo.activeSince && (
+                    <div className={`p-3 rounded-lg text-sm space-y-2 ${darkText ? 'bg-white bg-opacity-70' : 'bg-black bg-opacity-20'}`}>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        <div>
+                          <span className="font-medium">Active Since:</span>
+                          <div className="text-xs">{formatAlertTimestamp(silo.activeSince)}</div>
+                        </div>
+                      </div>
+                      {silo.duration && (
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          <div>
+                            <span className="font-medium">Duration:</span>
+                            <span className="ml-1 text-xs">{silo.duration}</span>
+                          </div>
+                        </div>
+                      )}
+                      {silo.affectedLevels && silo.affectedLevels.length > 0 && (
+                        <div className="text-xs">
+                          <span className="font-medium">Affected Levels:</span>
+                          <span className="ml-1">{silo.affectedLevels.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Status Message */}
                   <div className={`p-2 rounded-lg text-sm ${silo.priority === 'critical' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
                     {silo.priority === 'critical'
@@ -306,7 +397,7 @@ const AlertSiloMonitoring: React.FC = () => {
 
       {/* Footer */}
       <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Alert monitoring updates every 10 seconds. Only silos with temperature warnings or critical alerts are displayed.</p>
+        <p>Alert monitoring updates every 1 hour. Only silos with active alerts (critical, warning, or disconnect) are displayed.</p>
       </div>
     </div>
   );

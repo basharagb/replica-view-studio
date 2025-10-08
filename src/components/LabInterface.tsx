@@ -141,7 +141,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
                             isSelected={selectedSilo === circle.num}
                             isReading={readingSilo === circle.num}
                             isHovered={hoveredSilo?.num === circle.num}
-                            onClick={handleSiloClick}
+                            onClick={handleCombinedSiloClick}
                             onMouseEnter={handleSiloHover}
                             onMouseLeave={handleSiloLeave}
                             onMouseMove={handleSiloMouseMove}
@@ -158,7 +158,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
                             isSelected={selectedSilo === silo.num}
                             isReading={readingSilo === silo.num}
                             isHovered={hoveredSilo?.num === silo.num}
-                            onClick={handleSiloClick}
+                            onClick={handleCombinedSiloClick}
                             onMouseEnter={handleSiloHover}
                             onMouseLeave={handleSiloLeave}
                             onMouseMove={handleSiloMouseMove}
@@ -176,7 +176,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
                             isSelected={selectedSilo === circle.num}
                             isReading={readingSilo === circle.num}
                             isHovered={hoveredSilo?.num === circle.num}
-                            onClick={handleSiloClick}
+                            onClick={handleCombinedSiloClick}
                             onMouseEnter={handleSiloHover}
                             onMouseLeave={handleSiloLeave}
                             onMouseMove={handleSiloMouseMove}
@@ -193,7 +193,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
                             isSelected={selectedSilo === silo.num}
                             isReading={readingSilo === silo.num}
                             isHovered={hoveredSilo?.num === silo.num}
-                            onClick={handleSiloClick}
+                            onClick={handleCombinedSiloClick}
                             onMouseEnter={handleSiloHover}
                             onMouseLeave={handleSiloLeave}
                             onMouseMove={handleSiloMouseMove}
@@ -211,7 +211,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
                             isSelected={selectedSilo === circle.num}
                             isReading={readingSilo === circle.num}
                             isHovered={hoveredSilo?.num === circle.num}
-                            onClick={handleSiloClick}
+                            onClick={handleCombinedSiloClick}
                             onMouseEnter={handleSiloHover}
                             onMouseLeave={handleSiloLeave}
                             onMouseMove={handleSiloMouseMove}

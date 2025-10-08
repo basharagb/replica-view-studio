@@ -37,7 +37,8 @@ export class Strings {
   static readonly URLS = {
     LOGIN: `${this.BASE_URL}${this.ENDPOINTS.LOGIN}`,
     LOGOUT: `${this.BASE_URL}${this.ENDPOINTS.LOGOUT}`,
-    ALERTS_ACTIVE: `${this.BASE_URL}${this.ENDPOINTS.ALERTS_ACTIVE}`,
+    // Use proxy to avoid CORS issues in development
+    ALERTS_ACTIVE: `/cottage${this.ENDPOINTS.ALERTS_ACTIVE}`,
     READINGS_AVG_LATEST: `${this.BASE_URL}${this.ENDPOINTS.READINGS_AVG_LATEST}`,
     READINGS_AVG_HISTORICAL: `${this.BASE_URL}${this.ENDPOINTS.READINGS_AVG_HISTORICAL}`,
     LEVEL_ESTIMATE_BY_NUMBER: `${this.BASE_URL}${this.ENDPOINTS.LEVEL_ESTIMATE_BY_NUMBER}`,
