@@ -35,6 +35,10 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
     autoTestInterval,
     isWaitingForRestart,
     waitTimeRemaining,
+    disconnectedSilos,
+    retryCount,
+    isRetryPhase,
+    maxRetries,
     handleSiloClick,
     handleSiloHover,
     handleSiloMouseMove,
@@ -283,12 +287,32 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
                 <div className="w-48 2xl:w-56 3xl:w-64 mt-2" data-testid="auto-test-progress">
                   <div className="bg-gray-200 h-3 rounded">
                     <div
-                      className="bg-green-500 h-3 rounded transition-all duration-300"
-                      style={{ width: `${autoReadProgress}%` }}
+                      className={`h-3 rounded transition-all duration-300 ${
+                        isRetryPhase ? 'bg-orange-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(autoReadProgress, 100)}%` }}
                     />
                   </div>
                   <div className="text-xs mt-1 text-center">
-                    {Math.round(autoReadProgress)}% complete
+                    {isRetryPhase ? (
+                      <div>
+                        <div className="text-orange-600 font-semibold">
+                          🔄 Retry {retryCount}/{maxRetries}
+                        </div>
+                        <div className="text-gray-600">
+                          {disconnectedSilos.length} disconnected silos
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        {Math.round(autoReadProgress)}% complete
+                        {disconnectedSilos.length > 0 && (
+                          <div className="text-orange-600 text-xs">
+                            {disconnectedSilos.length} disconnected
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
