@@ -78,24 +78,37 @@ const AlertSiloMonitoring: React.FC = () => {
   const [alertSilos, setAlertSilos] = useState<AlertSiloStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingStartTime, setLoadingStartTime] = useState<Date | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const fetchAlertSilos = async () => {
     setLoading(true);
+    setError(null);
+    setLoadingStartTime(new Date());
+    setElapsedTime(0);
     try {
       console.log('🚨 [ALERT SILO MONITORING] Fetching alerts...');
+      const startTime = Date.now();
       const result = await fetchActiveAlerts();
+      const fetchTime = Date.now() - startTime;
       
       console.log('🚨 [ALERT SILO MONITORING] Fetch result:', {
         alertsCount: result.alerts.length,
         isLoading: result.isLoading,
-        error: result.error
+        error: result.error,
+        fetchTimeMs: fetchTime
       });
 
       if (result.error) {
+        console.error('🚨 [ALERT SILO MONITORING] API Error:', result.error);
         throw new Error(result.error);
       }
 
       const alerts = result.alerts;
+      console.log('🚨 [ALERT SILO MONITORING] Starting data processing...');
+      const processingStartTime = Date.now();
+      
       const mapped: AlertSiloStatus[] = alerts.map((alert: ProcessedAlert) => {
         const sensors: SensorReading[] = [];
         let alertCount = 0;
@@ -137,8 +150,45 @@ const AlertSiloMonitoring: React.FC = () => {
         } as AlertSiloStatus;
       });
 
-      // Filter out normal priority alerts (only show warnings and critical)
-      const filtered = mapped.filter(s => s.priority !== 'normal');
+      // Group by silo number to ensure each silo appears only once
+      const siloMap = new Map<number, AlertSiloStatus>();
+      
+      mapped.forEach(silo => {
+        if (siloMap.has(silo.siloNumber)) {
+          const existing = siloMap.get(silo.siloNumber)!;
+          
+          // Merge the silos - keep the highest priority and combine affected levels
+          const mergedSilo: AlertSiloStatus = {
+            ...existing,
+            // Use highest priority (critical > warning > normal)
+            priority: existing.priority === 'critical' || silo.priority === 'critical' ? 'critical' : 
+                     existing.priority === 'warning' || silo.priority === 'warning' ? 'warning' : 'normal',
+            // Use the highest max temperature
+            maxTemp: Math.max(existing.maxTemp, silo.maxTemp),
+            // Combine affected levels
+            affectedLevels: existing.affectedLevels && silo.affectedLevels ? 
+              [...new Set([...existing.affectedLevels, ...silo.affectedLevels])].sort((a, b) => a - b) :
+              existing.affectedLevels || silo.affectedLevels,
+            // Use most recent timestamp
+            timestamp: existing.timestamp && silo.timestamp ? 
+              (existing.timestamp.getTime() > silo.timestamp.getTime() ? existing.timestamp : silo.timestamp) :
+              existing.timestamp || silo.timestamp,
+            // Keep earliest active since
+            activeSince: existing.activeSince && silo.activeSince ?
+              (existing.activeSince.getTime() < silo.activeSince.getTime() ? existing.activeSince : silo.activeSince) :
+              existing.activeSince || silo.activeSince
+          };
+          
+          console.log(`🚨 [ALERT SILO MONITORING] Merging duplicate silo ${silo.siloNumber}: ${existing.priority} + ${silo.priority} = ${mergedSilo.priority}`);
+          siloMap.set(silo.siloNumber, mergedSilo);
+        } else {
+          siloMap.set(silo.siloNumber, silo);
+        }
+      });
+
+      // Convert back to array and filter out normal priority alerts (only show warnings and critical)
+      const uniqueSilos = Array.from(siloMap.values());
+      const filtered = uniqueSilos.filter(s => s.priority !== 'normal');
 
       // Sort by priority and then by max temperature
       filtered.sort((a, b) => {
@@ -146,9 +196,12 @@ const AlertSiloMonitoring: React.FC = () => {
         return b.maxTemp - a.maxTemp;
       });
 
+      const processingTime = Date.now() - processingStartTime;
       console.log('🚨 [ALERT SILO MONITORING] Processed alerts:', {
         totalMapped: mapped.length,
+        uniqueSilos: uniqueSilos.length,
         filtered: filtered.length,
+        processingTimeMs: processingTime,
         priorityCounts: filtered.reduce((acc, silo) => {
           acc[silo.priority] = (acc[silo.priority] || 0) + 1;
           return acc;
@@ -157,12 +210,33 @@ const AlertSiloMonitoring: React.FC = () => {
 
       setAlertSilos(filtered);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       console.error('🚨 [ALERT SILO MONITORING] Failed to fetch alert silos:', err);
+      setError(errorMessage);
       setAlertSilos([]);
     } finally {
       setLoading(false);
+      setLoadingStartTime(null);
+      setElapsedTime(0);
     }
   };
+
+  // Timer effect to update elapsed time while loading
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (loading && loadingStartTime) {
+      timer = setInterval(() => {
+        const now = new Date();
+        const elapsed = Math.floor((now.getTime() - loadingStartTime.getTime()) / 1000);
+        setElapsedTime(elapsed);
+      }, 1000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [loading, loadingStartTime]);
 
   useEffect(() => {
     // Clear cache and fetch fresh data when component mounts (user navigates to Alert Monitoring)
@@ -181,14 +255,17 @@ const AlertSiloMonitoring: React.FC = () => {
   }, []);
 
   const handleManualRefresh = async () => {
-    if (refreshing) return; // Prevent multiple simultaneous refreshes
+    if (refreshing || loading) return; // Prevent multiple simultaneous refreshes
     
     setRefreshing(true);
+    setError(null);
     console.log('🚨 [ALERT SILO MONITORING] Manual refresh triggered - clearing cache');
     clearAlertsCache();
     
     try {
       await fetchAlertSilos();
+    } catch (err) {
+      console.error('🚨 [ALERT SILO MONITORING] Manual refresh failed:', err);
     } finally {
       setRefreshing(false);
     }
@@ -207,10 +284,72 @@ const AlertSiloMonitoring: React.FC = () => {
   };
 
   if (loading) {
+    const formatElapsedTime = (seconds: number): string => {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      if (minutes > 0) {
+        return `${minutes}m ${remainingSeconds}s`;
+      }
+      return `${remainingSeconds}s`;
+    };
+
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <span className="ml-2 text-gray-600">Loading alert silos...</span>
+      <div className="alert-silo-monitoring p-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2 mb-4">
+            <AlertTriangle className="w-8 h-8 text-orange-500" />
+            Alert Silo Monitoring
+          </h1>
+        </div>
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-8 text-center">
+            <div className="text-blue-600">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500 mx-auto mb-4"></div>
+              <h3 className="text-lg font-semibold mb-2">Loading Alert Data</h3>
+              <p className="mb-2">Fetching and processing alert information from all silos...</p>
+              <p className="text-sm text-blue-500">
+                Elapsed time: {formatElapsedTime(elapsedTime)}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                This may take several minutes for large datasets. Please wait...
+              </p>
+              {elapsedTime > 60 && (
+                <p className="text-xs text-orange-600 mt-2">
+                  ⏳ Processing large dataset - this is normal for systems with many alerts
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert-silo-monitoring p-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2 mb-4">
+            <AlertTriangle className="w-8 h-8 text-orange-500" />
+            Alert Silo Monitoring
+          </h1>
+        </div>
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="p-8 text-center">
+            <div className="text-red-600">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Failed to Load Alerts</h3>
+              <p className="mb-4">{error}</p>
+              <button
+                onClick={handleManualRefresh}
+                disabled={refreshing}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200"
+              >
+                {refreshing ? 'Retrying...' : 'Retry'}
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -306,7 +445,7 @@ const AlertSiloMonitoring: React.FC = () => {
 
             return (
               <Card
-                key={silo.siloNumber}
+                key={`silo-${silo.siloNumber}-${silo.priority}`}
                 style={{ backgroundColor: bgColor, borderColor: borderColor }}
                 className={`shadow-lg hover:shadow-xl transition-all duration-300 border-2 ${textColor}`}
               >

@@ -142,8 +142,8 @@ const processAlertResponse = (apiData: AlertApiResponse): ProcessedAlert => {
   const timestamp = new Date(apiData.timestamp);
   const activeSince = new Date(apiData.active_since);
   
-  // Create unique ID for the alert based on silo number, alert type, and affected levels only
-  // This ensures alerts with same silo and levels but different sensor readings are consolidated
+  // Create initial ID for the alert based on silo number, alert type, and affected levels
+  // Note: This ID may be updated during consolidation when merging affected levels
   const alertId = `${apiData.silo_number}-${apiData.alert_type}-${apiData.affected_levels.sort().join(',')}`;
   
   console.log(`🚨 [ALERTS API] Processing alert for Silo ${apiData.silo_number}:`, {
@@ -172,23 +172,35 @@ const processAlertResponse = (apiData: AlertApiResponse): ProcessedAlert => {
   };
 };
 
-// Consolidate duplicate alerts that have the same silo number and affected levels
+// Consolidate duplicate alerts by merging alerts with same silo number and alert type
 const consolidateAlerts = (alerts: ProcessedAlert[]): ProcessedAlert[] => {
   const alertMap = new Map<string, ProcessedAlert>();
   
   alerts.forEach(alert => {
-    const key = `${alert.siloNumber}-${alert.alertType}-${alert.affectedLevels.sort().join(',')}`;
+    // Group by silo number and alert type only (not by affected levels)
+    const key = `${alert.siloNumber}-${alert.alertType}`;
     
     if (alertMap.has(key)) {
       const existingAlert = alertMap.get(key)!;
       
-      // Keep the alert with the most recent timestamp (latest sensor readings)
-      if (alert.timestamp.getTime() > existingAlert.timestamp.getTime()) {
-        console.log(`🚨 [ALERTS API] Consolidating duplicate alert for Silo ${alert.siloNumber}, keeping newer reading (${alert.timestamp.toISOString()} > ${existingAlert.timestamp.toISOString()})`);
-        alertMap.set(key, alert);
-      } else {
-        console.log(`🚨 [ALERTS API] Consolidating duplicate alert for Silo ${alert.siloNumber}, keeping existing reading (${existingAlert.timestamp.toISOString()} >= ${alert.timestamp.toISOString()})`);
-      }
+      // Merge affected levels from both alerts (remove duplicates)
+      const mergedAffectedLevels = [...new Set([...existingAlert.affectedLevels, ...alert.affectedLevels])].sort((a, b) => a - b);
+      
+      // Keep the alert with the most recent timestamp for sensor data, but merge affected levels
+      const mergedAlert: ProcessedAlert = alert.timestamp.getTime() > existingAlert.timestamp.getTime() ? {
+        ...alert,
+        affectedLevels: mergedAffectedLevels,
+        // Update ID to reflect merged affected levels
+        id: `${alert.siloNumber}-${alert.alertType}-${mergedAffectedLevels.join(',')}`
+      } : {
+        ...existingAlert,
+        affectedLevels: mergedAffectedLevels,
+        // Update ID to reflect merged affected levels
+        id: `${existingAlert.siloNumber}-${existingAlert.alertType}-${mergedAffectedLevels.join(',')}`
+      };
+      
+      console.log(`🚨 [ALERTS API] Merging alerts for Silo ${alert.siloNumber} (${alert.alertType}): levels [${existingAlert.affectedLevels.join(',')}] + [${alert.affectedLevels.join(',')}] = [${mergedAffectedLevels.join(',')}]`);
+      alertMap.set(key, mergedAlert);
     } else {
       alertMap.set(key, alert);
     }
@@ -197,7 +209,7 @@ const consolidateAlerts = (alerts: ProcessedAlert[]): ProcessedAlert[] => {
   const consolidatedAlerts = Array.from(alertMap.values());
   
   if (alerts.length !== consolidatedAlerts.length) {
-    console.log(`🚨 [ALERTS API] Consolidated ${alerts.length} raw alerts into ${consolidatedAlerts.length} unique alerts (removed ${alerts.length - consolidatedAlerts.length} duplicates)`);
+    console.log(`🚨 [ALERTS API] Consolidated ${alerts.length} raw alerts into ${consolidatedAlerts.length} unique alerts (merged ${alerts.length - consolidatedAlerts.length} duplicate silo/type combinations)`);
   }
   
   return consolidatedAlerts;
@@ -246,8 +258,8 @@ export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<
       headers: {
         'Content-Type': 'application/json',
       },
-      // Increased timeout for slow API (6 minutes)
-      signal: AbortSignal.timeout(360000) // 6 minute timeout
+      // Extended timeout for large datasets (10 minutes)
+      signal: AbortSignal.timeout(600000) // 10 minute timeout
     });
 
     if (!response.ok) {
