@@ -217,10 +217,27 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
   // Process Cable 0 (all silos have this)
   const cable0Sensors: CableSensorData[] = [];
   for (let i = 0; i < 8; i++) {
-    cable0Sensors.push({
-      level: apiData[`cable_0_level_${i}` as keyof MaintenanceSiloApiData] as number,
-      color: apiData[`cable_0_color_${i}` as keyof MaintenanceSiloApiData] as string,
-    });
+    let level = apiData[`cable_0_level_${i}` as keyof MaintenanceSiloApiData] as number;
+    let color = apiData[`cable_0_color_${i}` as keyof MaintenanceSiloApiData] as string;
+    
+    // 🔧 TEMPORARY FIX: Silo 10 S8 sensor is disconnected - use S7 value instead
+    // TODO: Remove this fix when hardware issue is resolved (see SILO_10_S8_SENSOR_FIX.md)
+    if (apiData.silo_number === 10 && i === 7) { // S8 is index 7
+      const s7Level = apiData.cable_0_level_6 as number; // S7 is index 6
+      const s7Color = apiData.cable_0_color_6 as string;
+      
+      // Only apply fix if S8 appears disconnected and S7 has valid reading
+      const isS8Disconnected = level === -127 || level === 0 || level === null || 
+                               color === '#9ca3af' || color === '#8c9494' || color === '#6b7280';
+      
+      if (isS8Disconnected && s7Level && s7Level > 0 && s7Level !== -127) {
+        level = s7Level;
+        color = s7Color;
+        console.log(`🔧 [MAINTENANCE SILO 10 S8 FIX] Applied temporary fix: S8 (${apiData.cable_0_level_7}°C, ${apiData.cable_0_color_7}) -> S7 value (${s7Level}°C, ${s7Color})`);
+      }
+    }
+    
+    cable0Sensors.push({ level, color });
   }
   cables.push({ cableIndex: 0, sensors: cable0Sensors });
 

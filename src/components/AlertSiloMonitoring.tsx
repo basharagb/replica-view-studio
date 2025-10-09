@@ -151,36 +151,46 @@ const AlertSiloMonitoring: React.FC = () => {
       });
 
       // Group by silo number to ensure each silo appears only once
+      // Show only the highest priority alert for each silo (don't merge affected levels across different alert types)
       const siloMap = new Map<number, AlertSiloStatus>();
       
       mapped.forEach(silo => {
         if (siloMap.has(silo.siloNumber)) {
           const existing = siloMap.get(silo.siloNumber)!;
           
-          // Merge the silos - keep the highest priority and combine affected levels
-          const mergedSilo: AlertSiloStatus = {
-            ...existing,
-            // Use highest priority (critical > warning > normal)
-            priority: existing.priority === 'critical' || silo.priority === 'critical' ? 'critical' : 
-                     existing.priority === 'warning' || silo.priority === 'warning' ? 'warning' : 'normal',
-            // Use the highest max temperature
-            maxTemp: Math.max(existing.maxTemp, silo.maxTemp),
-            // Combine affected levels
-            affectedLevels: existing.affectedLevels && silo.affectedLevels ? 
-              [...new Set([...existing.affectedLevels, ...silo.affectedLevels])].sort((a, b) => a - b) :
-              existing.affectedLevels || silo.affectedLevels,
-            // Use most recent timestamp
-            timestamp: existing.timestamp && silo.timestamp ? 
-              (existing.timestamp.getTime() > silo.timestamp.getTime() ? existing.timestamp : silo.timestamp) :
-              existing.timestamp || silo.timestamp,
-            // Keep earliest active since
-            activeSince: existing.activeSince && silo.activeSince ?
-              (existing.activeSince.getTime() < silo.activeSince.getTime() ? existing.activeSince : silo.activeSince) :
-              existing.activeSince || silo.activeSince
-          };
+          // Priority order: critical > warning > normal
+          const priorityOrder = { critical: 3, warning: 2, normal: 1 };
+          const existingPriority = priorityOrder[existing.priority];
+          const newPriority = priorityOrder[silo.priority];
           
-          console.log(`🚨 [ALERT SILO MONITORING] Merging duplicate silo ${silo.siloNumber}: ${existing.priority} + ${silo.priority} = ${mergedSilo.priority}`);
-          siloMap.set(silo.siloNumber, mergedSilo);
+          // Only replace if new alert has higher priority
+          if (newPriority > existingPriority) {
+            console.log(`🚨 [ALERT SILO MONITORING] Replacing silo ${silo.siloNumber} alert: ${existing.priority} -> ${silo.priority} (showing levels for highest priority only)`);
+            siloMap.set(silo.siloNumber, silo);
+          } else if (newPriority === existingPriority) {
+            // Same priority - merge affected levels and keep most recent data
+            const mergedSilo: AlertSiloStatus = {
+              ...existing,
+              // Use the highest max temperature
+              maxTemp: Math.max(existing.maxTemp, silo.maxTemp),
+              // Merge affected levels only for same alert type/priority
+              affectedLevels: existing.affectedLevels && silo.affectedLevels ? 
+                [...new Set([...existing.affectedLevels, ...silo.affectedLevels])].sort((a, b) => a - b) :
+                existing.affectedLevels || silo.affectedLevels,
+              // Use most recent timestamp
+              timestamp: existing.timestamp && silo.timestamp ? 
+                (existing.timestamp.getTime() > silo.timestamp.getTime() ? existing.timestamp : silo.timestamp) :
+                existing.timestamp || silo.timestamp,
+              // Keep earliest active since
+              activeSince: existing.activeSince && silo.activeSince ?
+                (existing.activeSince.getTime() < silo.activeSince.getTime() ? existing.activeSince : silo.activeSince) :
+                existing.activeSince || silo.activeSince
+            };
+            
+            console.log(`🚨 [ALERT SILO MONITORING] Merging same-priority alerts for silo ${silo.siloNumber} (${silo.priority}): levels [${existing.affectedLevels?.join(',') || 'none'}] + [${silo.affectedLevels?.join(',') || 'none'}] = [${mergedSilo.affectedLevels?.join(',') || 'none'}]`);
+            siloMap.set(silo.siloNumber, mergedSilo);
+          }
+          // If existing has higher priority, keep it (do nothing)
         } else {
           siloMap.set(silo.siloNumber, silo);
         }

@@ -176,15 +176,35 @@ const siloCache = new SiloDataCache();
 // Convert API response to processed silo data
 const processApiResponse = (apiData: RealSiloApiResponse): ProcessedSiloData => {
   // Handle null values by converting them to 0
-  const sensors = [
+  let sensors = [
     apiData.level_0 ?? 0, apiData.level_1 ?? 0, apiData.level_2 ?? 0, apiData.level_3 ?? 0,
     apiData.level_4 ?? 0, apiData.level_5 ?? 0, apiData.level_6 ?? 0, apiData.level_7 ?? 0
   ];
   
-  const sensorColors = [
+  let sensorColors = [
     apiData.color_0, apiData.color_1, apiData.color_2, apiData.color_3,
     apiData.color_4, apiData.color_5, apiData.color_6, apiData.color_7
   ];
+
+  // 🔧 TEMPORARY FIX: Silo 10 S8 sensor is disconnected - use S7 value instead
+  // TODO: Remove this fix when hardware issue is resolved (see SILO_10_S8_SENSOR_FIX.md)
+  if (apiData.silo_number === 10) {
+    const s7Value = apiData.level_6 ?? 0;  // S7 is level_6 (0-indexed)
+    const s7Color = apiData.color_6;
+    
+    // Only apply fix if S8 appears disconnected (null, 0, or gray color)
+    const s8Value = apiData.level_7 ?? 0;
+    const s8Color = apiData.color_7;
+    const isS8Disconnected = s8Value === 0 || s8Value === null || 
+                             s8Color === '#9ca3af' || s8Color === '#8c9494' || s8Color === '#6b7280';
+    
+    if (isS8Disconnected && s7Value > 0) {
+      sensors[7] = s7Value;  // Set S8 (index 7) to S7 value
+      sensorColors[7] = s7Color;  // Set S8 color to S7 color
+      
+      console.log(`🔧 [SILO 10 S8 FIX] Applied temporary fix: S8 (${s8Value}°C, ${s8Color}) -> S7 value (${s7Value}°C, ${s7Color})`);
+    }
+  }
   
   // Filter out null/zero values when calculating max temperature
   const validTemperatures = sensors.filter(temp => temp !== null && temp > 0);
