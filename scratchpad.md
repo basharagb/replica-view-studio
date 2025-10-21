@@ -635,7 +635,10 @@ Sensors showing -127°C (disconnected state) were displaying with green colors (
 - [x] Added error logging prevention in useCottageTemperature.ts with `errorLoggedRef` flag
 - [x] Added error logging prevention in historicalSiloApiService.ts with `errorLogged` flag
 - [x] Added error logging prevention in EnhancedTemperatureGraphs.tsx with `historyErrorLogged` flag
+- [x] Added error logging prevention in siloLevelService.ts with `levelErrorLogged` flag
 - [x] Fixed all instances of "Error fetching history for silo X" console spam
+- [x] Fixed all instances of "Level estimate API error 404 NOT FOUND" console spam
+- [x] Cleared all caches (node_modules/.vite, dist) and restarted dev server
 - [x] All API services now use centralized configuration for consistency
 
 **Files Modified**:
@@ -644,6 +647,7 @@ Sensors showing -127°C (disconnected state) were displaying with green colors (
 - `/src/hooks/useCottageTemperature.ts` - Added error logging prevention
 - `/src/services/historicalSiloApiService.ts` - Added error logging prevention
 - `/src/components/EnhancedTemperatureGraphs.tsx` - Added error logging prevention
+- `/src/services/siloLevelService.ts` - Added error logging prevention
 
 **Testing**:
 - Build: ✅ Successful (5.05s, no errors)
