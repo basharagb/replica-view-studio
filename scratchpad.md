@@ -729,6 +729,33 @@ Sensors showing -127°C (disconnected state) were displaying with green colors (
 
 **Status**: ✅ CORS issues resolved - API requests now proxied through Vite dev server
 
+## FINAL API ENDPOINT UPDATE ✅: USE LOCALHOST:3000 ONLY
+**User Request**: Change API endpoint to `http://localhost:3000` only - no IP addresses
+
+**Change Made**:
+- [x] Updated Vite proxy target from `http://192.168.1.14:5000` to `http://localhost:3000`
+- [x] Now matches Postman collection exactly: `{{base_url}} = http://localhost:3000`
+- [x] Restarted dev server on port 8084
+- [x] Created new browser preview at http://127.0.0.1:59145
+
+**Technical Details**:
+```typescript
+// vite.config.ts - Updated proxy configuration
+'/api': {
+  target: 'http://localhost:3000',  // Changed from 192.168.1.14:5000
+  changeOrigin: true,
+  secure: false,
+  rewrite: (path) => path.replace(/^\/api/, ''),
+}
+```
+
+**API Flow**:
+```
+Browser → http://localhost:8084/api/* → Vite Proxy → http://localhost:3000/*
+```
+
+**Status**: ✅ API endpoint now uses localhost:3000 exactly as specified
+
 ## Previous Task: Fix Cable Count Logic for Silos - COMPLETED
 
 ### Problem Analysis

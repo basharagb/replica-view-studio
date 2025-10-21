@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       },
       // Proxy all API requests to the silo monitoring server
       '/api': {
-        target: 'http://192.168.1.14:5000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
