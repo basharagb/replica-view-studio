@@ -701,6 +701,34 @@ Sensors showing -127°C (disconnected state) were displaying with green colors (
 
 **Status**: ✅ API configuration updated to working server address
 
+## CRITICAL FIX ✅: RESOLVE CORS ISSUES WITH VITE PROXY
+**User Issue**: API works fine in Postman but fails in browser with console errors - CORS blocking requests
+
+**Root Cause Analysis**:
+- ✅ **Postman**: Works perfectly (no CORS restrictions)
+- ❌ **Browser**: Blocked by CORS policy when trying to access `http://192.168.1.14:5000` from `http://localhost:8083`
+- **Error Pattern**: "Error fetching historical silo data: {}" - empty error objects due to CORS blocking
+
+**CORS Solution Implemented**:
+- [x] Added Vite proxy configuration in `vite.config.ts`
+- [x] Proxy `/api/*` requests to `http://192.168.1.14:5000`
+- [x] Updated `Strings.BASE_URL` from `http://192.168.1.14:5000` to `/api`
+- [x] All API requests now go through Vite proxy (no CORS issues)
+- [x] Restarted dev server on port 8083 with proxy configuration
+
+**Technical Details**:
+```typescript
+// vite.config.ts
+'/api': {
+  target: 'http://192.168.1.14:5000',
+  changeOrigin: true,
+  secure: false,
+  rewrite: (path) => path.replace(/^\/api/, ''),
+}
+```
+
+**Status**: ✅ CORS issues resolved - API requests now proxied through Vite dev server
+
 ## Previous Task: Fix Cable Count Logic for Silos - COMPLETED
 
 ### Problem Analysis

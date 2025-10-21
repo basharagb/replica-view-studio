@@ -3,8 +3,8 @@
  * Centralized location for URLs, messages, and other string constants
  */
 export class Strings {
-  // API Configuration
-  static readonly BASE_URL = 'http://192.168.1.14:5000';
+  // API Configuration - Use proxy path to avoid CORS issues
+  static readonly BASE_URL = '/api';
   // SMS API proxied via Vite dev server to avoid CORS during development
   static readonly SMS_API_URL = '/sms';
   
