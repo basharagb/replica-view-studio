@@ -4,7 +4,7 @@
  */
 export class Strings {
   // API Configuration
-  static readonly BASE_URL = 'http://localhost:3000';
+  static readonly BASE_URL = 'http://192.168.1.14:5000';
   // SMS API proxied via Vite dev server to avoid CORS during development
   static readonly SMS_API_URL = '/sms';
   
