@@ -656,6 +656,35 @@ Sensors showing -127°C (disconnected state) were displaying with green colors (
 
 **Status**: ✅ Console log errors should now be significantly reduced with proper API endpoints
 
+## CURRENT TASK COMPLETED ✅: FIX API ENDPOINT CONFIGURATION TO MATCH POSTMAN COLLECTION
+**User Issue**: Some APIs not connecting correctly - mismatch between Postman collection and application configuration
+
+**Root Cause Identified**:
+- Postman collection shows `base_url: http://localhost:3000`
+- Application was configured to use `http://idealchiprnd.pythonanywhere.com`
+- Missing endpoints for maintenance and environment temperature
+
+**Solution Implemented**:
+- [x] Updated Strings.BASE_URL from `idealchiprnd.pythonanywhere.com` back to `localhost:3000`
+- [x] Added missing READINGS_LATEST endpoint: `/readings/latest/by-silo-number`
+- [x] Added missing ENV_TEMP endpoint: `/env_temp`
+- [x] Updated URLS configuration to include new endpoints
+- [x] All endpoints now match Postman collection exactly
+
+**API Endpoints Now Configured**:
+- ✅ View: `/readings/avg/latest/by-silo-number`
+- ✅ Report: `/readings/avg/by-silo-number`
+- ✅ Maintenance: `/readings/latest/by-silo-number`
+- ✅ Alerts: `/alerts/active`
+- ✅ Level: `/silos/level-estimate/by-number`
+- ✅ Environment: `/env_temp`
+- ✅ Login: `/login`
+
+**Files Modified**:
+- `/src/utils/Strings.ts` - Updated BASE_URL and added missing endpoints
+
+**Status**: ✅ API configuration now matches Postman collection exactly
+
 ## Previous Task: Fix Cable Count Logic for Silos - COMPLETED
 
 ### Problem Analysis

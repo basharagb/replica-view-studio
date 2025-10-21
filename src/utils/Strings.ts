@@ -4,7 +4,7 @@
  */
 export class Strings {
   // API Configuration
-  static readonly BASE_URL = 'http://idealchiprnd.pythonanywhere.com';
+  static readonly BASE_URL = 'http://localhost:3000';
   // SMS API proxied via Vite dev server to avoid CORS during development
   static readonly SMS_API_URL = '/sms';
   
@@ -20,6 +20,10 @@ export class Strings {
     // Readings
     READINGS_AVG_LATEST: '/readings/avg/latest/by-silo-number',
     READINGS_AVG_HISTORICAL: '/readings/avg/by-silo-number',
+    READINGS_LATEST: '/readings/latest/by-silo-number',
+    
+    // Environment Temperature
+    ENV_TEMP: '/env_temp',
     
     // Silo level estimate
     LEVEL_ESTIMATE_BY_NUMBER: '/silos/level-estimate/by-number',
@@ -41,6 +45,8 @@ export class Strings {
     ALERTS_ACTIVE: `${this.BASE_URL}${this.ENDPOINTS.ALERTS_ACTIVE}`,
     READINGS_AVG_LATEST: `${this.BASE_URL}${this.ENDPOINTS.READINGS_AVG_LATEST}`,
     READINGS_AVG_HISTORICAL: `${this.BASE_URL}${this.ENDPOINTS.READINGS_AVG_HISTORICAL}`,
+    READINGS_LATEST: `${this.BASE_URL}${this.ENDPOINTS.READINGS_LATEST}`,
+    ENV_TEMP: `${this.BASE_URL}${this.ENDPOINTS.ENV_TEMP}`,
     LEVEL_ESTIMATE_BY_NUMBER: `${this.BASE_URL}${this.ENDPOINTS.LEVEL_ESTIMATE_BY_NUMBER}`,
     MAINTENANCE_SILO: `${this.BASE_URL}${this.ENDPOINTS.MAINTENANCE_SILO}`,
     MAINTENANCE_CABLE: `${this.BASE_URL}${this.ENDPOINTS.MAINTENANCE_CABLE}`,
