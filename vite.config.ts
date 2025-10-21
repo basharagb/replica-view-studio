@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
       // Proxy local cottage env temperature API for development
       // Usage from the app: fetch('/cottage/env_temp')
       '/cottage': {
-        target: 'http://192.168.1.92:5000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
         // keep the path so /cottage/* maps to target/*

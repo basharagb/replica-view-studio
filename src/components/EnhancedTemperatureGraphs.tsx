@@ -15,6 +15,9 @@ import { generateTemperatureGraphData } from '@/services/historicalSiloApiServic
 import { alertedSiloSearchService, AlertedSilo } from '@/services/alertedSiloSearchService';
 import { format, differenceInDays, differenceInHours } from 'date-fns';
 
+// Error tracking to prevent console spam
+let historyErrorLogged = false;
+
 // Color palette for different silos
 const SILO_COLORS = [
   '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
@@ -146,7 +149,11 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
               maxStatus = status;
             }
           } catch (error) {
-            console.error(`Error fetching history for silo ${siloNum}:`, error);
+            // Only log error once to prevent console spam
+            if (!historyErrorLogged) {
+              console.error(`Error fetching history for silo ${siloNum}:`, error);
+              historyErrorLogged = true;
+            }
             // Use fallback temperature
             const fallbackTemp = 25 + Math.random() * 10;
             totalTemp += fallbackTemp;
@@ -255,7 +262,11 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
               status: dataPoint.maxTemp > 40 ? 'critical' : dataPoint.maxTemp >= 35 ? 'warning' : 'normal'
             });
           } catch (error) {
-            console.error('Error fetching single silo data from API:', error);
+            // Only log error once to prevent console spam
+            if (!historyErrorLogged) {
+              console.error('Error fetching single silo data from API:', error);
+              historyErrorLogged = true;
+            }
             // Fallback to simulated data if API fails
             combinedData.push({
               time: format(currentTime, timeFormat),
@@ -296,7 +307,11 @@ const EnhancedTemperatureGraphs: React.FC<EnhancedTemperatureGraphsProps> = ({ c
             dataPoint.status = maxStatus;
             combinedData.push(dataPoint);
           } catch (error) {
-            console.error('Error fetching multi-silo data from API:', error);
+            // Only log error once to prevent console spam
+            if (!historyErrorLogged) {
+              console.error('Error fetching multi-silo data from API:', error);
+              historyErrorLogged = true;
+            }
             // Fallback to simulated data
             const dataPoint: TemperatureDataPoint = {
               time: format(currentTime, timeFormat),

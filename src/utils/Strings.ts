@@ -4,7 +4,7 @@
  */
 export class Strings {
   // API Configuration
-  static readonly BASE_URL = 'http://192.168.1.92:5000';
+  static readonly BASE_URL = 'http://idealchiprnd.pythonanywhere.com';
   // SMS API proxied via Vite dev server to avoid CORS during development
   static readonly SMS_API_URL = '/sms';
   
@@ -37,8 +37,8 @@ export class Strings {
   static readonly URLS = {
     LOGIN: `${this.BASE_URL}${this.ENDPOINTS.LOGIN}`,
     LOGOUT: `${this.BASE_URL}${this.ENDPOINTS.LOGOUT}`,
-    // Use proxy to avoid CORS issues in development
-    ALERTS_ACTIVE: `/cottage${this.ENDPOINTS.ALERTS_ACTIVE}`,
+    // Use direct backend URL for alerts
+    ALERTS_ACTIVE: `${this.BASE_URL}${this.ENDPOINTS.ALERTS_ACTIVE}`,
     READINGS_AVG_LATEST: `${this.BASE_URL}${this.ENDPOINTS.READINGS_AVG_LATEST}`,
     READINGS_AVG_HISTORICAL: `${this.BASE_URL}${this.ENDPOINTS.READINGS_AVG_HISTORICAL}`,
     LEVEL_ESTIMATE_BY_NUMBER: `${this.BASE_URL}${this.ENDPOINTS.LEVEL_ESTIMATE_BY_NUMBER}`,

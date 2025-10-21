@@ -215,17 +215,41 @@ const consolidateAlerts = (alerts: ProcessedAlert[]): ProcessedAlert[] => {
   return consolidatedAlerts;
 };
 
-// Fetch active alerts from API with improved error handling and loading states
-export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<{
+// Pagination response interface
+export interface PaginationInfo {
+  current_page: number;
+  per_page: number;
+  total_items: number;
+  total_pages: number;
+  has_next_page: boolean;
+  has_previous_page: boolean;
+}
+
+// API response with pagination
+export interface PaginatedAlertsResponse {
+  success: boolean;
+  message: string;
+  data: AlertApiResponse[];
+  pagination: PaginationInfo;
+}
+
+// Fetch active alerts from API with pagination support
+export async function fetchActiveAlerts(
+  forceRefresh: boolean = false,
+  page: number = 1,
+  limit: number = 20
+): Promise<{
   alerts: ProcessedAlert[];
+  pagination: PaginationInfo | null;
   isLoading: boolean;
   error: string | null;
 }> {
-  // Return cached data if still valid and not forcing refresh
-  if (!forceRefresh && alertsCache.isCacheValid()) {
+  // Return cached data if still valid and not forcing refresh (skip cache for paginated requests)
+  if (!forceRefresh && alertsCache.isCacheValid() && page === 1 && limit === 20) {
     console.log('🚨 [ALERTS API] Returning cached alerts data');
     return {
       alerts: alertsCache.getAlerts(),
+      pagination: null, // No pagination info for cached data
       isLoading: false,
       error: null
     };
@@ -236,6 +260,7 @@ export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<
     console.log('🚨 [ALERTS API] Already loading, returning current state');
     return {
       alerts: alertsCache.getAlerts(), // Return cached data while loading
+      pagination: null,
       isLoading: true,
       error: null
     };
@@ -247,13 +272,17 @@ export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<
 
   try {
     const url = Strings.URLS.ALERTS_ACTIVE;
-    console.log(`🚨 [ALERTS API] Fetching active alerts from: ${url}`);
+    console.log(`🚨 [ALERTS API] Fetching active alerts from: ${url} (page: ${page}, limit: ${limit})`);
 
-    // Add timestamp to prevent caching
-    const timestamp = new Date().getTime();
-    const urlWithTimestamp = `${url}?_t=${timestamp}`;
+    // Build URL with pagination parameters
+    const urlParams = new URLSearchParams();
+    urlParams.append('page', page.toString());
+    urlParams.append('limit', limit.toString());
+    urlParams.append('_t', new Date().getTime().toString()); // Cache busting
     
-    const response = await fetch(urlWithTimestamp, {
+    const urlWithParams = `${url}?${urlParams.toString()}`;
+    
+    const response = await fetch(urlWithParams, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -266,15 +295,18 @@ export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<
       throw new Error(`Alerts API request failed: ${response.status} ${response.statusText}`);
     }
 
-    const apiData: AlertApiResponse[] = await response.json();
+    const responseData: PaginatedAlertsResponse = await response.json();
+    const apiData: AlertApiResponse[] = responseData.data || [];
+    const paginationInfo: PaginationInfo | null = responseData.pagination || null;
     
-    console.log(`🚨 [ALERTS API] Received ${apiData.length} active alerts`);
+    console.log(`🚨 [ALERTS API] Received ${apiData.length} active alerts (page ${page}/${paginationInfo?.total_pages || 1})`);
     
     if (!apiData || apiData.length === 0) {
       console.log('🚨 [ALERTS API] No active alerts found');
       alertsCache.setAlerts([]);
       return {
         alerts: [],
+        pagination: paginationInfo,
         isLoading: false,
         error: null
       };
@@ -306,6 +338,7 @@ export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<
     console.log(`🚨 [ALERTS API] Successfully processed ${apiData.length} raw alerts, consolidated to ${consolidatedAlerts.length} unique alerts`);
     return {
       alerts: consolidatedAlerts,
+      pagination: paginationInfo,
       isLoading: false,
       error: null
     };
@@ -321,6 +354,7 @@ export async function fetchActiveAlerts(forceRefresh: boolean = false): Promise<
     // Return cached data with error state
     return {
       alerts: alertsCache.getAlerts(), // Return any cached data
+      pagination: null, // No pagination info on error
       isLoading: false,
       error: errorMessage
     };

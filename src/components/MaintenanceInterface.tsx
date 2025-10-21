@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MaintenanceLabInterface } from './MaintenanceLabInterface';
 import { MaintenanceCablePopup } from './MaintenanceCablePopup';
+import ErrorBoundary from './ErrorBoundary';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -437,10 +438,30 @@ export const MaintenanceInterface = () => {
 
       {/* Cable Popup */}
       {showCablePopup && selectedSiloForPopup && (
-        <MaintenanceCablePopup
-          siloNumber={selectedSiloForPopup}
-          onClose={handleCloseCablePopup}
-        />
+        <ErrorBoundary fallback={
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+              <div className="text-center">
+                <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Maintenance Data Error
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Unable to load maintenance data for silo {selectedSiloForPopup}. 
+                  Please check the API connection and try again.
+                </p>
+                <Button onClick={handleCloseCablePopup} className="w-full">
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        }>
+          <MaintenanceCablePopup
+            siloNumber={selectedSiloForPopup}
+            onClose={handleCloseCablePopup}
+          />
+        </ErrorBoundary>
       )}
     </div>
   );

@@ -15,12 +15,18 @@ export interface LoginResponse {
 }
 
 export interface ApiLoginResponse {
+  success: boolean;
   message: string;
-  user: {
-    id: number;
-    username: string;
-    role: string;
+  data: {
+    token: string;
+    user: {
+      id: number;
+      username: string;
+      email?: string;
+      role: string;
+    };
   };
+  timestamp: string;
 }
 
 export interface DecodedToken {
@@ -53,7 +59,7 @@ export class AuthService {
       const apiData: ApiLoginResponse = await response.json();
       console.log('Login response data:', apiData);
       
-      if (!response.ok) {
+      if (!response.ok || !apiData.success) {
         return {
           success: false,
           message: apiData.message || 'Login failed',
@@ -62,14 +68,14 @@ export class AuthService {
 
       // Transform API response to match expected LoginResponse structure
       const user: User = {
-        id: apiData.user.id,
-        username: apiData.user.username,
-        role: apiData.user.role as 'admin' | 'technician' | 'operator',
-        permissions: AuthService.getRolePermissions(apiData.user.role)
+        id: apiData.data.user.id,
+        username: apiData.data.user.username,
+        role: apiData.data.user.role as 'admin' | 'technician' | 'operator',
+        permissions: AuthService.getRolePermissions(apiData.data.user.role)
       };
 
-      // Generate a simple token for session management
-      const token = AuthService.generateSessionToken(user);
+      // Use the token from API response
+      const token = apiData.data.token;
 
       return {
         success: true,
@@ -90,6 +96,23 @@ export class AuthService {
 
   static decodeToken(token: string): DecodedToken | null {
     try {
+      // Handle JWT tokens (format: header.payload.signature)
+      if (token.includes('.')) {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          // Decode JWT payload (second part)
+          const payload = JSON.parse(atob(parts[1]));
+          return {
+            id: payload.id,
+            username: payload.username,
+            role: payload.role,
+            permissions: AuthService.getRolePermissions(payload.role),
+            exp: payload.exp
+          };
+        }
+      }
+      
+      // Fallback to simple base64 decoding for backward compatibility
       const decoded = JSON.parse(atob(token));
       return decoded;
     } catch (error) {

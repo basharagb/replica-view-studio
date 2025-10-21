@@ -44,7 +44,7 @@ export interface ProcessedSiloData {
 // Default wheat color for unloaded silos
 export const WHEAT_COLOR = '#93856b';
 
-// API configuration
+// API configuration - Use the centralized configuration
 const API_BASE_URL = Strings.BASE_URL;
 const API_ENDPOINT = '/readings/avg/latest/by-silo-number';
 
@@ -176,12 +176,12 @@ const siloCache = new SiloDataCache();
 // Convert API response to processed silo data
 const processApiResponse = (apiData: RealSiloApiResponse): ProcessedSiloData => {
   // Handle null values by converting them to 0
-  let sensors = [
+  const sensors = [
     apiData.level_0 ?? 0, apiData.level_1 ?? 0, apiData.level_2 ?? 0, apiData.level_3 ?? 0,
     apiData.level_4 ?? 0, apiData.level_5 ?? 0, apiData.level_6 ?? 0, apiData.level_7 ?? 0
   ];
   
-  let sensorColors = [
+  const sensorColors = [
     apiData.color_0, apiData.color_1, apiData.color_2, apiData.color_3,
     apiData.color_4, apiData.color_5, apiData.color_6, apiData.color_7
   ];

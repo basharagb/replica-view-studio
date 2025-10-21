@@ -28,13 +28,17 @@ export const MaintenanceCablePopup = ({ siloNumber, onClose }: MaintenanceCableP
       }
       setError(null);
 
-      console.log(`🔄 [MANUAL TEST DEBUG] Fetching ${isRefresh ? 'FRESH' : 'INITIAL'} data for silo ${siloNumber}...`);
+      console.log(`🔄 [MAINTENANCE POPUP] Fetching ${isRefresh ? 'FRESH' : 'INITIAL'} data for silo ${siloNumber}...`);
       const data = await fetchMaintenanceSiloData(siloNumber);
       setSiloData(data);
-      console.log(`✅ [MANUAL TEST DEBUG] Successfully fetched ${isRefresh ? 'FRESH' : 'INITIAL'} data for silo ${siloNumber}`);
+      console.log(`✅ [MAINTENANCE POPUP] Successfully fetched ${isRefresh ? 'FRESH' : 'INITIAL'} data for silo ${siloNumber}`);
     } catch (err) {
-      console.error('Failed to fetch silo maintenance data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load maintenance data');
+      console.error(`🚨 [MAINTENANCE POPUP] Failed to fetch silo ${siloNumber} data:`, err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load maintenance data';
+      setError(errorMessage);
+      
+      // Don't retry automatically to prevent infinite loops
+      console.warn(`🚨 [MAINTENANCE POPUP] Stopping automatic retries for silo ${siloNumber}`);
     } finally {
       setLoading(false);
       setRefreshing(false);

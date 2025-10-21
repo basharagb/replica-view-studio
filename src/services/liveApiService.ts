@@ -40,7 +40,7 @@ export interface CylinderSilo {
 // Function to fetch live sensor data from the API
 export async function fetchLiveSensorData(): Promise<{ topSiloGroups: SiloGroup[]; bottomSiloGroups: SiloGroup[]; cylinderSilos: CylinderSilo[] }> {
   try {
-    // Fetch data from the provided endpoint
+    // Fetch data from the centralized configuration endpoint
     const response = await fetch(`${Strings.BASE_URL}/readings/avg/latest/by-silo-number`);
     
     if (!response.ok) {

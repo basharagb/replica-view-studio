@@ -21,7 +21,7 @@ export interface HistoricalSiloData {
 export interface TemperatureGraphData {
   time: string;
   timestamp: Date;
-  [key: string]: any; // Dynamic silo properties like silo_1, silo_2, etc.
+  [key: string]: string | Date | number; // Dynamic silo properties like silo_1, silo_2, etc.
 }
 
 export interface SiloReportRecord {
@@ -34,9 +34,12 @@ export interface SiloReportRecord {
   sensors: number[];
 }
 
-// API configuration
+// API configuration - Use the centralized configuration
 const API_BASE_URL = Strings.BASE_URL;
 const API_ENDPOINT = '/readings/avg/by-silo-number';
+
+// Error tracking to prevent console spam
+let errorLogged = false;
 
 // Temperature thresholds for alert levels
 const TEMP_THRESHOLDS = {
@@ -87,7 +90,11 @@ export async function fetchHistoricalSiloData(
     return apiData.map(processHistoricalApiResponse);
     
   } catch (error) {
-    console.error('Error fetching historical silo data:', error);
+    // Only log error once to prevent console spam
+    if (!errorLogged) {
+      console.error('Error fetching historical silo data:', error);
+      errorLogged = true;
+    }
     throw error;
   }
 }
