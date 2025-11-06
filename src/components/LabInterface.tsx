@@ -13,6 +13,7 @@ import CompanyLogos from './CompanyLogos';
 import WeatherCottage from './WeatherCottage';
 
 import AlertSystem from './AlertSystem';
+import { DailyScheduleControls } from './DailyScheduleControls';
 
 
 interface LabInterfaceProps {
@@ -39,6 +40,9 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
     retryCount,
     isRetryPhase,
     maxRetries,
+    scheduleConfig,
+    nextScheduleInfo,
+    isScheduleActive,
     handleSiloClick,
     handleSiloHover,
     handleSiloMouseMove,
@@ -47,7 +51,11 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
     handleManualReadMode,
     setSelectedSilo,
     getSiloByNumber,
-    cleanup
+    cleanup,
+    updateScheduleConfig,
+    enableSchedule,
+    disableSchedule,
+    forceCheckSchedule
   } = useSiloSystem();
 
   // Cleanup on unmount
@@ -338,6 +346,19 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
                   Reading Silo {readingSilo === 1 ? 1 : readingSilo - 1}
                 </div>
               )}
+            </div>
+
+            {/* Daily Schedule Controls */}
+            <div className="mt-4">
+              <DailyScheduleControls
+                scheduleConfig={scheduleConfig}
+                nextScheduleInfo={nextScheduleInfo}
+                isScheduleActive={isScheduleActive}
+                onUpdateConfig={updateScheduleConfig}
+                onEnable={enableSchedule}
+                onDisable={disableSchedule}
+                onForceCheck={forceCheckSchedule}
+              />
             </div>
           </div>
         </div>

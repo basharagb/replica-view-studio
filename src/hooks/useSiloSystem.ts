@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Silo, SiloSystemState, ReadingMode, TooltipPosition } from '../types/silo';
 import { getAllSilos, findSiloByNumber, regenerateAllSiloData, setCurrentScanSilo, markSiloCompleted, clearAutoTestState as clearAutoTestSensorState } from '../services/siloData';
 import { fetchSiloDataWithRetry, clearSiloCache } from '../services/realSiloApiService';
+import { useDailyScheduler } from './useDailyScheduler';
 
 // Persistent auto test state management
 interface AutoTestState {
@@ -100,6 +101,35 @@ export const useSiloSystem = () => {
   const restartWaitInterval = useRef<NodeJS.Timeout | null>(null);
   const idleDetectionInterval = useRef<NodeJS.Timeout | null>(null);
   const currentSiloTimeout = useRef<NodeJS.Timeout | null>(null); // Track current silo timeout
+
+  // Daily scheduler integration - using refs to avoid circular dependency
+  const startAutoReadRef = useRef<(() => void) | null>(null);
+  
+  const handleScheduledStart = useCallback(() => {
+    console.log('📅 [SCHEDULER] Starting scheduled auto readings');
+    if (readingMode !== 'auto' && !isReading && startAutoReadRef.current) {
+      startAutoReadRef.current();
+    }
+  }, [readingMode, isReading]);
+
+  const handleScheduledStop = useCallback(() => {
+    console.log('📅 [SCHEDULER] Stopping scheduled auto readings');
+    if (readingMode === 'auto' && isReading && startAutoReadRef.current) {
+      // Stop auto readings by calling startAutoRead again (it toggles)
+      startAutoReadRef.current();
+    }
+  }, [readingMode, isReading]);
+
+  // Initialize daily scheduler
+  const {
+    scheduleConfig,
+    nextScheduleInfo,
+    isScheduleActive,
+    updateScheduleConfig,
+    enableSchedule,
+    disableSchedule,
+    forceCheckSchedule
+  } = useDailyScheduler(handleScheduledStart, handleScheduledStop, isReading);
 
   // Restore auto test state on component mount
   useEffect(() => {
@@ -408,14 +438,16 @@ export const useSiloSystem = () => {
       console.log(`🔄 [MANUAL TEST] Manual test triggered for silo ${siloNum}`);
       startManualRead(siloNum, temp);
     } else if (readingMode === 'auto') {
-      // During auto test mode, allow manual API refresh for maintenance
-      handleManualApiRefresh(siloNum);
+      // During auto test mode, only allow selection without API refresh to prevent color changes on hover
+      // API refresh should only happen on explicit maintenance actions, not during live readings
+      setSelectedSilo(siloNum);
+      setSelectedTemp(temp);
     } else if (readingMode === 'none') {
       // Normal selection
       setSelectedSilo(siloNum);
       setSelectedTemp(temp);
     }
-  }, [readingMode, isReading, handleManualApiRefresh]);
+  }, [readingMode, isReading]);
 
   // Handle silo hover
   const handleSiloHover = useCallback((siloNum: number, temp: number, event: React.MouseEvent) => {
@@ -576,11 +608,13 @@ export const useSiloSystem = () => {
       return;
     }
 
-    // Start immediately with first silo
-    const currentSilo = allSilos[0];
+    // Always start from first silo (silo 1) for fresh auto scan
+    const startIndex = 0;
+    const currentSilo = allSilos[startIndex];
     setReadingSilo(currentSilo.num);
     setSelectedSilo(currentSilo.num);
-    setAutoReadProgress((1 / allSilos.length) * 100);
+    setCurrentAutoTestIndex(startIndex);
+    setAutoReadProgress(((startIndex + 1) / allSilos.length) * 100);
     
     // Set current scanning silo for sensor display logic
     setCurrentScanSilo(currentSilo.num);
@@ -611,8 +645,8 @@ export const useSiloSystem = () => {
     // Save initial state
     saveAutoTestState({
       isActive: true,
-      currentIndex: 0,
-      progress: (1 / allSilos.length) * 100,
+      currentIndex: startIndex,
+      progress: ((startIndex + 1) / allSilos.length) * 100,
       startTime: Date.now(),
       readingSilo: currentSilo.num,
       disconnectedSilos: [],
@@ -622,9 +656,14 @@ export const useSiloSystem = () => {
 
     // Continue with the rest of the silos after 24 seconds
     currentSiloTimeout.current = setTimeout(() => {
-      continueAutoTest(allSilos, 1);
+      continueAutoTest(allSilos, startIndex + 1);
     }, 24000);
   }, [readingMode, isReading, autoReadCompleted, resumeAutoTest, continueAutoTest]);
+
+  // Assign startAutoRead to ref for scheduler access
+  useEffect(() => {
+    startAutoReadRef.current = startAutoRead;
+  }, [startAutoRead]);
 
   // Start auto restart wait period
   const startAutoRestartWait = useCallback(() => {
@@ -756,6 +795,11 @@ export const useSiloSystem = () => {
     isRetryPhase,
     maxRetries,
 
+    // Daily scheduler state
+    scheduleConfig,
+    nextScheduleInfo,
+    isScheduleActive,
+
     // Actions
     handleSiloClick,
     handleSiloHover,
@@ -766,6 +810,12 @@ export const useSiloSystem = () => {
     handleManualApiRefresh,
     startIdleDetection,
     updateActivityTime,
+    
+    // Daily scheduler actions
+    updateScheduleConfig,
+    enableSchedule,
+    disableSchedule,
+    forceCheckSchedule,
 
     // Utilities
     isSiloReading,
