@@ -62,10 +62,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const response = await AuthService.login(username, password);
         
         if (response.success && response.data) {
+          console.log('🔐 [AUTH] Setting user and token:', response.data.user);
           setToken(response.data.token);
           setUser(response.data.user);
           localStorage.setItem(AUTH_KEY, response.data.token);
           localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
+          console.log('🔐 [AUTH] Authentication state should now be true');
         }
         
         return response;

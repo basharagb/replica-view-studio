@@ -4,16 +4,25 @@ import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Mail, Lock, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
+
+  // Navigate to dashboard when authentication state changes to true
+  useEffect(() => {
+    console.log('🔐 [LOGIN] Auth state changed:', { isAuthenticated });
+    if (isAuthenticated) {
+      console.log('🔐 [LOGIN] User is authenticated, navigating to Live Readings dashboard...');
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +33,8 @@ const Login = () => {
       const response = await login(email, password);
       
       if (response.success) {
-        navigate("/", { replace: true });
+        // Navigation will be handled by useEffect when isAuthenticated changes
+        console.log('✅ Login successful, waiting for auth state update...');
       } else {
         setLoginError(response.message);
       }

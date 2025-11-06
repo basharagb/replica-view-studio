@@ -56,30 +56,38 @@ export class AuthService {
 
       console.log('Login response status:', response.status);
       
-      const apiData: ApiLoginResponse = await response.json();
+      const apiData = await response.json();
       console.log('Login response data:', apiData);
       
-      if (!response.ok || !apiData.success) {
+      if (!response.ok) {
         return {
           success: false,
           message: apiData.message || 'Login failed',
         };
       }
 
+      // Handle the actual API response format: {message: "Login successful", user: {...}}
+      if (!apiData.user) {
+        return {
+          success: false,
+          message: 'Invalid response format',
+        };
+      }
+
       // Transform API response to match expected LoginResponse structure
       const user: User = {
-        id: apiData.data.user.id,
-        username: apiData.data.user.username,
-        role: apiData.data.user.role as 'admin' | 'technician' | 'operator',
-        permissions: AuthService.getRolePermissions(apiData.data.user.role)
+        id: apiData.user.id,
+        username: apiData.user.username,
+        role: apiData.user.role as 'admin' | 'technician' | 'operator',
+        permissions: AuthService.getRolePermissions(apiData.user.role)
       };
 
-      // Use the token from API response
-      const token = apiData.data.token;
+      // Generate a session token since API doesn't provide one
+      const token = AuthService.generateSessionToken(user);
 
       return {
         success: true,
-        message: apiData.message,
+        message: apiData.message || 'Login successful',
         data: {
           token,
           user
@@ -168,7 +176,7 @@ export class AuthService {
     return rolePermissions[role] || ['live_readings'];
   }
 
-  private static generateSessionToken(user: User): string {
+  static generateSessionToken(user: User): string {
     // Generate a simple session token (base64 encoded user data with timestamp)
     const tokenData = {
       id: user.id,
