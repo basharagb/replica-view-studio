@@ -21,7 +21,7 @@ export interface HistoricalSiloData {
 export interface TemperatureGraphData {
   time: string;
   timestamp: Date;
-  [key: string]: any; // Dynamic silo properties like silo_1, silo_2, etc.
+  [key: string]: string | Date | number; // Dynamic silo properties like silo_1, silo_2, etc.
 }
 
 export interface SiloReportRecord {
@@ -34,9 +34,12 @@ export interface SiloReportRecord {
   sensors: number[];
 }
 
-// API configuration
+// API configuration - Use the centralized configuration
 const API_BASE_URL = Strings.BASE_URL;
 const API_ENDPOINT = '/readings/avg/by-silo-number';
+
+// Error tracking to prevent console spam
+let errorLogged = false;
 
 // Temperature thresholds for alert levels
 const TEMP_THRESHOLDS = {
@@ -61,7 +64,7 @@ export async function fetchHistoricalSiloData(
     const siloParams = siloNumbers.map(num => `silo_number=${num}`).join('&');
     const url = `${API_BASE_URL}${API_ENDPOINT}?${siloParams}&start=${startStr}&end=${endStr}`;
     
-    console.log(`Fetching historical data from: ${url}`);
+    console.log(`🔍 [DEBUG] Fetching historical data from: ${url}`);
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
@@ -87,7 +90,14 @@ export async function fetchHistoricalSiloData(
     return apiData.map(processHistoricalApiResponse);
     
   } catch (error) {
-    console.error('Error fetching historical silo data:', error);
+    // Temporarily enable full error logging for debugging
+    console.error('🚨 [DEBUG] Error fetching historical silo data:', error);
+    console.error('🚨 [DEBUG] Failed URL:', `${API_BASE_URL}${API_ENDPOINT}`);
+    console.error('🚨 [DEBUG] Full error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      name: error instanceof Error ? error.name : 'Unknown',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
     throw error;
   }
 }

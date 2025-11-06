@@ -3,7 +3,7 @@
  */
 
 /**
- * Clears browser cache and storage before reload
+ * Clears browser cache and storage before redirecting to login
  */
 export const clearCacheAndReload = async (): Promise<void> => {
   try {
@@ -38,12 +38,12 @@ export const clearCacheAndReload = async (): Promise<void> => {
       );
     }
     
-    // Force reload with cache bypass
-    window.location.reload();
+    // Redirect to login page after clearing cache
+    window.location.href = '/login';
   } catch (error) {
-    console.warn('Cache clearing failed, performing regular reload:', error);
-    // Fallback to regular reload if cache clearing fails
-    window.location.reload();
+    console.warn('Cache clearing failed, redirecting to login:', error);
+    // Fallback to login redirect if cache clearing fails
+    window.location.href = '/login';
   }
 };
 
@@ -57,5 +57,34 @@ export const clearApplicationData = (): void => {
     console.log('Application data cleared successfully');
   } catch (error) {
     console.warn('Failed to clear application data:', error);
+  }
+};
+
+/**
+ * Clear all API caches and application data
+ */
+export const clearAllCaches = (): void => {
+  try {
+    // Clear localStorage and sessionStorage
+    clearApplicationData();
+    
+    // Clear specific cache keys that might be causing issues
+    const cacheKeys = [
+      'auth_token',
+      'auth_user',
+      'replica-view-studio-auto-test-state',
+      'silo-data-cache',
+      'alerts-cache',
+      'cottage-temperature-cache'
+    ];
+    
+    cacheKeys.forEach(key => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+    
+    console.log('✅ All caches cleared successfully');
+  } catch (error) {
+    console.warn('❌ Failed to clear some caches:', error);
   }
 };

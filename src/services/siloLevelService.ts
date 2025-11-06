@@ -1,6 +1,9 @@
 // Service to fetch silo fill percent from the level estimate endpoint
 import { Strings } from '../utils/Strings';
 
+// Error tracking to prevent console spam
+let levelErrorLogged = false;
+
 export interface SiloLevelEstimateResponseItem {
   silo_group: string;
   silo_number: number;
@@ -26,7 +29,11 @@ export async function fetchSiloFillPercent(siloNumber: number, timeoutMs = 10000
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
     if (!response.ok) {
-      console.error('Level estimate API error', response.status, response.statusText);
+      // Only log error once to prevent console spam
+      if (!levelErrorLogged) {
+        console.error('Level estimate API error', response.status, response.statusText);
+        levelErrorLogged = true;
+      }
       return null;
     }
     const data: SiloLevelEstimateResponseItem[] = await response.json();
@@ -38,7 +45,11 @@ export async function fetchSiloFillPercent(siloNumber: number, timeoutMs = 10000
     }
     return null;
   } catch (e) {
-    console.error('Failed to fetch silo fill percent', e);
+    // Only log error once to prevent console spam
+    if (!levelErrorLogged) {
+      console.error('Failed to fetch silo fill percent', e);
+      levelErrorLogged = true;
+    }
     return null;
   }
 }

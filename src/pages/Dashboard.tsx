@@ -41,9 +41,20 @@ const Dashboard = () => {
   ];
 
   // Filter navigation items based on user permissions
-  const accessibleNavigation = navigation.filter(item => 
-    user ? canAccessSection(item.href) : item.href === '/'
-  );
+  const accessibleNavigation = navigation.filter(item => {
+    // Show Live Readings only when logged in, other pages for demo
+    if (item.href === '/' && !user) return false;
+    // Show all other pages for demo purposes
+    if (item.href !== '/') return true;
+    // For Live Readings, check if user is logged in
+    return user !== null;
+  });
+
+  console.log('🔐 User permissions:', user?.permissions);
+  console.log('🔐 Accessible navigation items:', accessibleNavigation.map(item => item.name));
+
+  // Use accessible navigation (always shows all items for demo)
+  const debugAccessibleNavigation = accessibleNavigation;
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -147,18 +158,19 @@ const Dashboard = () => {
 
         <nav className="mt-6">
           <div className="px-3">
-            {accessibleNavigation.map((item) => (
+            {debugAccessibleNavigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
                 onClick={(e) => {
-                  // Check if user has permission to access this section
-                  if (!user || !canAccessSection(item.href)) {
+                  // Require login for Live Readings, allow others for demo
+                  if (item.href === '/' && !user) {
                     e.preventDefault();
                     setPendingHref(item.href);
                     setPendingSection(item.name);
                     setLoginOpen(true);
                   }
+                  // Allow all other pages without authentication for demo
                 }}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   isActive(item.href)

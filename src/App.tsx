@@ -34,15 +34,15 @@ const App = () => (
                 {/* Login route: if already authenticated, redirect to dashboard */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
 
-                {/* Dashboard routes - allow access but protect individual routes */}
+                {/* Dashboard routes - require authentication for Live Readings */}
                 <Route path="/" element={<Dashboard />}>
                   <Route index element={<RequireAuth><LiveTest /></RequireAuth>} />
-                  <Route path="reports" element={<RequireAuth><Reports /></RequireAuth>} />
-                  <Route path="analytics" element={<RequireAuth><Analytics /></RequireAuth>} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="analytics" element={<Analytics />} />
                   <Route path="maintenance-panel" element={<Maintenance />} />
                   <Route path="test" element={<TestPage />} />
-                  <Route path="settings" element={<RequireAuth><Settings /></RequireAuth>} />
-                  <Route path="monitoring" element={<RequireAuth><SiloMonitoring /></RequireAuth>} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="monitoring" element={<SiloMonitoring />} />
                   {/* Add more routes as needed */}
                   <Route path="*" element={<NotFound />} />
                 </Route>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, AlertCircle, TrendingUp, CheckCircle, Clock, Calendar, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { fetchActiveAlerts, ProcessedAlert, formatAlertTimestamp, formatAlertDuration, clearAlertsCache } from '../services/alertsApiService';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from './ui/pagination';
+import { fetchActiveAlerts, ProcessedAlert, PaginationInfo, formatAlertTimestamp, formatAlertDuration, clearAlertsCache } from '../services/alertsApiService';
 
 // Sensor reading type
 interface SensorReading {
@@ -81,20 +82,24 @@ const AlertSiloMonitoring: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingStartTime, setLoadingStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [itemsPerPage] = useState(20); // Fixed at 20 items per page
 
-  const fetchAlertSilos = async () => {
+  const fetchAlertSilos = async (page: number = currentPage) => {
     setLoading(true);
     setError(null);
     setLoadingStartTime(new Date());
     setElapsedTime(0);
     try {
-      console.log('🚨 [ALERT SILO MONITORING] Fetching alerts...');
+      console.log(`🚨 [ALERT SILO MONITORING] Fetching alerts for page ${page}...`);
       const startTime = Date.now();
-      const result = await fetchActiveAlerts();
+      const result = await fetchActiveAlerts(false, page, itemsPerPage);
       const fetchTime = Date.now() - startTime;
       
       console.log('🚨 [ALERT SILO MONITORING] Fetch result:', {
         alertsCount: result.alerts.length,
+        pagination: result.pagination,
         isLoading: result.isLoading,
         error: result.error,
         fetchTimeMs: fetchTime
@@ -104,6 +109,9 @@ const AlertSiloMonitoring: React.FC = () => {
         console.error('🚨 [ALERT SILO MONITORING] API Error:', result.error);
         throw new Error(result.error);
       }
+
+      // Set pagination info
+      setPagination(result.pagination);
 
       const alerts = result.alerts;
       console.log('🚨 [ALERT SILO MONITORING] Starting data processing...');
@@ -279,6 +287,13 @@ const AlertSiloMonitoring: React.FC = () => {
     } finally {
       setRefreshing(false);
     }
+  };
+
+  const handlePageChange = async (page: number) => {
+    if (page === currentPage || loading || refreshing) return;
+    
+    setCurrentPage(page);
+    await fetchAlertSilos(page);
   };
 
   const getStatusIcon = (status: 'ok' | 'yellow' | 'red') => {
@@ -541,6 +556,96 @@ const AlertSiloMonitoring: React.FC = () => {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {pagination && pagination.total_pages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              {/* Previous Button */}
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => pagination.has_previous_page && handlePageChange(currentPage - 1)}
+                  className={!pagination.has_previous_page ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+
+              {/* Page Numbers */}
+              {(() => {
+                const pages = [];
+                const totalPages = pagination.total_pages;
+                const current = currentPage;
+                
+                // Always show first page
+                if (current > 3) {
+                  pages.push(
+                    <PaginationItem key={1}>
+                      <PaginationLink onClick={() => handlePageChange(1)} isActive={current === 1} className="cursor-pointer">
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                  if (current > 4) {
+                    pages.push(<PaginationItem key="ellipsis1"><PaginationEllipsis /></PaginationItem>);
+                  }
+                }
+
+                // Show pages around current page
+                const start = Math.max(1, current - 2);
+                const end = Math.min(totalPages, current + 2);
+                
+                for (let i = start; i <= end; i++) {
+                  pages.push(
+                    <PaginationItem key={i}>
+                      <PaginationLink 
+                        onClick={() => handlePageChange(i)} 
+                        isActive={current === i}
+                        className="cursor-pointer"
+                      >
+                        {i}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                // Always show last page
+                if (current < totalPages - 2) {
+                  if (current < totalPages - 3) {
+                    pages.push(<PaginationItem key="ellipsis2"><PaginationEllipsis /></PaginationItem>);
+                  }
+                  pages.push(
+                    <PaginationItem key={totalPages}>
+                      <PaginationLink onClick={() => handlePageChange(totalPages)} isActive={current === totalPages} className="cursor-pointer">
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                return pages;
+              })()}
+
+              {/* Next Button */}
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => pagination.has_next_page && handlePageChange(currentPage + 1)}
+                  className={!pagination.has_next_page ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+      {/* Pagination Info */}
+      {pagination && (
+        <div className="mt-4 text-center text-sm text-gray-600">
+          <p>
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, pagination.total_items)} of {pagination.total_items} alerts
+            {pagination.total_pages > 1 && ` (Page ${currentPage} of ${pagination.total_pages})`}
+          </p>
         </div>
       )}
 

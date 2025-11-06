@@ -44,10 +44,10 @@ const SystemResetButtons: React.FC<SystemResetButtonsProps> = ({
       console.log('System reset completed - all caches cleared');
       
       // Show success message
-      alert('System reset completed successfully! All cached data cleared.');
+      alert('System reset completed successfully! All cached data cleared. Redirecting to login...');
       
-      // Reload the page to ensure clean state
-      window.location.reload();
+      // Redirect to login page after clearing cache
+      window.location.href = '/login';
     } catch (error) {
       console.error('Error during system reset:', error);
       alert('Error during system reset. Please try again.');
@@ -80,10 +80,10 @@ const SystemResetButtons: React.FC<SystemResetButtonsProps> = ({
       console.log('System reload completed - all silos reset to wheat color');
       
       // Show success message
-      alert('System reloaded successfully! All silos reset to wheat color.');
+      alert('System reloaded successfully! All silos reset to wheat color. Redirecting to login...');
       
-      // Reload the page to ensure clean state
-      window.location.reload();
+      // Redirect to login page after reload
+      window.location.href = '/login';
     } catch (error) {
       console.error('Error during system reload:', error);
       alert('Error during system reload. Please try again.');

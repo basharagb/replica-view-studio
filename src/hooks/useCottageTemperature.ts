@@ -48,12 +48,11 @@ export interface UseCottageTemperatureReturn {
   clearError: () => void;
 }
 
+import { Strings } from '../utils/Strings';
+
 // Compute default API URL based on environment
-// - Development: use Vite proxy (/cottage/env_temp) to avoid CORS/mixed-content
-// - Production: use the LAN endpoint directly (works only when app and API are on the same LAN)
-const DEFAULT_API_URL = (import.meta as any)?.env?.DEV
-  ? '/cottage/env_temp'
-  : 'http://192.168.1.92:5000/env_temp';
+// Use the cottage temperature API endpoint from centralized config
+const DEFAULT_API_URL = `${Strings.BASE_URL}/env_temp`;
 
 // Helper function to determine temperature status
 function getTemperatureStatus(temp: number): 'normal' | 'warning' | 'error' | 'disconnected' {
@@ -85,6 +84,7 @@ export function useCottageTemperature(options: UseCottageTemperatureOptions = {}
   // Refs
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
+  const errorLoggedRef = useRef(false); // Prevent repeated error logging
 
   // Clear error
   const clearError = useCallback(() => {
@@ -108,6 +108,10 @@ export function useCottageTemperature(options: UseCottageTemperatureOptions = {}
       clearTimeout(timeoutId);
       
       if (!response.ok) {
+        // Handle 404 specifically for missing endpoint
+        if (response.status === 404) {
+          throw new Error('Environment temperature endpoint not available on this server');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -136,6 +140,10 @@ export function useCottageTemperature(options: UseCottageTemperatureOptions = {}
       if (err instanceof Error && err.name === 'AbortError') {
         throw new Error('Request timeout - cottage temperature API not responding');
       }
+      // Provide more specific error messages
+      if (err instanceof Error && err.message.includes('404')) {
+        throw new Error('Environment temperature service not available - endpoint missing');
+      }
       throw err instanceof Error ? err : new Error('Failed to fetch cottage temperature data');
     }
   }, [apiUrl]);
@@ -159,7 +167,11 @@ export function useCottageTemperature(options: UseCottageTemperatureOptions = {}
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch cottage temperature data';
         setError(errorMessage);
         setIsConnected(false);
-        console.error('Error fetching cottage temperature data:', err);
+        // Only log error once to prevent console spam
+        if (!errorLoggedRef.current) {
+          console.error('Error fetching cottage temperature data:', err);
+          errorLoggedRef.current = true;
+        }
       }
     } finally {
       if (mountedRef.current) {
