@@ -52,31 +52,35 @@ export const useSiloSystem = () => {
   const [selectedSilo, setSelectedSilo] = useState<number>(112);
   const [selectedTemp, setSelectedTemp] = useState<number>(0.2);
   const [hoveredSilo, setHoveredSilo] = useState<Silo | null>(null);
-
-  // Auto-fetch API data when silo is selected to show accurate sensor readings
-  useEffect(() => {
-    const fetchSelectedSiloData = async () => {
-      if (selectedSilo) {
-        try {
-          const apiData = await fetchSiloDataWithRetry(selectedSilo, 2, 500);
-          // Auto-fetched data for selected silo (logging removed for performance)
-          // Update selected temperature with real API data
-          setSelectedTemp(apiData.maxTemp);
-          // Force UI re-render to show accurate sensor readings
-          regenerateAllSiloData();
-        } catch (error) {
-          // Could not fetch data for silo, using simulated data (logging removed for performance)
-        }
-      }
-    };
-
-    fetchSelectedSiloData();
-  }, [selectedSilo]);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition>({ x: 0, y: 0 });
 
   // Reading control states
   const [readingMode, setReadingMode] = useState<ReadingMode>('manual');
   const [isReading, setIsReading] = useState<boolean>(false);
+
+  // Auto-fetch API data when silo is selected to show accurate sensor readings
+  // 🚫 CRITICAL: COMPLETELY BLOCKED during auto reading mode to prevent color changes
+  useEffect(() => {
+    const fetchSelectedSiloData = async () => {
+      // 🚫 TRIPLE CHECK: Block API calls during auto reading mode
+      if (selectedSilo && readingMode !== 'auto' && !isReading) {
+        try {
+          console.log(`🔍 [SELECTION API] Fetching data for selected silo ${selectedSilo} (mode: ${readingMode})`);
+          const apiData = await fetchSiloDataWithRetry(selectedSilo, 2, 500);
+          // Update selected temperature with real API data
+          setSelectedTemp(apiData.maxTemp);
+          // Force UI re-render to show accurate sensor readings
+          regenerateAllSiloData();
+        } catch (error) {
+          console.warn(`⚠️ [SELECTION API] Could not fetch data for silo ${selectedSilo}:`, error);
+        }
+      } else if (readingMode === 'auto') {
+        console.log(`🚫 [SELECTION API] Blocked API fetch for silo ${selectedSilo} during auto reading mode`);
+      }
+    };
+
+    fetchSelectedSiloData();
+  }, [selectedSilo, readingMode, isReading]);
   const [readingSilo, setReadingSilo] = useState<number | null>(null);
   const [autoReadProgress, setAutoReadProgress] = useState<number>(0);
   const [autoReadCompleted, setAutoReadCompleted] = useState<boolean>(false);
@@ -184,6 +188,9 @@ export const useSiloSystem = () => {
           // Mark this silo as completed for sensor display logic
           markSiloCompleted(currentSilo.num);
           
+          // Force regeneration of all silo data to update colors immediately
+          regenerateAllSiloData();
+          
           // Force a re-render with fresh data
           setDataVersion(prev => prev + 1);
         } catch (error) {
@@ -288,6 +295,9 @@ export const useSiloSystem = () => {
           console.log(`✅ [RETRY ${currentRetry}.${currentRetryIndex + 1}] Silo ${currentSilo.num} now connected! Max temp: ${apiData.maxTemp}°C`);
           setSelectedTemp(apiData.maxTemp);
           markSiloCompleted(currentSilo.num);
+          
+          // Force regeneration of all silo data to update colors immediately
+          regenerateAllSiloData();
         }
         
         // Force UI update
@@ -381,6 +391,9 @@ export const useSiloSystem = () => {
         // Mark this silo as completed for sensor display logic
         markSiloCompleted(currentSilo.num);
         
+        // Force regeneration of all silo data to update colors immediately
+        regenerateAllSiloData();
+        
         // Force a re-render without clearing cached API data
         setDataVersion(prev => prev + 1);
         
@@ -435,17 +448,19 @@ export const useSiloSystem = () => {
     }
   }, []);
 
-  // Handle silo click - Block clicks during manual test loading
+  // Handle silo click - COMPLETELY BLOCK all interactions during auto reading mode
   const handleSiloClick = useCallback((siloNum: number, temp: number) => {
+    // 🚫 CRITICAL FIX: Block ALL silo interactions during auto reading mode
+    // This prevents any mouse movement from causing color changes or API calls
+    if (readingMode === 'auto') {
+      console.log(`🚫 [AUTO MODE BLOCK] Blocked silo ${siloNum} interaction during auto reading mode`);
+      return; // Exit early - no state changes allowed
+    }
+    
     if (readingMode === 'manual' && !isReading) {
       // Start manual reading only if not already reading
       console.log(`🔄 [MANUAL TEST] Manual test triggered for silo ${siloNum}`);
       startManualRead(siloNum, temp);
-    } else if (readingMode === 'auto') {
-      // During auto test mode, only allow selection without API refresh to prevent color changes on hover
-      // API refresh should only happen on explicit maintenance actions, not during live readings
-      setSelectedSilo(siloNum);
-      setSelectedTemp(temp);
     } else if (readingMode === 'none') {
       // Normal selection
       setSelectedSilo(siloNum);
@@ -453,11 +468,17 @@ export const useSiloSystem = () => {
     }
   }, [readingMode, isReading]);
 
-  // Handle silo hover
+  // Handle silo hover - Allow tooltips but prevent any state changes during auto mode
   const handleSiloHover = useCallback((siloNum: number, temp: number, event: React.MouseEvent) => {
+    // Always allow tooltips for user feedback, but prevent any other state changes during auto mode
     setHoveredSilo({ num: siloNum, temp: temp });
     setTooltipPosition({ x: event.clientX, y: event.clientY });
-  }, []);
+    
+    // Log hover during auto mode for debugging
+    if (readingMode === 'auto') {
+      console.log(`👆 [AUTO MODE HOVER] Showing tooltip for silo ${siloNum} (no state changes)`);
+    }
+  }, [readingMode]);
 
   // Handle silo mouse move (for tooltip positioning)
   const handleSiloMouseMove = useCallback((event: React.MouseEvent) => {
@@ -636,6 +657,9 @@ export const useSiloSystem = () => {
         
         // Mark this silo as completed for sensor display logic
         markSiloCompleted(currentSilo.num);
+        
+        // Force regeneration of all silo data to update colors immediately
+        regenerateAllSiloData();
         
         // Force a re-render with fresh data
         setDataVersion(prev => prev + 1);

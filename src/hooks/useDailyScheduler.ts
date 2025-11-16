@@ -9,6 +9,7 @@ import {
   getNextScheduleInfo,
   NextScheduleInfo,
   isWithinAnyScheduledTime,
+  isWithinScheduledTime,
   addSchedule,
   updateSchedule,
   deleteSchedule,
@@ -161,9 +162,17 @@ export const useDailyScheduler = (
     // Handle schedule transitions
     if (shouldStart && !wasInScheduleWindow.current && !isCurrentlyReading) {
       // Entering schedule window - start auto readings
-      console.log('📅 [SCHEDULER] Entering scheduled reading window - starting auto readings');
-      console.log('📅 [SCHEDULER] Current time:', new Date().toLocaleTimeString());
+      const now = new Date();
+      console.log('📅 [SCHEDULER] ⭐ STARTING AUTO READINGS ⭐');
+      console.log('📅 [SCHEDULER] Exact time:', now.toLocaleTimeString() + '.' + now.getMilliseconds().toString().padStart(3, '0'));
+      console.log('📅 [SCHEDULER] Date:', now.toLocaleDateString());
       console.log('📅 [SCHEDULER] Active schedules:', currentConfig.schedules.filter(s => s.enabled).length);
+      
+      // Log each active schedule for debugging
+      const activeSchedules = currentConfig.schedules.filter(s => s.enabled && isWithinScheduledTime(s));
+      activeSchedules.forEach(schedule => {
+        console.log(`📅 [SCHEDULER] Active: ${schedule.name} (${schedule.startHour}:${schedule.startMinute.toString().padStart(2, '0')} - ${schedule.endHour}:${schedule.endMinute.toString().padStart(2, '0')})`);
+      });
       
       onStartAutoReadings();
       wasInScheduleWindow.current = true;
@@ -204,8 +213,28 @@ export const useDailyScheduler = (
     // Initial check
     checkSchedule();
     
-    // Set up interval to check every 30 seconds
-    schedulerInterval.current = setInterval(checkSchedule, 30000);
+    // Set up dynamic interval - check more frequently near schedule boundaries
+    const setupDynamicInterval = () => {
+      const nextInfo = getNextScheduleInfo(schedulesConfig);
+      let intervalMs = 30000; // Default 30 seconds
+      
+      // If next event is within 2 minutes, check every 5 seconds for precision
+      if (nextInfo.minutesUntilNext > 0 && nextInfo.minutesUntilNext <= 2) {
+        intervalMs = 5000; // 5 seconds
+        console.log('📅 [SCHEDULER] Using high-precision mode (5s) - next event in', nextInfo.minutesUntilNext, 'minutes');
+      }
+      
+      schedulerInterval.current = setInterval(() => {
+        checkSchedule();
+        // Recursively setup new interval to adjust frequency dynamically
+        if (schedulerInterval.current) {
+          clearInterval(schedulerInterval.current);
+          setupDynamicInterval();
+        }
+      }, intervalMs);
+    };
+    
+    setupDynamicInterval();
     
     console.log('📅 [SCHEDULER] Multiple schedules initialized');
     console.log('📅 [SCHEDULER] Current config:', schedulesConfig);

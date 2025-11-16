@@ -49,7 +49,7 @@ export interface ProcessedAlert {
 class AlertsCache {
   private cache: ProcessedAlert[] = [];
   private lastFetch: Date | null = null;
-  private readonly CACHE_DURATION_MS = 3600000; // 1 hour cache (3600 seconds)
+  private readonly CACHE_DURATION_MS = 300000; // 5 minute cache (300 seconds) - shorter for real-time alerts
   private isLoading: boolean = false;
   private lastError: string | null = null;
 
@@ -233,7 +233,7 @@ export interface PaginatedAlertsResponse {
   pagination: PaginationInfo;
 }
 
-// Fetch active alerts from API with pagination support
+// Fetch active alerts from API (using simple endpoint due to pagination issues)
 export async function fetchActiveAlerts(
   forceRefresh: boolean = false,
   page: number = 1,
@@ -244,12 +244,12 @@ export async function fetchActiveAlerts(
   isLoading: boolean;
   error: string | null;
 }> {
-  // Return cached data if still valid and not forcing refresh (skip cache for paginated requests)
-  if (!forceRefresh && alertsCache.isCacheValid() && page === 1 && limit === 20) {
+  // Return cached data if still valid and not forcing refresh
+  if (!forceRefresh && alertsCache.isCacheValid()) {
     console.log('🚨 [ALERTS API] Returning cached alerts data');
     return {
       alerts: alertsCache.getAlerts(),
-      pagination: null, // No pagination info for cached data
+      pagination: null, // No pagination for simple endpoint
       isLoading: false,
       error: null
     };
@@ -272,34 +272,44 @@ export async function fetchActiveAlerts(
 
   try {
     const url = Strings.URLS.ALERTS_ACTIVE;
-    console.log(`🚨 [ALERTS API] Fetching active alerts from: ${url} (page: ${page}, limit: ${limit})`);
+    console.log(`🚨 [ALERTS API] Fetching active alerts from: ${url} (using simple endpoint - pagination disabled due to backend issues)`);
 
-    // Build URL with pagination parameters
-    const urlParams = new URLSearchParams();
-    urlParams.append('page', page.toString());
-    urlParams.append('limit', limit.toString());
-    urlParams.append('_t', new Date().getTime().toString()); // Cache busting
+    // Use simple endpoint without pagination parameters (pagination endpoint has issues)
+    const urlWithCacheBuster = `${url}?_t=${new Date().getTime()}`;
     
-    const urlWithParams = `${url}?${urlParams.toString()}`;
-    
-    const response = await fetch(urlWithParams, {
+    const response = await fetch(urlWithCacheBuster, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      // Extended timeout for large datasets (10 minutes)
-      signal: AbortSignal.timeout(600000) // 10 minute timeout
+      // Reduced timeout since simple endpoint is faster
+      signal: AbortSignal.timeout(60000) // 1 minute timeout
     });
 
     if (!response.ok) {
       throw new Error(`Alerts API request failed: ${response.status} ${response.statusText}`);
     }
 
-    const responseData: PaginatedAlertsResponse = await response.json();
-    const apiData: AlertApiResponse[] = responseData.data || [];
-    const paginationInfo: PaginationInfo | null = responseData.pagination || null;
+    // Simple endpoint returns array directly, not paginated response
+    const apiData: AlertApiResponse[] = await response.json();
     
-    console.log(`🚨 [ALERTS API] Received ${apiData.length} active alerts (page ${page}/${paginationInfo?.total_pages || 1})`);
+    // Implement client-side pagination
+    const totalItems = apiData.length;
+    const totalPages = Math.ceil(totalItems / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedData = apiData.slice(startIndex, endIndex);
+    
+    const paginationInfo: PaginationInfo = {
+      current_page: page,
+      per_page: limit,
+      total_items: totalItems,
+      total_pages: totalPages,
+      has_next_page: page < totalPages,
+      has_previous_page: page > 1
+    };
+    
+    console.log(`🚨 [ALERTS API] Received ${apiData.length} total alerts, showing ${paginatedData.length} for page ${page}/${paginationInfo.total_pages}`);
     
     if (!apiData || apiData.length === 0) {
       console.log('🚨 [ALERTS API] No active alerts found');
@@ -312,8 +322,8 @@ export async function fetchActiveAlerts(
       };
     }
 
-    // Process all alerts and consolidate duplicates
-    const processedAlerts = apiData.map(processAlertResponse);
+    // Process paginated alerts and consolidate duplicates
+    const processedAlerts = paginatedData.map(processAlertResponse);
     
     // Consolidate duplicate alerts (same silo_number and affected_levels)
     const consolidatedAlerts = consolidateAlerts(processedAlerts);
@@ -332,10 +342,14 @@ export async function fetchActiveAlerts(
       return b.activeSince.getTime() - a.activeSince.getTime();
     });
     
-    // Cache the processed data
-    alertsCache.setAlerts(consolidatedAlerts);
+    // Cache the processed data (only cache first page to avoid memory issues)
+    if (page === 1) {
+      alertsCache.setAlerts(consolidatedAlerts);
+    } else {
+      alertsCache.setLoading(false);
+    }
     
-    console.log(`🚨 [ALERTS API] Successfully processed ${apiData.length} raw alerts, consolidated to ${consolidatedAlerts.length} unique alerts`);
+    console.log(`🚨 [ALERTS API] Successfully processed ${paginatedData.length} raw alerts, consolidated to ${consolidatedAlerts.length} unique alerts`);
     return {
       alerts: consolidatedAlerts,
       pagination: paginationInfo,

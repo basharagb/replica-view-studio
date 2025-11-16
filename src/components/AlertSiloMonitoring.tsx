@@ -102,8 +102,18 @@ const AlertSiloMonitoring: React.FC = () => {
         pagination: result.pagination,
         isLoading: result.isLoading,
         error: result.error,
-        fetchTimeMs: fetchTime
+        fetchTimeMs: fetchTime,
+        isEmpty: result.alerts.length === 0
       });
+      
+      // Log empty response detection
+      if (result.alerts.length === 0) {
+        console.warn('🚨 [ALERT SILO MONITORING] ⚠️ EMPTY RESPONSE DETECTED - No alerts returned from API');
+        console.log('🚨 [ALERT SILO MONITORING] This could indicate:');
+        console.log('  1. No active alerts in the system (normal)');
+        console.log('  2. API endpoint returning empty data (issue)');
+        console.log('  3. Backend processing/database issue');
+      }
 
       if (result.error) {
         console.error('🚨 [ALERT SILO MONITORING] API Error:', result.error);
@@ -336,11 +346,16 @@ const AlertSiloMonitoring: React.FC = () => {
                 Elapsed time: {formatElapsedTime(elapsedTime)}
               </p>
               <p className="text-xs text-gray-500 mt-2">
-                This may take several minutes for large datasets. Please wait...
+                This may take up to 1 minute for large datasets. Please wait...
               </p>
-              {elapsedTime > 60 && (
+              {elapsedTime > 30 && (
                 <p className="text-xs text-orange-600 mt-2">
-                  ⏳ Processing large dataset - this is normal for systems with many alerts
+                  ⏳ Processing large dataset ({elapsedTime}s) - this is normal for systems with many alerts
+                </p>
+              )}
+              {elapsedTime > 90 && (
+                <p className="text-xs text-red-600 mt-2">
+                  ⚠️ Taking longer than expected - there may be a network issue
                 </p>
               )}
             </div>

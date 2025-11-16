@@ -179,14 +179,30 @@ export const MultipleScheduleControls: React.FC<MultipleScheduleControlsProps> =
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
             <span>
-              Next {nextScheduleInfo.nextEventType}: {nextScheduleInfo.nextEventTime}
-              {nextScheduleInfo.scheduleName && (
-                <span className="ml-1">({nextScheduleInfo.scheduleName})</span>
-              )}
-              {nextScheduleInfo.minutesUntilNext > 0 && (
-                <span className="ml-1">
-                  (in {formatTimeUntilNext(nextScheduleInfo.minutesUntilNext)})
-                </span>
+              {nextScheduleInfo.isActive ? (
+                <>
+                  🟢 Active - Ends at {nextScheduleInfo.nextEventTime}
+                  {nextScheduleInfo.scheduleName && (
+                    <span className="ml-1">({nextScheduleInfo.scheduleName})</span>
+                  )}
+                  {nextScheduleInfo.minutesUntilNext > 0 && (
+                    <span className="ml-1">
+                      (in {formatTimeUntilNext(nextScheduleInfo.minutesUntilNext)})
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  Next start: {nextScheduleInfo.nextEventTime}
+                  {nextScheduleInfo.scheduleName && (
+                    <span className="ml-1">({nextScheduleInfo.scheduleName})</span>
+                  )}
+                  {nextScheduleInfo.minutesUntilNext > 0 && (
+                    <span className="ml-1">
+                      (in {formatTimeUntilNext(nextScheduleInfo.minutesUntilNext)})
+                    </span>
+                  )}
+                </>
               )}
             </span>
           </div>
