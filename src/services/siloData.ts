@@ -402,7 +402,9 @@ export const calculateSiloStatus = (sensorReadings: number[]) => {
 
 // Get silo color based on silo number using sensor priority hierarchy
 export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
-  // First check if we have real API data
+  // First check if we have real API data - this should ALWAYS take priority
+  // This ensures previously scanned silos keep their API colors even when 
+  // auto test is restarted and autoTestCompletedSilos is cleared
   const apiData = getSiloData(siloNum);
   if (apiData.isLoaded) {
     // Use DYNAMIC color calculation based on actual sensor readings, not static silo_color
@@ -418,7 +420,7 @@ export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
     }
   }
   
-  // During auto test, check if silo is completed or has data available
+  // During auto test, check if silo is completed (but only if no API data exists)
   if (currentScanSilo !== null) {
     // If silo is completed during auto test, show color based on sensor readings
     if (autoTestCompletedSilos.has(siloNum)) {

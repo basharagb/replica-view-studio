@@ -1,21 +1,43 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   DailyScheduleConfig,
-  loadScheduleConfig,
-  saveScheduleConfig,
+  MultipleSchedulesConfig,
+  loadSchedulesConfig,
+  migrateFromSingleSchedule,
+  saveSchedulesConfig,
   shouldStartAutoReadings,
   getNextScheduleInfo,
   NextScheduleInfo,
-  isWithinScheduledTime
+  isWithinAnyScheduledTime,
+  addSchedule,
+  updateSchedule,
+  deleteSchedule,
+  toggleSchedule,
+  toggleGlobalSchedules,
+  validateScheduleConfig,
+  checkScheduleConflicts,
+  getAllSchedulesDescription
 } from '../services/dailyScheduler';
 
 interface DailySchedulerHook {
-  scheduleConfig: DailyScheduleConfig;
+  schedulesConfig: MultipleSchedulesConfig;
   nextScheduleInfo: NextScheduleInfo;
   isScheduleActive: boolean;
-  updateScheduleConfig: (config: Partial<DailyScheduleConfig>) => void;
-  enableSchedule: () => void;
-  disableSchedule: () => void;
+  
+  // Global controls
+  toggleGlobal: () => void;
+  
+  // Schedule management
+  addNewSchedule: (schedule: Omit<DailyScheduleConfig, 'id' | 'createdAt'>) => void;
+  updateScheduleById: (id: string, updates: Partial<DailyScheduleConfig>) => void;
+  deleteScheduleById: (id: string) => void;
+  toggleScheduleById: (id: string) => void;
+  
+  // Validation
+  validateSchedule: (config: Partial<DailyScheduleConfig>) => string[];
+  checkConflicts: (excludeId?: string) => string[];
+  
+  // Legacy support
   forceCheckSchedule: () => boolean;
 }
 
@@ -24,49 +46,103 @@ export const useDailyScheduler = (
   onStopAutoReadings: () => void,
   isCurrentlyReading: boolean
 ): DailySchedulerHook => {
-  const [scheduleConfig, setScheduleConfig] = useState<DailyScheduleConfig>(() => loadScheduleConfig());
-  const [nextScheduleInfo, setNextScheduleInfo] = useState<NextScheduleInfo>(() => getNextScheduleInfo(scheduleConfig));
-  const [isScheduleActive, setIsScheduleActive] = useState<boolean>(() => isWithinScheduledTime(scheduleConfig));
+  // Initialize with migration support
+  const [schedulesConfig, setSchedulesConfig] = useState<MultipleSchedulesConfig>(() => {
+    // Try to migrate from old single schedule first
+    const migrated = migrateFromSingleSchedule();
+    return migrated;
+  });
+  
+  const [nextScheduleInfo, setNextScheduleInfo] = useState<NextScheduleInfo>(() => getNextScheduleInfo(schedulesConfig));
+  const [isScheduleActive, setIsScheduleActive] = useState<boolean>(() => isWithinAnyScheduledTime(schedulesConfig));
   
   const schedulerInterval = useRef<NodeJS.Timeout | null>(null);
   const lastScheduleCheck = useRef<number>(0);
   const wasInScheduleWindow = useRef<boolean>(false);
 
-  // Update schedule configuration
-  const updateScheduleConfig = useCallback((newConfig: Partial<DailyScheduleConfig>) => {
-    const updatedConfig = { ...scheduleConfig, ...newConfig };
-    setScheduleConfig(updatedConfig);
-    saveScheduleConfig(updatedConfig);
+  // Global controls
+  const toggleGlobal = useCallback(() => {
+    const updatedConfig = toggleGlobalSchedules(schedulesConfig);
+    setSchedulesConfig(updatedConfig);
     
     // Update next schedule info immediately
     const newNextInfo = getNextScheduleInfo(updatedConfig);
     setNextScheduleInfo(newNextInfo);
-    setIsScheduleActive(isWithinScheduledTime(updatedConfig));
+    setIsScheduleActive(isWithinAnyScheduledTime(updatedConfig));
     
-    console.log('📅 [SCHEDULER] Configuration updated:', updatedConfig);
-  }, [scheduleConfig]);
-
-  // Enable schedule
-  const enableSchedule = useCallback(() => {
-    updateScheduleConfig({ enabled: true });
-  }, [updateScheduleConfig]);
-
-  // Disable schedule
-  const disableSchedule = useCallback(() => {
-    updateScheduleConfig({ enabled: false });
-  }, [updateScheduleConfig]);
+    console.log('📅 [SCHEDULER] Global schedules toggled:', updatedConfig.globalEnabled);
+  }, [schedulesConfig]);
+  
+  // Schedule management
+  const addNewSchedule = useCallback((newSchedule: Omit<DailyScheduleConfig, 'id' | 'createdAt'>) => {
+    const updatedConfig = addSchedule(schedulesConfig, newSchedule);
+    setSchedulesConfig(updatedConfig);
+    
+    // Update next schedule info immediately
+    const newNextInfo = getNextScheduleInfo(updatedConfig);
+    setNextScheduleInfo(newNextInfo);
+    setIsScheduleActive(isWithinAnyScheduledTime(updatedConfig));
+    
+    console.log('📅 [SCHEDULER] New schedule added:', newSchedule.name);
+  }, [schedulesConfig]);
+  
+  const updateScheduleById = useCallback((id: string, updates: Partial<DailyScheduleConfig>) => {
+    const updatedConfig = updateSchedule(schedulesConfig, id, updates);
+    setSchedulesConfig(updatedConfig);
+    
+    // Update next schedule info immediately
+    const newNextInfo = getNextScheduleInfo(updatedConfig);
+    setNextScheduleInfo(newNextInfo);
+    setIsScheduleActive(isWithinAnyScheduledTime(updatedConfig));
+    
+    console.log('📅 [SCHEDULER] Schedule updated:', id, updates);
+  }, [schedulesConfig]);
+  
+  const deleteScheduleById = useCallback((id: string) => {
+    const updatedConfig = deleteSchedule(schedulesConfig, id);
+    setSchedulesConfig(updatedConfig);
+    
+    // Update next schedule info immediately
+    const newNextInfo = getNextScheduleInfo(updatedConfig);
+    setNextScheduleInfo(newNextInfo);
+    setIsScheduleActive(isWithinAnyScheduledTime(updatedConfig));
+    
+    console.log('📅 [SCHEDULER] Schedule deleted:', id);
+  }, [schedulesConfig]);
+  
+  const toggleScheduleById = useCallback((id: string) => {
+    const updatedConfig = toggleSchedule(schedulesConfig, id);
+    setSchedulesConfig(updatedConfig);
+    
+    // Update next schedule info immediately
+    const newNextInfo = getNextScheduleInfo(updatedConfig);
+    setNextScheduleInfo(newNextInfo);
+    setIsScheduleActive(isWithinAnyScheduledTime(updatedConfig));
+    
+    const schedule = updatedConfig.schedules.find(s => s.id === id);
+    console.log('📅 [SCHEDULER] Schedule toggled:', schedule?.name, schedule?.enabled);
+  }, [schedulesConfig]);
+  
+  // Validation
+  const validateSchedule = useCallback((config: Partial<DailyScheduleConfig>) => {
+    return validateScheduleConfig(config);
+  }, []);
+  
+  const checkConflicts = useCallback((excludeId?: string) => {
+    return checkScheduleConflicts(schedulesConfig, excludeId);
+  }, [schedulesConfig]);
 
   // Force check schedule (for manual testing)
   const forceCheckSchedule = useCallback((): boolean => {
-    const shouldStart = shouldStartAutoReadings(scheduleConfig);
+    const shouldStart = shouldStartAutoReadings(schedulesConfig);
     console.log('📅 [SCHEDULER] Force check - Should start auto readings:', shouldStart);
     return shouldStart;
-  }, [scheduleConfig]);
+  }, [schedulesConfig]);
 
   // Main scheduler logic
   const checkSchedule = useCallback(() => {
     const now = Date.now();
-    const currentConfig = scheduleConfig;
+    const currentConfig = schedulesConfig;
     
     // Only check every minute to avoid excessive processing
     if (now - lastScheduleCheck.current < 60000) {
@@ -75,7 +151,7 @@ export const useDailyScheduler = (
     
     lastScheduleCheck.current = now;
     
-    const isInWindow = isWithinScheduledTime(currentConfig);
+    const isInWindow = isWithinAnyScheduledTime(currentConfig);
     const shouldStart = shouldStartAutoReadings(currentConfig);
     
     // Update state
@@ -87,7 +163,7 @@ export const useDailyScheduler = (
       // Entering schedule window - start auto readings
       console.log('📅 [SCHEDULER] Entering scheduled reading window - starting auto readings');
       console.log('📅 [SCHEDULER] Current time:', new Date().toLocaleTimeString());
-      console.log('📅 [SCHEDULER] Schedule:', `${currentConfig.startHour}:${currentConfig.startMinute.toString().padStart(2, '0')} - ${currentConfig.endHour}:${currentConfig.endMinute.toString().padStart(2, '0')}`);
+      console.log('📅 [SCHEDULER] Active schedules:', currentConfig.schedules.filter(s => s.enabled).length);
       
       onStartAutoReadings();
       wasInScheduleWindow.current = true;
@@ -112,11 +188,11 @@ export const useDailyScheduler = (
       if (nextInfo.minutesUntilNext > 0) {
         const hoursUntil = Math.floor(nextInfo.minutesUntilNext / 60);
         const minutesUntil = nextInfo.minutesUntilNext % 60;
-        console.log(`📅 [SCHEDULER] Next ${nextInfo.nextEventType} in ${hoursUntil}h ${minutesUntil}m at ${nextInfo.nextEventTime}`);
+        console.log(`📅 [SCHEDULER] Next ${nextInfo.nextEventType} (${nextInfo.scheduleName}) in ${hoursUntil}h ${minutesUntil}m at ${nextInfo.nextEventTime}`);
       }
     }
     
-  }, [scheduleConfig, onStartAutoReadings, onStopAutoReadings, isCurrentlyReading]);
+  }, [schedulesConfig, onStartAutoReadings, onStopAutoReadings, isCurrentlyReading]);
 
   // Initialize scheduler on mount and when config changes
   useEffect(() => {
@@ -131,8 +207,8 @@ export const useDailyScheduler = (
     // Set up interval to check every 30 seconds
     schedulerInterval.current = setInterval(checkSchedule, 30000);
     
-    console.log('📅 [SCHEDULER] Daily scheduler initialized');
-    console.log('📅 [SCHEDULER] Current config:', scheduleConfig);
+    console.log('📅 [SCHEDULER] Multiple schedules initialized');
+    console.log('📅 [SCHEDULER] Current config:', schedulesConfig);
     console.log('📅 [SCHEDULER] Current time:', new Date().toLocaleTimeString());
     
     // Cleanup on unmount or config change
@@ -147,11 +223,11 @@ export const useDailyScheduler = (
   // Update next schedule info every minute
   useEffect(() => {
     const updateInterval = setInterval(() => {
-      setNextScheduleInfo(getNextScheduleInfo(scheduleConfig));
+      setNextScheduleInfo(getNextScheduleInfo(schedulesConfig));
     }, 60000); // Update every minute
     
     return () => clearInterval(updateInterval);
-  }, [scheduleConfig]);
+  }, [schedulesConfig]);
 
   // Log scheduler status on startup
   useEffect(() => {
@@ -159,12 +235,13 @@ export const useDailyScheduler = (
     const timeString = currentTime.toLocaleTimeString();
     const dateString = currentTime.toLocaleDateString();
     
-    console.log('📅 [SCHEDULER] === DAILY SCHEDULER STATUS ===');
+    console.log('📅 [SCHEDULER] === MULTIPLE SCHEDULES STATUS ===');
     console.log('📅 [SCHEDULER] Current Date/Time:', `${dateString} ${timeString}`);
-    console.log('📅 [SCHEDULER] Schedule Enabled:', scheduleConfig.enabled);
-    console.log('📅 [SCHEDULER] Schedule Window:', `${scheduleConfig.startHour}:${scheduleConfig.startMinute.toString().padStart(2, '0')} - ${scheduleConfig.endHour}:${scheduleConfig.endMinute.toString().padStart(2, '0')}`);
+    console.log('📅 [SCHEDULER] Global Enabled:', schedulesConfig.globalEnabled);
+    console.log('📅 [SCHEDULER] Total Schedules:', schedulesConfig.schedules.length);
+    console.log('📅 [SCHEDULER] Active Schedules:', schedulesConfig.schedules.filter(s => s.enabled).length);
     console.log('📅 [SCHEDULER] Currently In Window:', isScheduleActive);
-    console.log('📅 [SCHEDULER] Next Event:', `${nextScheduleInfo.nextEventType} at ${nextScheduleInfo.nextEventTime}`);
+    console.log('📅 [SCHEDULER] Next Event:', `${nextScheduleInfo.nextEventType} (${nextScheduleInfo.scheduleName}) at ${nextScheduleInfo.nextEventTime}`);
     
     if (nextScheduleInfo.minutesUntilNext > 0) {
       const hoursUntil = Math.floor(nextScheduleInfo.minutesUntilNext / 60);
@@ -172,16 +249,33 @@ export const useDailyScheduler = (
       console.log('📅 [SCHEDULER] Time Until Next Event:', `${hoursUntil}h ${minutesUntil}m`);
     }
     
-    console.log('📅 [SCHEDULER] ================================');
+    // Log individual schedules
+    schedulesConfig.schedules.forEach((schedule, index) => {
+      console.log(`📅 [SCHEDULER] Schedule ${index + 1}: "${schedule.name}" (${schedule.enabled ? 'Enabled' : 'Disabled'}) ${schedule.startHour}:${schedule.startMinute.toString().padStart(2, '0')}-${schedule.endHour}:${schedule.endMinute.toString().padStart(2, '0')}`);
+    });
+    
+    console.log('📅 [SCHEDULER] =====================================');
   }, []);
 
   return {
-    scheduleConfig,
+    schedulesConfig,
     nextScheduleInfo,
     isScheduleActive,
-    updateScheduleConfig,
-    enableSchedule,
-    disableSchedule,
+    
+    // Global controls
+    toggleGlobal,
+    
+    // Schedule management
+    addNewSchedule,
+    updateScheduleById,
+    deleteScheduleById,
+    toggleScheduleById,
+    
+    // Validation
+    validateSchedule,
+    checkConflicts,
+    
+    // Legacy support
     forceCheckSchedule
   };
 };

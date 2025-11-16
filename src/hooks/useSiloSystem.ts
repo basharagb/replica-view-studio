@@ -122,12 +122,16 @@ export const useSiloSystem = () => {
 
   // Initialize daily scheduler
   const {
-    scheduleConfig,
+    schedulesConfig,
     nextScheduleInfo,
     isScheduleActive,
-    updateScheduleConfig,
-    enableSchedule,
-    disableSchedule,
+    toggleGlobal,
+    addNewSchedule,
+    updateScheduleById,
+    deleteScheduleById,
+    toggleScheduleById,
+    validateSchedule,
+    checkConflicts,
     forceCheckSchedule
   } = useDailyScheduler(handleScheduledStart, handleScheduledStop, isReading);
 
@@ -552,7 +556,9 @@ export const useSiloSystem = () => {
         });
       }
       
-      // Clear auto test sensor state when stopping
+      // Clear auto test sensor state when stopping - but API cache is preserved
+      // so previously scanned silos will still show their API colors due to 
+      // the priority logic in getSiloColorByNumber()
       clearAutoTestSensorState();
       
       setIsReading(false);
@@ -796,7 +802,7 @@ export const useSiloSystem = () => {
     maxRetries,
 
     // Daily scheduler state
-    scheduleConfig,
+    schedulesConfig,
     nextScheduleInfo,
     isScheduleActive,
 
@@ -812,9 +818,13 @@ export const useSiloSystem = () => {
     updateActivityTime,
     
     // Daily scheduler actions
-    updateScheduleConfig,
-    enableSchedule,
-    disableSchedule,
+    toggleGlobal,
+    addNewSchedule,
+    updateScheduleById,
+    deleteScheduleById,
+    toggleScheduleById,
+    validateSchedule,
+    checkConflicts,
     forceCheckSchedule,
 
     // Utilities

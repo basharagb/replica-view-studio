@@ -13,7 +13,7 @@ import CompanyLogos from './CompanyLogos';
 import WeatherCottage from './WeatherCottage';
 
 import AlertSystem from './AlertSystem';
-import { DailyScheduleControls } from './DailyScheduleControls';
+import { MultipleScheduleControls } from './MultipleScheduleControls';
 
 
 interface LabInterfaceProps {
@@ -40,7 +40,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
     retryCount,
     isRetryPhase,
     maxRetries,
-    scheduleConfig,
+    schedulesConfig,
     nextScheduleInfo,
     isScheduleActive,
     handleSiloClick,
@@ -52,9 +52,13 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
     setSelectedSilo,
     getSiloByNumber,
     cleanup,
-    updateScheduleConfig,
-    enableSchedule,
-    disableSchedule,
+    toggleGlobal,
+    addNewSchedule,
+    updateScheduleById,
+    deleteScheduleById,
+    toggleScheduleById,
+    validateSchedule,
+    checkConflicts,
     forceCheckSchedule
   } = useSiloSystem();
 
@@ -348,15 +352,19 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
               )}
             </div>
 
-            {/* Daily Schedule Controls */}
+            {/* Multiple Schedule Controls */}
             <div className="mt-4">
-              <DailyScheduleControls
-                scheduleConfig={scheduleConfig}
+              <MultipleScheduleControls
+                schedulesConfig={schedulesConfig}
                 nextScheduleInfo={nextScheduleInfo}
                 isScheduleActive={isScheduleActive}
-                onUpdateConfig={updateScheduleConfig}
-                onEnable={enableSchedule}
-                onDisable={disableSchedule}
+                onToggleGlobal={toggleGlobal}
+                onAddSchedule={addNewSchedule}
+                onUpdateSchedule={updateScheduleById}
+                onDeleteSchedule={deleteScheduleById}
+                onToggleSchedule={toggleScheduleById}
+                onValidateSchedule={validateSchedule}
+                onCheckConflicts={checkConflicts}
                 onForceCheck={forceCheckSchedule}
               />
             </div>
