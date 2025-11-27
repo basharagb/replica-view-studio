@@ -14,7 +14,6 @@ import WeatherCottage from './WeatherCottage';
 
 import AlertSystem from './AlertSystem';
 import { MultipleScheduleControls } from './MultipleScheduleControls';
-import DebugUtilities from './DebugUtilities';
 
 
 interface LabInterfaceProps {
@@ -392,8 +391,7 @@ export const LabInterface = ({ onSiloClick }: LabInterfaceProps) => {
         <AlertSystem />
       </div>
 
-      {/* Debug Utilities - Only visible in development or when needed */}
-      <DebugUtilities isVisible={true} />
+      {/* Debug Utilities removed */}
     </div>
   );
 };

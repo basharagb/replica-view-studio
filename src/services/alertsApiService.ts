@@ -215,32 +215,13 @@ const consolidateAlerts = (alerts: ProcessedAlert[]): ProcessedAlert[] => {
   return consolidatedAlerts;
 };
 
-// Pagination response interface
-export interface PaginationInfo {
-  current_page: number;
-  per_page: number;
-  total_items: number;
-  total_pages: number;
-  has_next_page: boolean;
-  has_previous_page: boolean;
-}
-
-// API response with pagination
-export interface PaginatedAlertsResponse {
-  success: boolean;
-  message: string;
-  data: AlertApiResponse[];
-  pagination: PaginationInfo;
-}
+// Removed pagination interfaces - no longer needed
 
 // Fetch active alerts from API (using simple endpoint due to pagination issues)
 export async function fetchActiveAlerts(
-  forceRefresh: boolean = false,
-  page: number = 1,
-  limit: number = 20
+  forceRefresh: boolean = false
 ): Promise<{
   alerts: ProcessedAlert[];
-  pagination: PaginationInfo | null;
   isLoading: boolean;
   error: string | null;
 }> {
@@ -249,7 +230,6 @@ export async function fetchActiveAlerts(
     console.log('🚨 [ALERTS API] Returning cached alerts data');
     return {
       alerts: alertsCache.getAlerts(),
-      pagination: null, // No pagination for simple endpoint
       isLoading: false,
       error: null
     };
@@ -260,7 +240,6 @@ export async function fetchActiveAlerts(
     console.log('🚨 [ALERTS API] Already loading, returning current state');
     return {
       alerts: alertsCache.getAlerts(), // Return cached data while loading
-      pagination: null,
       isLoading: true,
       error: null
     };
@@ -293,37 +272,20 @@ export async function fetchActiveAlerts(
     // Simple endpoint returns array directly, not paginated response
     const apiData: AlertApiResponse[] = await response.json();
     
-    // Implement client-side pagination
-    const totalItems = apiData.length;
-    const totalPages = Math.ceil(totalItems / limit);
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedData = apiData.slice(startIndex, endIndex);
-    
-    const paginationInfo: PaginationInfo = {
-      current_page: page,
-      per_page: limit,
-      total_items: totalItems,
-      total_pages: totalPages,
-      has_next_page: page < totalPages,
-      has_previous_page: page > 1
-    };
-    
-    console.log(`🚨 [ALERTS API] Received ${apiData.length} total alerts, showing ${paginatedData.length} for page ${page}/${paginationInfo.total_pages}`);
+    console.log(`🚨 [ALERTS API] Received ${apiData.length} total alerts`);
     
     if (!apiData || apiData.length === 0) {
       console.log('🚨 [ALERTS API] No active alerts found');
       alertsCache.setAlerts([]);
       return {
         alerts: [],
-        pagination: paginationInfo,
         isLoading: false,
         error: null
       };
     }
 
-    // Process paginated alerts and consolidate duplicates
-    const processedAlerts = paginatedData.map(processAlertResponse);
+    // Process all alerts and consolidate duplicates
+    const processedAlerts = apiData.map(processAlertResponse);
     
     // Consolidate duplicate alerts (same silo_number and affected_levels)
     const consolidatedAlerts = consolidateAlerts(processedAlerts);
@@ -342,17 +304,12 @@ export async function fetchActiveAlerts(
       return b.activeSince.getTime() - a.activeSince.getTime();
     });
     
-    // Cache the processed data (only cache first page to avoid memory issues)
-    if (page === 1) {
-      alertsCache.setAlerts(consolidatedAlerts);
-    } else {
-      alertsCache.setLoading(false);
-    }
+    // Cache the processed data
+    alertsCache.setAlerts(consolidatedAlerts);
     
-    console.log(`🚨 [ALERTS API] Successfully processed ${paginatedData.length} raw alerts, consolidated to ${consolidatedAlerts.length} unique alerts`);
+    console.log(`🚨 [ALERTS API] Successfully processed ${apiData.length} raw alerts, consolidated to ${consolidatedAlerts.length} unique alerts`);
     return {
       alerts: consolidatedAlerts,
-      pagination: paginationInfo,
       isLoading: false,
       error: null
     };
@@ -368,7 +325,6 @@ export async function fetchActiveAlerts(
     // Return cached data with error state
     return {
       alerts: alertsCache.getAlerts(), // Return any cached data
-      pagination: null, // No pagination info on error
       isLoading: false,
       error: errorMessage
     };
