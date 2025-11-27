@@ -368,7 +368,8 @@ export const useSiloSystem = () => {
       // Set current scanning silo for sensor display logic
       setCurrentScanSilo(currentSilo.num);
 
-      // Auto test: Starting silo (logging removed for performance)
+      // 🔍 DEBUG: Log each silo being scanned
+      console.log(`🔍 [AUTO SCAN] Scanning silo ${currentSilo.num} (${currentIndex + 1}/${allSilos.length}) - Progress: ${Math.round(((currentIndex + 1) / allSilos.length) * 100)}%`);
 
       // Fetch real silo data from API during the 24-second interval
       try {
@@ -627,12 +628,31 @@ export const useSiloSystem = () => {
     // Validate each silo has required properties
     const invalidSilos = allSilos.filter(silo => !silo.num || typeof silo.temp !== 'number');
     if (invalidSilos.length > 0) {
-      console.error('Invalid silos found:', invalidSilos);
+      console.error('❌ [AUTO SCAN VALIDATION] Invalid silos found:', invalidSilos);
+      console.error('❌ [AUTO SCAN VALIDATION] This will prevent auto scan from starting');
       setIsReading(false);
       setReadingSilo(null);
       setAutoReadProgress(0);
       setReadingMode('none');
       return;
+    }
+
+    // 🔍 DEBUG: Log all silos that will be scanned
+    console.log(`🔍 [AUTO SCAN DEBUG] Total silos to scan: ${allSilos.length}`);
+    console.log(`🔍 [AUTO SCAN DEBUG] Silo numbers: [${allSilos.map(s => s.num).sort((a, b) => a - b).join(', ')}]`);
+    
+    // Check for any missing silo numbers in expected range
+    const siloNumbers = allSilos.map(s => s.num).sort((a, b) => a - b);
+    const minSilo = Math.min(...siloNumbers);
+    const maxSilo = Math.max(...siloNumbers);
+    const missingSilos = [];
+    for (let i = minSilo; i <= maxSilo; i++) {
+      if (!siloNumbers.includes(i)) {
+        missingSilos.push(i);
+      }
+    }
+    if (missingSilos.length > 0) {
+      console.warn(`⚠️ [AUTO SCAN DEBUG] Missing silo numbers in range ${minSilo}-${maxSilo}: [${missingSilos.join(', ')}]`);
     }
 
     // Always start from first silo (silo 1) for fresh auto scan

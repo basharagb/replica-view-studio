@@ -21,6 +21,8 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
     hoveredSilo,
     tooltipPosition,
     readingSilo,
+    readingMode,
+    isReading,
     dataVersion,
     handleSiloClick,
     handleSiloHover,
@@ -42,6 +44,13 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
   };
 
   const handleCombinedSiloClick = (siloNumber: number) => {
+    // 🚫 MAINTENANCE FIX: Block all silo interactions during auto reading mode
+    if (readingMode === 'auto') {
+      console.log(`🚫 [MAINTENANCE AUTO MODE BLOCK] Blocked silo ${siloNumber} interaction during auto reading mode (isReading: ${isReading})`);
+      return; // Exit early - no interactions allowed during auto test
+    }
+    
+    console.log(`✅ [MAINTENANCE CLICK] Allowed silo ${siloNumber} interaction (readingMode: ${readingMode}, isReading: ${isReading})`);
     handleSiloClick(siloNumber, selectedTemp);
     if (onSiloClick) {
       onSiloClick(siloNumber);
