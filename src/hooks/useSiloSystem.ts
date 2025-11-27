@@ -595,11 +595,24 @@ export const useSiloSystem = () => {
     // Check if resuming from saved state (either active or stopped)
     const savedState = loadAutoTestState();
     if (savedState && (savedState.isActive || savedState.currentIndex > 0)) {
-      // Resume from saved state (whether it was active or stopped)
-      savedState.isActive = true; // Mark as active when resuming
-      saveAutoTestState(savedState); // Update state to active
-      resumeAutoTest(savedState);
-      return;
+      // Validate saved state against current silo data
+      const allSilos = getAllSilos();
+      const isValidIndex = savedState.currentIndex >= 0 && savedState.currentIndex < allSilos.length;
+      const isValidSilo = savedState.readingSilo && allSilos.some(silo => silo.num === savedState.readingSilo);
+      
+      if (isValidIndex && isValidSilo) {
+        // Resume from valid saved state
+        console.log(`🔄 [AUTO SCAN RESUME] Resuming from silo ${savedState.readingSilo} at index ${savedState.currentIndex}`);
+        savedState.isActive = true; // Mark as active when resuming
+        saveAutoTestState(savedState); // Update state to active
+        resumeAutoTest(savedState);
+        return;
+      } else {
+        // Invalid saved state - clear it and start fresh
+        console.warn(`⚠️ [AUTO SCAN VALIDATION] Invalid saved state detected - silo ${savedState.readingSilo} at index ${savedState.currentIndex}. Starting fresh scan.`);
+        clearAutoTestState();
+        clearAutoTestSensorState();
+      }
     }
     
     setReadingMode('auto');
@@ -640,6 +653,7 @@ export const useSiloSystem = () => {
     // 🔍 DEBUG: Log all silos that will be scanned
     console.log(`🔍 [AUTO SCAN DEBUG] Total silos to scan: ${allSilos.length}`);
     console.log(`🔍 [AUTO SCAN DEBUG] Silo numbers: [${allSilos.map(s => s.num).sort((a, b) => a - b).join(', ')}]`);
+    console.log(`🔍 [AUTO SCAN DEBUG] First silo: ${allSilos[0]?.num}, Last silo: ${allSilos[allSilos.length - 1]?.num}`);
     
     // Check for any missing silo numbers in expected range
     const siloNumbers = allSilos.map(s => s.num).sort((a, b) => a - b);
@@ -655,9 +669,10 @@ export const useSiloSystem = () => {
       console.warn(`⚠️ [AUTO SCAN DEBUG] Missing silo numbers in range ${minSilo}-${maxSilo}: [${missingSilos.join(', ')}]`);
     }
 
-    // Always start from first silo (silo 1) for fresh auto scan
+    // Always start from first silo for fresh auto scan
     const startIndex = 0;
     const currentSilo = allSilos[startIndex];
+    console.log(`🚀 [AUTO SCAN START] Starting fresh auto scan from first silo: ${currentSilo.num} (index ${startIndex})`);
     setReadingSilo(currentSilo.num);
     setSelectedSilo(currentSilo.num);
     setCurrentAutoTestIndex(startIndex);

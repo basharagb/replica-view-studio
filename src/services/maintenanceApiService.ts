@@ -1,5 +1,6 @@
 // API endpoint for maintenance cable data
 import { Strings } from '../utils/Strings';
+import { convertApiColorToTemperatureColor } from './realSiloApiService';
 
 // Use the centralized API base URL for consistency
 const MAINTENANCE_API_BASE = Strings.BASE_URL;
@@ -284,12 +285,25 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
     }
   }
 
+  // Convert API silo color to internal color system for consistency with main interface
+  const convertedSiloColor = apiData.silo_color 
+    ? convertApiColorToTemperatureColor(apiData.silo_color)
+    : 'green'; // Default to green if no color provided
+  
+  // Map internal color to hex for UI display
+  const siloColorHex = convertedSiloColor === 'gray' ? '#9ca3af' :
+                       convertedSiloColor === 'yellow' ? '#ff9800' :
+                       convertedSiloColor === 'pink' ? '#d14141' :
+                       '#46d446'; // green
+
+  console.log(`🎨 [MAINTENANCE COLOR] Silo ${apiData.silo_number}: API color ${apiData.silo_color} → ${convertedSiloColor} → ${siloColorHex}`);
+
   return {
     siloNumber: apiData.silo_number,
     siloGroup: apiData.silo_group,
     cableCount: actualCableCount,
     timestamp: apiData.timestamp,
-    siloColor: apiData.silo_color || '#46d446', // Default color if not provided
+    siloColor: siloColorHex, // Use converted color for consistency
     cables,
     sensorValues,
     sensorColors,

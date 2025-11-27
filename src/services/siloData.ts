@@ -407,17 +407,8 @@ export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
   // auto test is restarted and autoTestCompletedSilos is cleared
   const apiData = getSiloData(siloNum);
   if (apiData.isLoaded) {
-    // Use DYNAMIC color calculation based on actual sensor readings, not static silo_color
-    // This ensures the silo color reflects the highest priority sensor reading
-    const sensorReadings = apiData.sensors.filter(temp => temp !== null && temp > 0);
-    
-    if (sensorReadings.length > 0) {
-      // Calculate dynamic color based on sensor priority hierarchy
-      return getSiloColorFromSensors(sensorReadings);
-    } else {
-      // If all sensors are null/zero, convert the API silo_color as fallback
-      return convertApiColorToTemperatureColor(apiData.siloColor);
-    }
+    // Use API's silo_color field directly as requested - this is the authoritative color from the API
+    return convertApiColorToTemperatureColor(apiData.siloColor);
   }
   
   // During auto test, check if silo is completed (but only if no API data exists)
