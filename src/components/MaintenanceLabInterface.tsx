@@ -44,17 +44,22 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
   };
 
   const handleCombinedSiloClick = (siloNumber: number) => {
-    // 🚫 MAINTENANCE FIX: Block all silo interactions during auto reading mode
-    if (readingMode === 'auto') {
-      console.log(`🚫 [MAINTENANCE AUTO MODE BLOCK] Blocked silo ${siloNumber} interaction during auto reading mode (isReading: ${isReading})`);
-      return; // Exit early - no interactions allowed during auto test
-    }
+    // Allow popup functionality even during auto mode, but prevent other silo interactions
+    console.log(`✅ [MAINTENANCE CLICK] Silo ${siloNumber} clicked (readingMode: ${readingMode}, isReading: ${isReading})`);
     
-    console.log(`✅ [MAINTENANCE CLICK] Allowed silo ${siloNumber} interaction (readingMode: ${readingMode}, isReading: ${isReading})`);
-    handleSiloClick(siloNumber, selectedTemp);
+    // Always allow popup functionality
     if (onSiloClick) {
       onSiloClick(siloNumber);
     }
+    
+    // Only block the main silo system interactions during auto mode
+    if (readingMode === 'auto') {
+      console.log(`🚫 [MAINTENANCE AUTO MODE BLOCK] Blocked silo system interaction for silo ${siloNumber} during auto reading mode, but allowing popup`);
+      return; // Exit early - prevent silo system interactions during auto test, but popup is allowed
+    }
+    
+    // Normal silo system interaction when not in auto mode
+    handleSiloClick(siloNumber, selectedTemp);
   };
 
   const selectedSiloData = getSiloByNumber(selectedSilo);
