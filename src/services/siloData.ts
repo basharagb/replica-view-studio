@@ -445,36 +445,33 @@ export const generateTemperatureMonitoringState = (currentTemp: number, previous
 
 // Get all silos in order for auto-read functionality
 export const getAllSilos = (): Silo[] => {
-  const allSilos: Silo[] = [];
+  const siloMap = new Map<number, Silo>(); // Use Map to prevent duplicates
 
   // Add top section silos
   topSiloGroups.forEach((group) => {
-    if (group.topRow) group.topRow.forEach(silo => allSilos.push(silo));
-    if (group.middleRow) group.middleRow.forEach(silo => allSilos.push(silo));
-    if (group.bottomRow) group.bottomRow.forEach(silo => allSilos.push(silo));
+    if (group.topRow) group.topRow.forEach(silo => siloMap.set(silo.num, silo));
+    if (group.middleRow) group.middleRow.forEach(silo => siloMap.set(silo.num, silo));
+    if (group.bottomRow) group.bottomRow.forEach(silo => siloMap.set(silo.num, silo));
   });
 
   // Add bottom section silos
   bottomSiloGroups.forEach((group) => {
-    if (group.row1) group.row1.forEach(silo => allSilos.push(silo));
-    if (group.row2) group.row2.forEach(silo => allSilos.push(silo));
-    if (group.row3) group.row3.forEach(silo => allSilos.push(silo));
-    if (group.row4) group.row4.forEach(silo => allSilos.push(silo));
-    if (group.row5) group.row5.forEach(silo => allSilos.push(silo));
+    if (group.row1) group.row1.forEach(silo => siloMap.set(silo.num, silo));
+    if (group.row2) group.row2.forEach(silo => siloMap.set(silo.num, silo));
+    if (group.row3) group.row3.forEach(silo => siloMap.set(silo.num, silo));
+    if (group.row4) group.row4.forEach(silo => siloMap.set(silo.num, silo));
+    if (group.row5) group.row5.forEach(silo => siloMap.set(silo.num, silo));
   });
 
-  // Add cylinder silos (convert to Silo format)
-  cylinderSilos.forEach(silo => {
-    const siloData: Silo = {
-      num: silo.num,
-      temp: silo.temp
-      // sensors property is optional in Silo interface
-    };
-    allSilos.push(siloData);
-  });
+  // Skip cylinder silos - they have duplicate numbers with top section
+  // (25, 26, 27, 29, 32, 35, 36, 38) which causes scanning issues
+  // If cylinder silos are needed in the future, assign them unique numbers
 
-  // Sort by silo number
+  // Convert Map to array and sort by silo number
+  const allSilos = Array.from(siloMap.values());
   const sortedSilos = allSilos.sort((a, b) => a.num - b.num);
+  
+  console.log(`📋 [getAllSilos] Total unique silos: ${sortedSilos.length}, range: ${sortedSilos[0]?.num} - ${sortedSilos[sortedSilos.length-1]?.num}`);
   
   return sortedSilos;
 };

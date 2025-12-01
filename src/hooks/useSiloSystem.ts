@@ -157,15 +157,33 @@ export const useSiloSystem = () => {
 
     let currentIndex = startIndex;
     const detectedDisconnectedSilos: number[] = [];
+    const scannedSilos: Set<number> = new Set(); // Track scanned silos to prevent duplicates
 
-    // ENHANCED: Validate start index and silo sequence
+    // BULLETPROOF: Validate start index and silo sequence
     if (startIndex < 0 || startIndex >= allSilos.length) {
       console.error(`❌ [SEQUENTIAL ERROR] Invalid start index ${startIndex}, max allowed: ${allSilos.length - 1}`);
       return;
     }
 
+    // BULLETPROOF: Verify silo list is sorted and has no duplicates
+    const siloNums = allSilos.map(s => s.num);
+    const uniqueSilos = [...new Set(siloNums)];
+    if (siloNums.length !== uniqueSilos.length) {
+      console.error(`❌ [CRITICAL] Duplicate silos detected! Expected ${uniqueSilos.length}, got ${siloNums.length}`);
+      return;
+    }
+    
+    // Verify sorted order
+    for (let i = 1; i < siloNums.length; i++) {
+      if (siloNums[i] <= siloNums[i-1]) {
+        console.error(`❌ [CRITICAL] Silos not sorted! ${siloNums[i-1]} should be before ${siloNums[i]}`);
+        return;
+      }
+    }
+
+    console.log(`✅ [BULLETPROOF] Verified ${allSilos.length} unique silos in sorted order`);
     console.log(`🔄 [SEQUENTIAL SCAN] Starting from index ${startIndex}, silo ${allSilos[startIndex]?.num || 'N/A'}`);
-    console.log(`📋 [SEQUENTIAL SCAN] Will scan silos: ${allSilos.slice(startIndex).map(s => s.num).join(' → ')}`);
+    console.log(`📋 [SEQUENTIAL SCAN] Will scan silos: ${allSilos.slice(startIndex, startIndex + 10).map(s => s.num).join(' → ')}${allSilos.length - startIndex > 10 ? '...' : ''}`);
 
     const interval = setInterval(async () => {
       // Validate current index bounds
@@ -198,12 +216,22 @@ export const useSiloSystem = () => {
 
       const currentSilo = allSilos[currentIndex];
       
-      // ENHANCED: Validate silo exists and has valid number
+      // BULLETPROOF: Validate silo exists and has valid number
       if (!currentSilo || !currentSilo.num) {
         console.error(`❌ [SEQUENTIAL ERROR] Invalid silo at index ${currentIndex}:`, currentSilo);
         currentIndex++; // Skip invalid silo
         return;
       }
+
+      // BULLETPROOF: Check if this silo was already scanned (should never happen)
+      if (scannedSilos.has(currentSilo.num)) {
+        console.error(`❌ [CRITICAL] Duplicate scan attempt for silo ${currentSilo.num}! Skipping to prevent error.`);
+        currentIndex++;
+        return;
+      }
+
+      // Mark this silo as scanned BEFORE processing
+      scannedSilos.add(currentSilo.num);
 
       setReadingSilo(currentSilo.num);
       setSelectedSilo(currentSilo.num);
