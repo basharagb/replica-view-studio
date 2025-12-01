@@ -139,205 +139,42 @@ export const useSiloSystem = () => {
     forceCheckSchedule
   } = useDailyScheduler(handleScheduledStart, handleScheduledStop, isReading);
 
-  // Restore auto test state on component mount
-  useEffect(() => {
-    const savedState = loadAutoTestState();
-    if (savedState && savedState.isActive) {
-      // Resume auto test from saved state
-      setReadingMode('auto');
-      setIsReading(true);
-      setCurrentAutoTestIndex(savedState.currentIndex);
-      setAutoReadProgress(savedState.progress);
-      setReadingSilo(savedState.readingSilo);
-      setDisconnectedSilos(savedState.disconnectedSilos || []);
-      setRetryCount(savedState.retryCount || 0);
-      setIsRetryPhase(savedState.isRetryPhase || false);
-      
-      // Resume the auto test process
-      resumeAutoTest(savedState);
-    }
-  }, []);
+  // Note: useEffect for restoring auto test state moved to after function definitions
 
-  // Resume auto test from saved state
-  const resumeAutoTest = useCallback((savedState: AutoTestState) => {
-    const allSilos = getAllSilos();
-    if (!allSilos || allSilos.length === 0) return;
-
-    let currentIndex = savedState.currentIndex;
-    const startTime = Date.now();
-    
-    // Calculate remaining time for current silo
-    const elapsedTime = startTime - savedState.startTime;
-    const remainingTime = Math.max(0, 24000 - (elapsedTime % 24000));
-
-    // Start from current silo with remaining time
-    if (currentIndex < allSilos.length) {
-      const currentSilo = allSilos[currentIndex];
-      setReadingSilo(currentSilo.num);
-      setSelectedSilo(currentSilo.num);
-      
-      // Clear cache and fetch fresh data for resumed silo
-      const fetchResumedSiloData = async () => {
-        try {
-          clearSiloCache(currentSilo.num);
-          console.log(`🗑️ [AUTO TEST RESUME] Cleared cache for resumed silo ${currentSilo.num} to ensure fresh data`);
-          
-          const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
-          setSelectedTemp(apiData.maxTemp);
-          
-          // Mark this silo as completed for sensor display logic
-          markSiloCompleted(currentSilo.num);
-          
-          // Force regeneration of all silo data to update colors immediately
-          regenerateAllSiloData();
-          
-          // Force a re-render with fresh data
-          setDataVersion(prev => prev + 1);
-        } catch (error) {
-          console.error(`Auto test resume: Failed to fetch data for silo ${currentSilo.num}:`, error);
-          setSelectedTemp(currentSilo.temp);
-        }
-      };
-      
-      // Start fetching data for resumed silo
-      fetchResumedSiloData();
-
-      // Continue with remaining time for current silo
-      currentSiloTimeout.current = setTimeout(() => {
-        currentIndex++;
-        continueAutoTest(allSilos, currentIndex);
-      }, remainingTime);
-    }
-  }, []);
-
-  // Check if a silo is disconnected based on API response
-  const isSiloDisconnected = useCallback(async (siloNum: number): Promise<boolean> => {
-    try {
-      clearSiloCache(siloNum);
-      const apiData = await fetchSiloDataWithRetry(siloNum, 2, 500);
-      // A silo is considered disconnected if it has gray color or all sensors are zero
-      return apiData.siloColor === '#9ca3af' || apiData.sensors.every(temp => temp === 0);
-    } catch (error) {
-      // If API call fails, consider it disconnected
-      return true;
-    }
-  }, []);
-
-  // Start retry cycles for disconnected silos
-  const startDisconnectedSilosRetry = useCallback(async (disconnectedSilosList: number[], currentRetryCount: number = 0) => {
-    if (disconnectedSilosList.length === 0 || currentRetryCount >= maxRetries) {
-      // No disconnected silos or max retries reached - complete the test
-      setIsReading(false);
-      setReadingSilo(null);
-      setAutoReadProgress(100);
-      setAutoReadCompleted(true);
-      setIsRetryPhase(false);
-      setRetryCount(0);
-      setDisconnectedSilos([]);
-      clearAutoTestState();
-      clearAutoTestSensorState();
-      console.log(`🏁 [AUTO TEST COMPLETE] All silos tested. Final disconnected count: ${disconnectedSilosList.length}`);
-      return;
-    }
-
-    const newRetryCount = currentRetryCount + 1;
-    setIsRetryPhase(true);
-    setRetryCount(newRetryCount);
-    const currentRetry = newRetryCount;
-    
-    console.log(`🔄 [RETRY CYCLE ${currentRetry}/${maxRetries}] Starting retry for ${disconnectedSilosList.length} disconnected silos: ${disconnectedSilosList.join(', ')}`);
-    
-    let currentRetryIndex = 0;
-    const stillDisconnected: number[] = [];
-    
-    const retryInterval = setInterval(async () => {
-      if (currentRetryIndex >= disconnectedSilosList.length) {
-        // Retry cycle complete
-        clearInterval(retryInterval);
-        autoReadInterval.current = null;
-        
-        console.log(`✅ [RETRY CYCLE ${currentRetry}] Complete. Still disconnected: ${stillDisconnected.length} silos`);
-        
-        // Update disconnected silos list and start next retry cycle
-        setDisconnectedSilos(stillDisconnected);
-        
-        // Wait 5 seconds before next retry cycle
-        setTimeout(() => {
-          startDisconnectedSilosRetry(stillDisconnected, currentRetry);
-        }, 5000);
-        return;
-      }
-
-      const currentSilo = { num: disconnectedSilosList[currentRetryIndex], temp: 0 };
-      setReadingSilo(currentSilo.num);
-      setSelectedSilo(currentSilo.num);
-      
-      // Update progress to show retry phase
-      const totalSilos = getAllSilos().length;
-      const retryProgress = 100 + (currentRetry - 1) * 5 + ((currentRetryIndex + 1) / disconnectedSilosList.length) * 5;
-      setAutoReadProgress(Math.min(retryProgress, 130)); // Cap at 130% to show retry progress
-      
-      setCurrentScanSilo(currentSilo.num);
-      
-      console.log(`🔍 [RETRY ${currentRetry}.${currentRetryIndex + 1}] Testing silo ${currentSilo.num}`);
-      
-      // Test if silo is still disconnected
-      try {
-        clearSiloCache(currentSilo.num);
-        const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
-        
-        const isStillDisconnected = apiData.siloColor === '#9ca3af' || apiData.sensors.every(temp => temp === 0);
-        
-        if (isStillDisconnected) {
-          stillDisconnected.push(currentSilo.num);
-          console.log(`❌ [RETRY ${currentRetry}.${currentRetryIndex + 1}] Silo ${currentSilo.num} still disconnected`);
-        } else {
-          console.log(`✅ [RETRY ${currentRetry}.${currentRetryIndex + 1}] Silo ${currentSilo.num} now connected! Max temp: ${apiData.maxTemp}°C`);
-          setSelectedTemp(apiData.maxTemp);
-          markSiloCompleted(currentSilo.num);
-          
-          // Force regeneration of all silo data to update colors immediately
-          regenerateAllSiloData();
-        }
-        
-        // Force UI update
-        setDataVersion(prev => prev + 1);
-        
-      } catch (error) {
-        console.error(`❌ [RETRY ${currentRetry}.${currentRetryIndex + 1}] Failed to test silo ${currentSilo.num}:`, error);
-        stillDisconnected.push(currentSilo.num);
-      }
-
-      // Save retry state
-      saveAutoTestState({
-        isActive: true,
-        currentIndex: 0, // Not applicable during retry
-        progress: retryProgress,
-        startTime: Date.now(),
-        readingSilo: currentSilo.num,
-        disconnectedSilos: disconnectedSilosList,
-        retryCount: currentRetry,
-        isRetryPhase: true
-      });
-
-      currentRetryIndex++;
-    }, 12000); // 12 seconds per retry (faster than main scan)
-
-    autoReadInterval.current = retryInterval;
-  }, [maxRetries]);
-
-  // Continue auto test from specific index with real API integration
+  // Continue auto test from specific index with strict sequential control
   const continueAutoTest = useCallback((allSilos: Silo[], startIndex: number) => {
+    // CRITICAL: Clear any existing intervals to prevent race conditions
+    if (autoReadInterval.current) {
+      console.log(`🧹 [SEQUENTIAL FIX] Clearing existing interval to prevent race conditions`);
+      clearInterval(autoReadInterval.current);
+      autoReadInterval.current = null;
+    }
+    if (currentSiloTimeout.current) {
+      console.log(`🧹 [SEQUENTIAL FIX] Clearing existing timeout to prevent race conditions`);
+      clearTimeout(currentSiloTimeout.current);
+      currentSiloTimeout.current = null;
+    }
+
     let currentIndex = startIndex;
     const detectedDisconnectedSilos: number[] = [];
 
+    // ENHANCED: Validate start index and silo sequence
+    if (startIndex < 0 || startIndex >= allSilos.length) {
+      console.error(`❌ [SEQUENTIAL ERROR] Invalid start index ${startIndex}, max allowed: ${allSilos.length - 1}`);
+      return;
+    }
+
+    console.log(`🔄 [SEQUENTIAL SCAN] Starting from index ${startIndex}, silo ${allSilos[startIndex]?.num || 'N/A'}`);
+    console.log(`📋 [SEQUENTIAL SCAN] Will scan silos: ${allSilos.slice(startIndex).map(s => s.num).join(' → ')}`);
+
     const interval = setInterval(async () => {
+      // Validate current index bounds
       if (currentIndex >= allSilos.length) {
         // Main auto test complete - now check for disconnected silos
         clearInterval(interval);
         autoReadInterval.current = null;
         
-        console.log(`🏁 [MAIN SCAN COMPLETE] Found ${detectedDisconnectedSilos.length} disconnected silos: ${detectedDisconnectedSilos.join(', ')}`);
+        console.log(`🏁 [SEQUENTIAL COMPLETE] Scanned ${currentIndex} silos. Found ${detectedDisconnectedSilos.length} disconnected: ${detectedDisconnectedSilos.join(', ')}`);
         
         if (detectedDisconnectedSilos.length > 0) {
           setDisconnectedSilos(detectedDisconnectedSilos);
@@ -354,12 +191,20 @@ export const useSiloSystem = () => {
           setAutoReadCompleted(true);
           clearAutoTestState();
           clearAutoTestSensorState();
-          console.log(`🎉 [AUTO TEST COMPLETE] All silos connected - no retries needed`);
+          console.log(`🎉 [SEQUENTIAL COMPLETE] All ${currentIndex} silos scanned sequentially - no retries needed`);
         }
         return;
       }
 
       const currentSilo = allSilos[currentIndex];
+      
+      // ENHANCED: Validate silo exists and has valid number
+      if (!currentSilo || !currentSilo.num) {
+        console.error(`❌ [SEQUENTIAL ERROR] Invalid silo at index ${currentIndex}:`, currentSilo);
+        currentIndex++; // Skip invalid silo
+        return;
+      }
+
       setReadingSilo(currentSilo.num);
       setSelectedSilo(currentSilo.num);
       setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
@@ -368,15 +213,14 @@ export const useSiloSystem = () => {
       // Set current scanning silo for sensor display logic
       setCurrentScanSilo(currentSilo.num);
 
-      // 🔍 DEBUG: Log each silo being scanned
-      console.log(`🔍 [AUTO SCAN] Scanning silo ${currentSilo.num} (${currentIndex + 1}/${allSilos.length}) - Progress: ${Math.round(((currentIndex + 1) / allSilos.length) * 100)}%`);
+      // ENHANCED: Sequential scanning debug with next silo preview
+      const nextSilo = allSilos[currentIndex + 1];
+      console.log(`🔍 [SEQUENTIAL SCAN] Step ${currentIndex + 1}/${allSilos.length}: Silo ${currentSilo.num} → Next: ${nextSilo?.num || 'COMPLETE'}`);
 
       // Fetch real silo data from API during the 24-second interval
       try {
         // Clear silo cache to ensure fresh data on re-fetch
         clearSiloCache(currentSilo.num);
-        console.log(`🗑️ [AUTO TEST] Cleared cache for silo ${currentSilo.num} to ensure fresh data`);
-        
         const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
         
         // Check if silo is disconnected and track it
@@ -399,14 +243,14 @@ export const useSiloSystem = () => {
         setDataVersion(prev => prev + 1);
         
       } catch (error) {
-        console.error(`Auto test: Failed to fetch data for silo ${currentSilo.num}:`, error);
+        console.error(`❌ [SEQUENTIAL ERROR] Failed to fetch data for silo ${currentSilo.num}:`, error);
         // Consider failed API calls as disconnected
         detectedDisconnectedSilos.push(currentSilo.num);
         // Keep original temperature on API failure
         setSelectedTemp(currentSilo.temp);
       }
 
-      // Save current state
+      // ENHANCED: Save state with sequential validation
       saveAutoTestState({
         isActive: true,
         currentIndex,
@@ -418,11 +262,176 @@ export const useSiloSystem = () => {
         isRetryPhase: false
       });
 
+      // CRITICAL: Increment index ONLY after successful processing
       currentIndex++;
+      console.log(`➡️ [SEQUENTIAL NEXT] Moving to index ${currentIndex} (silo ${allSilos[currentIndex]?.num || 'COMPLETE'})`);
+      
     }, 24000); // Fixed 24-second intervals for real physical silo testing
 
+    // Set the new interval
     autoReadInterval.current = interval;
-  }, [startDisconnectedSilosRetry]);
+    console.log(`✅ [SEQUENTIAL SCAN] Started sequential interval for ${allSilos.length - startIndex} remaining silos`);
+  }, []);
+
+  // Resume auto test from saved state with strict sequential control
+  const resumeAutoTest = useCallback((savedState: AutoTestState) => {
+    const allSilos = getAllSilos();
+    if (!allSilos || allSilos.length === 0) return;
+
+    const currentIndex = savedState.currentIndex;
+    
+    // ENHANCED: Validate saved state
+    if (currentIndex < 0 || currentIndex >= allSilos.length) {
+      console.error(`❌ [RESUME ERROR] Invalid saved index ${currentIndex}, starting fresh scan`);
+      clearAutoTestState();
+      clearAutoTestSensorState();
+      // Start fresh scan from beginning
+      continueAutoTest(allSilos, 0);
+      return;
+    }
+
+    const currentSilo = allSilos[currentIndex];
+    if (!currentSilo || !currentSilo.num) {
+      console.error(`❌ [RESUME ERROR] Invalid silo at saved index ${currentIndex}, starting fresh scan`);
+      clearAutoTestState();
+      clearAutoTestSensorState();
+      continueAutoTest(allSilos, 0);
+      return;
+    }
+
+    console.log(`🔄 [SEQUENTIAL RESUME] Resuming from index ${currentIndex}, silo ${currentSilo.num}`);
+    console.log(`📋 [SEQUENTIAL RESUME] Remaining silos: ${allSilos.slice(currentIndex).map(s => s.num).join(' → ')}`);
+
+    // Resume directly with continueAutoTest to maintain single interval control
+    // This ensures no race conditions between multiple intervals
+    continueAutoTest(allSilos, currentIndex);
+  }, [continueAutoTest]);
+
+  // Start retry cycles for disconnected silos
+  const startDisconnectedSilosRetry = useCallback((disconnectedSilosList: number[]) => {
+    if (disconnectedSilosList.length === 0) {
+      console.log(`✅ [RETRY COMPLETE] No disconnected silos to retry`);
+      setIsReading(false);
+      setReadingSilo(null);
+      setAutoReadProgress(100);
+      setAutoReadCompleted(true);
+      clearAutoTestState();
+      clearAutoTestSensorState();
+      return;
+    }
+
+    console.log(`🔄 [RETRY START] Starting retry cycles for ${disconnectedSilosList.length} disconnected silos: ${disconnectedSilosList.join(', ')}`);
+    
+    let currentRetry = 1;
+    const maxRetries = 6; // Maximum retry cycles
+    
+    const runRetryForDisconnectedSilos = (silosToRetry: number[]) => {
+      if (currentRetry > maxRetries || silosToRetry.length === 0) {
+        // Max retries reached or all silos connected
+        console.log(`🏁 [RETRY COMPLETE] Finished after ${currentRetry - 1} cycles. Remaining disconnected: ${silosToRetry.length} silos`);
+        setIsReading(false);
+        setReadingSilo(null);
+        setAutoReadProgress(100);
+        setAutoReadCompleted(true);
+        clearAutoTestState();
+        clearAutoTestSensorState();
+        setIsRetryPhase(false);
+        return;
+      }
+
+      console.log(`🔄 [RETRY CYCLE ${currentRetry}/${maxRetries}] Testing ${silosToRetry.length} disconnected silos`);
+      setIsRetryPhase(true);
+      setRetryCount(currentRetry);
+      
+      let currentRetryIndex = 0;
+      const stillDisconnected: number[] = [];
+      
+      const retryInterval = setInterval(async () => {
+        if (currentRetryIndex >= silosToRetry.length) {
+          // Retry cycle complete
+          clearInterval(retryInterval);
+          autoReadInterval.current = null;
+          
+          console.log(`✅ [RETRY CYCLE ${currentRetry}] Complete. Still disconnected: ${stillDisconnected.length} silos`);
+          
+          if (stillDisconnected.length === 0) {
+            // All silos now connected!
+            console.log(`🎉 [ALL CONNECTED] All silos connected after ${currentRetry} retry cycles!`);
+            setIsReading(false);
+            setReadingSilo(null);
+            setAutoReadProgress(100);
+            setAutoReadCompleted(true);
+            clearAutoTestState();
+            clearAutoTestSensorState();
+            setIsRetryPhase(false);
+            return;
+          }
+          
+          // 5-second pause between retry cycles
+          setTimeout(() => {
+            currentRetry++;
+            runRetryForDisconnectedSilos(stillDisconnected);
+          }, 5000);
+          return;
+        }
+
+        const currentSilo = { num: silosToRetry[currentRetryIndex] };
+        setReadingSilo(currentSilo.num);
+        setSelectedSilo(currentSilo.num);
+        
+        // Calculate retry progress (extends beyond 100%)
+        const retryProgress = 100 + ((currentRetry - 1) * 30) + ((currentRetryIndex + 1) / silosToRetry.length) * 30;
+        setAutoReadProgress(Math.min(130, retryProgress)); // Cap at 130%
+        
+        console.log(`🔄 [RETRY ${currentRetry}.${currentRetryIndex + 1}] Testing silo ${currentSilo.num} (${currentRetryIndex + 1}/${silosToRetry.length})`);
+
+        try {
+          clearSiloCache(currentSilo.num);
+          const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
+          
+          // Check if still disconnected
+          const isStillDisconnected = apiData.siloColor === '#9ca3af' || apiData.sensors.every(temp => temp === 0);
+          
+          if (isStillDisconnected) {
+            stillDisconnected.push(currentSilo.num);
+            console.log(`❌ [RETRY ${currentRetry}.${currentRetryIndex + 1}] Silo ${currentSilo.num} still disconnected`);
+          } else {
+            console.log(`✅ [RETRY ${currentRetry}.${currentRetryIndex + 1}] Silo ${currentSilo.num} now connected! Max temp: ${apiData.maxTemp}°C`);
+            setSelectedTemp(apiData.maxTemp);
+            markSiloCompleted(currentSilo.num);
+            
+            // Force regeneration of all silo data to update colors immediately
+            regenerateAllSiloData();
+          }
+          
+          // Force UI update
+          setDataVersion(prev => prev + 1);
+          
+        } catch (error) {
+          console.error(`❌ [RETRY ${currentRetry}.${currentRetryIndex + 1}] Failed to test silo ${currentSilo.num}:`, error);
+          stillDisconnected.push(currentSilo.num);
+        }
+
+        // Save retry state
+        saveAutoTestState({
+          isActive: true,
+          currentIndex: 0, // Not applicable during retry
+          progress: retryProgress,
+          startTime: Date.now(),
+          readingSilo: currentSilo.num,
+          disconnectedSilos: disconnectedSilosList,
+          retryCount: currentRetry,
+          isRetryPhase: true
+        });
+
+        currentRetryIndex++;
+      }, 12000); // 12 seconds per retry (faster than main scan)
+
+      autoReadInterval.current = retryInterval;
+    };
+    
+    runRetryForDisconnectedSilos(disconnectedSilosList);
+  }, []);
 
   // Handle manual API refresh for maintenance interface during auto test
   const handleManualApiRefresh = useCallback(async (siloNum: number) => {
@@ -834,6 +843,25 @@ export const useSiloSystem = () => {
       restartWaitInterval.current = null;
     }
   }, []);
+
+  // Restore auto test state on component mount (moved here after function definitions)
+  useEffect(() => {
+    const savedState = loadAutoTestState();
+    if (savedState && savedState.isActive) {
+      // Resume auto test from saved state
+      setReadingMode('auto');
+      setIsReading(true);
+      setCurrentAutoTestIndex(savedState.currentIndex);
+      setAutoReadProgress(savedState.progress);
+      setReadingSilo(savedState.readingSilo);
+      setDisconnectedSilos(savedState.disconnectedSilos || []);
+      setRetryCount(savedState.retryCount || 0);
+      setIsRetryPhase(savedState.isRetryPhase || false);
+      
+      // Resume the auto test process
+      resumeAutoTest(savedState);
+    }
+  }, [resumeAutoTest]);
 
   return {
     // State

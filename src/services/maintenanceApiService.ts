@@ -204,7 +204,13 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
     const level = apiData[`cable_0_level_${i}` as keyof MaintenanceSiloApiData] as number;
     const color = apiData[`cable_0_color_${i}` as keyof MaintenanceSiloApiData] as string;
     
-    cable0Sensors.push({ level, color });
+    // Handle 85.0°C as disconnected sensor
+    if (level === 85.0) {
+      cable0Sensors.push({ level: -127, color: '#9ca3af' }); // Convert to disconnected
+      console.log(`🔌 [CABLE SENSOR] Silo ${apiData.silo_number} Cable 0 Sensor ${i}: 85.0°C → DISCONNECTED`);
+    } else {
+      cable0Sensors.push({ level, color });
+    }
   }
   cables.push({ cableIndex: 0, sensors: cable0Sensors });
 
@@ -236,11 +242,19 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
       const hasValidColor = cable1Color !== undefined && cable1Color !== null && cable1Color !== '';
       
       if (hasValidLevel && hasValidColor) {
-        // Use real API data (including -127 for disconnected sensors)
-        cable1Sensors.push({
-          level: cable1Level,
-          color: cable1Color,
-        });
+        // Use real API data (including -127 and 85.0°C for disconnected sensors)
+        if (cable1Level === 85.0) {
+          cable1Sensors.push({
+            level: -127, // Convert 85.0°C to disconnected
+            color: '#9ca3af',
+          });
+          console.log(`🔌 [CABLE SENSOR] Silo ${apiData.silo_number} Cable 1 Sensor ${i}: 85.0°C → DISCONNECTED`);
+        } else {
+          cable1Sensors.push({
+            level: cable1Level,
+            color: cable1Color,
+          });
+        }
       } else {
         // Generate simulated data based on Cable 0 with slight variation
         const baseLevel = cable0Sensors[i].level;
@@ -260,10 +274,11 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
     for (let i = 0; i < 8; i++) {
       const cable0Level = cable0Sensors[i].level;
       
-      // Handle disabled sensors (-127 values)
-      if (cable0Level === -127) {
-        sensorValues.push(-127);
+      // Handle disabled sensors (-127 values and 85.0°C error values)
+      if (cable0Level === -127 || cable0Level === 85.0) {
+        sensorValues.push(-127); // Normalize to -127 for disconnected
         sensorColors.push('#9ca3af'); // Grey color for disabled sensors
+        console.log(`🔌 [DISCONNECTED SENSOR] Silo ${apiData.silo_number} Cable 0 Sensor ${i}: ${cable0Level} → DISCONNECTED`);
       } else {
         sensorValues.push(cable0Level);
         sensorColors.push(cable0Sensors[i].color);
@@ -274,10 +289,11 @@ const processMaintenanceSiloData = (apiData: MaintenanceSiloApiData): Maintenanc
     for (let i = 0; i < 8; i++) {
       const cable0Level = cable0Sensors[i].level;
       
-      // Handle disabled sensors (-127 values)
-      if (cable0Level === -127) {
-        sensorValues.push(-127);
+      // Handle disabled sensors (-127 values and 85.0°C error values)
+      if (cable0Level === -127 || cable0Level === 85.0) {
+        sensorValues.push(-127); // Normalize to -127 for disconnected
         sensorColors.push('#9ca3af'); // Grey color for disabled sensors
+        console.log(`🔌 [DISCONNECTED SENSOR] Silo ${apiData.silo_number} Cable 0 Sensor ${i}: ${cable0Level} → DISCONNECTED`);
       } else {
         sensorValues.push(cable0Level);
         sensorColors.push(cable0Sensors[i].color);

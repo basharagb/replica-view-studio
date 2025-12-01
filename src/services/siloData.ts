@@ -413,7 +413,7 @@ export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
   
   // During auto test, check if silo is completed (but only if no API data exists)
   if (currentScanSilo !== null) {
-    // If silo is completed during auto test, show color based on sensor readings
+    // If silo is completed during auto test, show color based on sensor readings (API already checked above)
     if (autoTestCompletedSilos.has(siloNum)) {
       const sensorReadings = getSensorReadings(siloNum);
       return getSiloColorFromSensors(sensorReadings);
