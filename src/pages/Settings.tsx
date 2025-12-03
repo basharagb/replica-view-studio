@@ -40,7 +40,8 @@ import {
   Lock,
   Mail,
   Phone,
-  MessageSquare
+  MessageSquare,
+  ExternalLink
 } from 'lucide-react';
 
 interface SettingsData {
@@ -570,6 +571,38 @@ const Settings = () => {
                 }}
                 isAutoTestRunning={readingMode === 'auto'}
               />
+              
+              {/* IT Tools Section */}
+              <Card className="border-2 border-yellow-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
+                    <Zap className="h-5 w-5" />
+                    IT Tools
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <h4 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+                      ⚡ Fast Live Reading
+                    </h4>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-3">
+                      Rapid silo testing with 2-second intervals instead of 24 seconds. 
+                      Use this to quickly verify all silos in approximately 5 minutes.
+                    </p>
+                    <Button
+                      onClick={() => navigate('/fast-live-reading')}
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      Open Fast Live Reading
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Button>
+                    <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-2">
+                      For IT team testing only • Not visible in sidebar
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 

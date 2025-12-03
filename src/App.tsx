@@ -12,6 +12,7 @@ import Settings from "./pages/Settings";
 import SiloMonitoring from "./pages/SiloMonitoring";
 import Maintenance from "./pages/Maintenance";
 import TestPage from "./pages/TestPage";
+import FastLiveReading from "./pages/FastLiveReading";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ReactNode } from "react";
@@ -41,6 +42,7 @@ const App = () => (
                   <Route path="analytics" element={<Analytics />} />
                   <Route path="maintenance-panel" element={<Maintenance />} />
                   <Route path="test" element={<TestPage />} />
+                  <Route path="fast-live-reading" element={<RequireAuth><FastLiveReading /></RequireAuth>} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="monitoring" element={<SiloMonitoring />} />
                   {/* Add more routes as needed */}

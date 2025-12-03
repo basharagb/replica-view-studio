@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Silo, SiloSystemState, ReadingMode, TooltipPosition } from '../types/silo';
-import { getAllSilos, findSiloByNumber, regenerateAllSiloData, setCurrentScanSilo, markSiloCompleted, clearAutoTestState as clearAutoTestSensorState } from '../services/siloData';
+import { getAllSilos, findSiloByNumber, regenerateAllSiloData, setCurrentScanSilo, markSiloCompleted, isSiloCompleted, clearAutoTestState as clearAutoTestSensorState } from '../services/siloData';
 import { fetchSiloDataWithRetry, clearSiloCache } from '../services/realSiloApiService';
 import { useDailyScheduler } from './useDailyScheduler';
 
@@ -155,9 +155,11 @@ export const useSiloSystem = () => {
       currentSiloTimeout.current = null;
     }
 
+    // Use ref to track current index - prevents closure issues
     let currentIndex = startIndex;
     const detectedDisconnectedSilos: number[] = [];
     const scannedSilos: Set<number> = new Set(); // Track scanned silos to prevent duplicates
+    let isProcessing = false; // Prevent overlapping callbacks
 
     // BULLETPROOF: Validate start index and silo sequence
     if (startIndex < 0 || startIndex >= allSilos.length) {
@@ -181,119 +183,141 @@ export const useSiloSystem = () => {
       }
     }
 
+    // 🔍 ENHANCED DEBUGGING: Log expected silo at each percentage
+    const expectedAt48Percent = Math.floor(0.48 * allSilos.length);
     console.log(`✅ [BULLETPROOF] Verified ${allSilos.length} unique silos in sorted order`);
     console.log(`🔄 [SEQUENTIAL SCAN] Starting from index ${startIndex}, silo ${allSilos[startIndex]?.num || 'N/A'}`);
     console.log(`📋 [SEQUENTIAL SCAN] Will scan silos: ${allSilos.slice(startIndex, startIndex + 10).map(s => s.num).join(' → ')}${allSilos.length - startIndex > 10 ? '...' : ''}`);
+    console.log(`📊 [DEBUG] At 48% (index ${expectedAt48Percent}), silo should be: ${allSilos[expectedAt48Percent]?.num}`);
 
     const interval = setInterval(async () => {
-      // Validate current index bounds
-      if (currentIndex >= allSilos.length) {
-        // Main auto test complete - now check for disconnected silos
-        clearInterval(interval);
-        autoReadInterval.current = null;
-        
-        console.log(`🏁 [SEQUENTIAL COMPLETE] Scanned ${currentIndex} silos. Found ${detectedDisconnectedSilos.length} disconnected: ${detectedDisconnectedSilos.join(', ')}`);
-        
-        if (detectedDisconnectedSilos.length > 0) {
-          setDisconnectedSilos(detectedDisconnectedSilos);
-          setRetryCount(0);
-          // Start retry cycles for disconnected silos
-          setTimeout(() => {
-            startDisconnectedSilosRetry(detectedDisconnectedSilos);
-          }, 2000); // 2 second pause before starting retries
-        } else {
-          // No disconnected silos - complete the test
-          setIsReading(false);
-          setReadingSilo(null);
-          setAutoReadProgress(100);
-          setAutoReadCompleted(true);
-          clearAutoTestState();
-          clearAutoTestSensorState();
-          console.log(`🎉 [SEQUENTIAL COMPLETE] All ${currentIndex} silos scanned sequentially - no retries needed`);
-        }
+      // CRITICAL: Prevent overlapping async callbacks
+      if (isProcessing) {
+        console.warn(`⚠️ [OVERLAP PREVENTION] Callback still processing, skipping this tick`);
         return;
       }
+      isProcessing = true;
 
-      const currentSilo = allSilos[currentIndex];
-      
-      // BULLETPROOF: Validate silo exists and has valid number
-      if (!currentSilo || !currentSilo.num) {
-        console.error(`❌ [SEQUENTIAL ERROR] Invalid silo at index ${currentIndex}:`, currentSilo);
-        currentIndex++; // Skip invalid silo
-        return;
-      }
-
-      // BULLETPROOF: Check if this silo was already scanned (should never happen)
-      if (scannedSilos.has(currentSilo.num)) {
-        console.error(`❌ [CRITICAL] Duplicate scan attempt for silo ${currentSilo.num}! Skipping to prevent error.`);
-        currentIndex++;
-        return;
-      }
-
-      // Mark this silo as scanned BEFORE processing
-      scannedSilos.add(currentSilo.num);
-
-      setReadingSilo(currentSilo.num);
-      setSelectedSilo(currentSilo.num);
-      setAutoReadProgress(((currentIndex + 1) / allSilos.length) * 100);
-      setCurrentAutoTestIndex(currentIndex);
-      
-      // Set current scanning silo for sensor display logic
-      setCurrentScanSilo(currentSilo.num);
-
-      // ENHANCED: Sequential scanning debug with next silo preview
-      const nextSilo = allSilos[currentIndex + 1];
-      console.log(`🔍 [SEQUENTIAL SCAN] Step ${currentIndex + 1}/${allSilos.length}: Silo ${currentSilo.num} → Next: ${nextSilo?.num || 'COMPLETE'}`);
-
-      // Fetch real silo data from API during the 24-second interval
       try {
-        // Clear silo cache to ensure fresh data on re-fetch
-        clearSiloCache(currentSilo.num);
-        const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
-        
-        // Check if silo is disconnected and track it
-        const isDisconnected = apiData.siloColor === '#9ca3af' || apiData.sensors.every(temp => temp === 0);
-        if (isDisconnected) {
-          detectedDisconnectedSilos.push(currentSilo.num);
-          console.log(`🔌 [DISCONNECTED] Silo ${currentSilo.num} is disconnected - will retry later`);
+        // Validate current index bounds
+        if (currentIndex >= allSilos.length) {
+          // Main auto test complete - now check for disconnected silos
+          clearInterval(interval);
+          autoReadInterval.current = null;
+          
+          console.log(`🏁 [SEQUENTIAL COMPLETE] Scanned ${currentIndex} silos. Found ${detectedDisconnectedSilos.length} disconnected: ${detectedDisconnectedSilos.join(', ')}`);
+          
+          if (detectedDisconnectedSilos.length > 0) {
+            setDisconnectedSilos(detectedDisconnectedSilos);
+            setRetryCount(0);
+            // Start retry cycles for disconnected silos
+            setTimeout(() => {
+              startDisconnectedSilosRetry(detectedDisconnectedSilos);
+            }, 2000); // 2 second pause before starting retries
+          } else {
+            // No disconnected silos - complete the test
+            setIsReading(false);
+            setReadingSilo(null);
+            setAutoReadProgress(100);
+            setAutoReadCompleted(true);
+            clearAutoTestState();
+            clearAutoTestSensorState();
+            console.log(`🎉 [SEQUENTIAL COMPLETE] All ${currentIndex} silos scanned sequentially - no retries needed`);
+          }
+          return;
         }
+
+        const currentSilo = allSilos[currentIndex];
         
-        // Update UI with real API data
-        setSelectedTemp(apiData.maxTemp);
+        // BULLETPROOF: Validate silo exists and has valid number
+        if (!currentSilo || !currentSilo.num) {
+          console.error(`❌ [SEQUENTIAL ERROR] Invalid silo at index ${currentIndex}:`, currentSilo);
+          currentIndex++; // Skip invalid silo
+          return;
+        }
+
+        // BULLETPROOF: Check if this silo was already scanned (should never happen)
+        if (scannedSilos.has(currentSilo.num)) {
+          console.error(`❌ [CRITICAL] Duplicate scan attempt for silo ${currentSilo.num} at index ${currentIndex}! Skipping.`);
+          currentIndex++;
+          return;
+        }
+
+        // 🔍 CRITICAL DEBUG: Verify silo number matches expected
+        const expectedSiloNum = siloNums[currentIndex];
+        if (currentSilo.num !== expectedSiloNum) {
+          console.error(`❌ [INDEX MISMATCH] currentIndex=${currentIndex}, expected silo=${expectedSiloNum}, actual silo=${currentSilo.num}`);
+        }
+
+        // Mark this silo as scanned BEFORE processing
+        scannedSilos.add(currentSilo.num);
+
+        const calculatedProgress = ((currentIndex + 1) / allSilos.length) * 100;
         
-        // Mark this silo as completed for sensor display logic
-        markSiloCompleted(currentSilo.num);
+        setReadingSilo(currentSilo.num);
+        setSelectedSilo(currentSilo.num);
+        setAutoReadProgress(calculatedProgress);
+        setCurrentAutoTestIndex(currentIndex);
         
-        // Force regeneration of all silo data to update colors immediately
-        regenerateAllSiloData();
-        
-        // Force a re-render without clearing cached API data
-        setDataVersion(prev => prev + 1);
-        
-      } catch (error) {
-        console.error(`❌ [SEQUENTIAL ERROR] Failed to fetch data for silo ${currentSilo.num}:`, error);
-        // Consider failed API calls as disconnected
-        detectedDisconnectedSilos.push(currentSilo.num);
-        // Keep original temperature on API failure
-        setSelectedTemp(currentSilo.temp);
+        // Set current scanning silo for sensor display logic
+        setCurrentScanSilo(currentSilo.num);
+
+        // 🔍 ENHANCED: Detailed progress logging
+        const nextSilo = allSilos[currentIndex + 1];
+        console.log(`🔍 [SCAN] Index ${currentIndex}/${allSilos.length-1} | Silo ${currentSilo.num} | Progress ${calculatedProgress.toFixed(1)}% | Next: ${nextSilo?.num || 'DONE'} | Scanned: ${scannedSilos.size}`);
+
+        // Fetch real silo data from API during the 24-second interval
+        try {
+          // Clear silo cache to ensure fresh data on re-fetch
+          clearSiloCache(currentSilo.num);
+          const apiData = await fetchSiloDataWithRetry(currentSilo.num, 2, 500);
+          
+          // Check if silo is disconnected and track it
+          const isDisconnected = apiData.siloColor === '#9ca3af' || apiData.sensors.every(temp => temp === 0);
+          if (isDisconnected) {
+            detectedDisconnectedSilos.push(currentSilo.num);
+            console.log(`🔌 [DISCONNECTED] Silo ${currentSilo.num} is disconnected - will retry later`);
+          }
+          
+          // Update UI with real API data
+          setSelectedTemp(apiData.maxTemp);
+          
+          // Mark this silo as completed for sensor display logic
+          markSiloCompleted(currentSilo.num);
+          
+          // Force regeneration of all silo data to update colors immediately
+          regenerateAllSiloData();
+          
+          // Force a re-render without clearing cached API data
+          setDataVersion(prev => prev + 1);
+          
+        } catch (error) {
+          console.error(`❌ [SEQUENTIAL ERROR] Failed to fetch data for silo ${currentSilo.num}:`, error);
+          // Consider failed API calls as disconnected
+          detectedDisconnectedSilos.push(currentSilo.num);
+          // Keep original temperature on API failure
+          setSelectedTemp(currentSilo.temp);
+        }
+
+        // ENHANCED: Save state AFTER incrementing to save the NEXT index to scan
+        const nextIndex = currentIndex + 1;
+        saveAutoTestState({
+          isActive: true,
+          currentIndex: nextIndex, // Save the NEXT index to scan, not current
+          progress: calculatedProgress,
+          startTime: Date.now(),
+          readingSilo: currentSilo.num,
+          disconnectedSilos: detectedDisconnectedSilos,
+          retryCount: 0,
+          isRetryPhase: false
+        });
+
+        // CRITICAL: Increment index ONLY after successful processing
+        currentIndex++;
+        console.log(`➡️ [NEXT] Index now ${currentIndex} | Next silo: ${allSilos[currentIndex]?.num || 'COMPLETE'} | Total scanned: ${scannedSilos.size}`);
+      } finally {
+        isProcessing = false;
       }
-
-      // ENHANCED: Save state with sequential validation
-      saveAutoTestState({
-        isActive: true,
-        currentIndex,
-        progress: ((currentIndex + 1) / allSilos.length) * 100,
-        startTime: Date.now(),
-        readingSilo: currentSilo.num,
-        disconnectedSilos: detectedDisconnectedSilos,
-        retryCount: 0,
-        isRetryPhase: false
-      });
-
-      // CRITICAL: Increment index ONLY after successful processing
-      currentIndex++;
-      console.log(`➡️ [SEQUENTIAL NEXT] Moving to index ${currentIndex} (silo ${allSilos[currentIndex]?.num || 'COMPLETE'})`);
-      
     }, 24000); // Fixed 24-second intervals for real physical silo testing
 
     // Set the new interval
@@ -306,11 +330,11 @@ export const useSiloSystem = () => {
     const allSilos = getAllSilos();
     if (!allSilos || allSilos.length === 0) return;
 
-    const currentIndex = savedState.currentIndex;
+    const resumeIndex = savedState.currentIndex;
     
     // ENHANCED: Validate saved state
-    if (currentIndex < 0 || currentIndex >= allSilos.length) {
-      console.error(`❌ [RESUME ERROR] Invalid saved index ${currentIndex}, starting fresh scan`);
+    if (resumeIndex < 0 || resumeIndex >= allSilos.length) {
+      console.error(`❌ [RESUME ERROR] Invalid saved index ${resumeIndex}, starting fresh scan`);
       clearAutoTestState();
       clearAutoTestSensorState();
       // Start fresh scan from beginning
@@ -318,21 +342,27 @@ export const useSiloSystem = () => {
       return;
     }
 
-    const currentSilo = allSilos[currentIndex];
-    if (!currentSilo || !currentSilo.num) {
-      console.error(`❌ [RESUME ERROR] Invalid silo at saved index ${currentIndex}, starting fresh scan`);
+    const nextSilo = allSilos[resumeIndex];
+    if (!nextSilo || !nextSilo.num) {
+      console.error(`❌ [RESUME ERROR] Invalid silo at saved index ${resumeIndex}, starting fresh scan`);
       clearAutoTestState();
       clearAutoTestSensorState();
       continueAutoTest(allSilos, 0);
       return;
     }
 
-    console.log(`🔄 [SEQUENTIAL RESUME] Resuming from index ${currentIndex}, silo ${currentSilo.num}`);
-    console.log(`📋 [SEQUENTIAL RESUME] Remaining silos: ${allSilos.slice(currentIndex).map(s => s.num).join(' → ')}`);
+    // Calculate expected progress for verification
+    const expectedProgress = ((resumeIndex + 1) / allSilos.length) * 100;
+    console.log(`🔄 [RESUME] Resuming auto test:`);
+    console.log(`   - Resume index: ${resumeIndex} / ${allSilos.length - 1}`);
+    console.log(`   - Next silo to scan: ${nextSilo.num}`);
+    console.log(`   - Silos already scanned: ${resumeIndex}`);
+    console.log(`   - Expected progress after next scan: ${expectedProgress.toFixed(1)}%`);
+    console.log(`📋 [RESUME] Next 10 silos: ${allSilos.slice(resumeIndex, resumeIndex + 10).map(s => s.num).join(' → ')}`);
 
     // Resume directly with continueAutoTest to maintain single interval control
     // This ensures no race conditions between multiple intervals
-    continueAutoTest(allSilos, currentIndex);
+    continueAutoTest(allSilos, resumeIndex);
   }, [continueAutoTest]);
 
   // Start retry cycles for disconnected silos
@@ -486,13 +516,48 @@ export const useSiloSystem = () => {
     }
   }, []);
 
-  // Handle silo click - COMPLETELY BLOCK all interactions during auto reading mode
-  const handleSiloClick = useCallback((siloNum: number, temp: number) => {
-    // 🚫 CRITICAL FIX: Block ALL silo interactions during auto reading mode
-    // This prevents any mouse movement from causing color changes or API calls
+  // Handle silo click - Allow clicking on non-scanned silos during auto test
+  const handleSiloClick = useCallback(async (siloNum: number, temp: number) => {
+    // During auto mode, allow clicking on non-scanned silos to fetch their data
     if (readingMode === 'auto') {
-      console.log(`🚫 [AUTO MODE BLOCK] Blocked silo ${siloNum} interaction during auto reading mode`);
-      return; // Exit early - no state changes allowed
+      // Check if this silo has already been scanned
+      if (isSiloCompleted(siloNum)) {
+        console.log(`ℹ️ [AUTO MODE] Silo ${siloNum} already scanned - no action needed`);
+        // Allow selection for viewing but don't refetch
+        setSelectedSilo(siloNum);
+        return;
+      }
+      
+      // Non-scanned silo clicked during auto test - fetch its data without interrupting the scan
+      console.log(`� [AUTO MODE CLICK] Fetching data for non-scanned silo ${siloNum} during auto test`);
+      
+      try {
+        // Clear cache and fetch fresh data for this silo
+        clearSiloCache(siloNum);
+        const apiData = await fetchSiloDataWithRetry(siloNum, 2, 500);
+        
+        // Mark silo as completed so it shows the correct color
+        markSiloCompleted(siloNum);
+        
+        // Update UI with API data
+        setSelectedSilo(siloNum);
+        setSelectedTemp(apiData.maxTemp);
+        
+        // Force regeneration of all silo data to update colors immediately
+        regenerateAllSiloData();
+        
+        // Force UI re-render
+        setDataVersion(prev => prev + 1);
+        
+        console.log(`✅ [AUTO MODE CLICK] Silo ${siloNum} fetched - Color: ${apiData.siloColor}, Max temp: ${apiData.maxTemp}°C`);
+      } catch (error) {
+        console.error(`❌ [AUTO MODE CLICK] Failed to fetch silo ${siloNum}:`, error);
+        // Still update selection even if API fails
+        setSelectedSilo(siloNum);
+      }
+      
+      // Auto scan continues normally - we didn't interrupt any intervals
+      return;
     }
     
     if (readingMode === 'manual' && !isReading) {
@@ -500,9 +565,31 @@ export const useSiloSystem = () => {
       console.log(`🔄 [MANUAL TEST] Manual test triggered for silo ${siloNum}`);
       startManualRead(siloNum, temp);
     } else if (readingMode === 'none') {
-      // Normal selection
-      setSelectedSilo(siloNum);
-      setSelectedTemp(temp);
+      // Normal selection - fetch fresh API data and update color
+      console.log(`🔄 [SILO CLICK] Fetching fresh data for silo ${siloNum}`);
+      
+      try {
+        // Clear cache and fetch fresh data for this silo
+        clearSiloCache(siloNum);
+        const apiData = await fetchSiloDataWithRetry(siloNum, 2, 500);
+        
+        // Update UI with API data
+        setSelectedSilo(siloNum);
+        setSelectedTemp(apiData.maxTemp);
+        
+        // Force regeneration of all silo data to update colors immediately
+        regenerateAllSiloData();
+        
+        // Force UI re-render
+        setDataVersion(prev => prev + 1);
+        
+        console.log(`✅ [SILO CLICK] Silo ${siloNum} updated - Color: ${apiData.siloColor}, Max temp: ${apiData.maxTemp}°C`);
+      } catch (error) {
+        console.error(`❌ [SILO CLICK] Failed to fetch silo ${siloNum}:`, error);
+        // Still update selection even if API fails
+        setSelectedSilo(siloNum);
+        setSelectedTemp(temp);
+      }
     }
   }, [readingMode, isReading]);
 
@@ -634,19 +721,35 @@ export const useSiloSystem = () => {
     if (savedState && (savedState.isActive || savedState.currentIndex > 0)) {
       // Validate saved state against current silo data
       const allSilos = getAllSilos();
-      const isValidIndex = savedState.currentIndex >= 0 && savedState.currentIndex < allSilos.length;
-      const isValidSilo = savedState.readingSilo && allSilos.some(silo => silo.num === savedState.readingSilo);
+      const resumeIndex = savedState.currentIndex;
+      const nextSiloToScan = allSilos[resumeIndex];
+      const isValidIndex = resumeIndex >= 0 && resumeIndex < allSilos.length;
+      const isValidNextSilo = nextSiloToScan && nextSiloToScan.num;
       
-      if (isValidIndex && isValidSilo) {
+      if (isValidIndex && isValidNextSilo) {
         // Resume from valid saved state
-        console.log(`🔄 [AUTO SCAN RESUME] Resuming from silo ${savedState.readingSilo} at index ${savedState.currentIndex}`);
+        console.log(`🔄 [START RESUME] Resuming auto scan:`);
+        console.log(`   - Next silo to scan: ${nextSiloToScan.num} (index ${resumeIndex})`);
+        console.log(`   - Last scanned silo: ${savedState.readingSilo}`);
+        console.log(`   - Saved progress: ${savedState.progress?.toFixed(1)}%`);
+        
+        // Update UI to show the next silo to scan
+        setReadingMode('auto');
+        setIsReading(true);
+        setCurrentAutoTestIndex(resumeIndex);
+        setAutoReadProgress(savedState.progress);
+        setReadingSilo(nextSiloToScan.num);
+        setDisconnectedSilos(savedState.disconnectedSilos || []);
+        setRetryCount(savedState.retryCount || 0);
+        setIsRetryPhase(savedState.isRetryPhase || false);
+        
         savedState.isActive = true; // Mark as active when resuming
         saveAutoTestState(savedState); // Update state to active
         resumeAutoTest(savedState);
         return;
       } else {
         // Invalid saved state - clear it and start fresh
-        console.warn(`⚠️ [AUTO SCAN VALIDATION] Invalid saved state detected - silo ${savedState.readingSilo} at index ${savedState.currentIndex}. Starting fresh scan.`);
+        console.warn(`⚠️ [AUTO SCAN VALIDATION] Invalid saved state - index ${resumeIndex}, silo ${nextSiloToScan?.num || 'N/A'}. Starting fresh.`);
         clearAutoTestState();
         clearAutoTestSensorState();
       }
@@ -876,12 +979,23 @@ export const useSiloSystem = () => {
   useEffect(() => {
     const savedState = loadAutoTestState();
     if (savedState && savedState.isActive) {
+      const allSilos = getAllSilos();
+      const nextIndex = savedState.currentIndex;
+      const nextSilo = allSilos[nextIndex];
+      
+      console.log(`🔄 [RESTORE STATE] Resuming from saved state:`);
+      console.log(`   - Saved index: ${nextIndex}`);
+      console.log(`   - Next silo to scan: ${nextSilo?.num || 'N/A'}`);
+      console.log(`   - Last scanned silo: ${savedState.readingSilo}`);
+      console.log(`   - Progress: ${savedState.progress?.toFixed(1)}%`);
+      
       // Resume auto test from saved state
       setReadingMode('auto');
       setIsReading(true);
-      setCurrentAutoTestIndex(savedState.currentIndex);
+      setCurrentAutoTestIndex(nextIndex);
       setAutoReadProgress(savedState.progress);
-      setReadingSilo(savedState.readingSilo);
+      // Show the NEXT silo to scan, not the last one
+      setReadingSilo(nextSilo?.num || savedState.readingSilo);
       setDisconnectedSilos(savedState.disconnectedSilos || []);
       setRetryCount(savedState.retryCount || 0);
       setIsRetryPhase(savedState.isRetryPhase || false);

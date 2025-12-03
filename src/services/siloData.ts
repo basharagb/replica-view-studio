@@ -400,35 +400,22 @@ export const calculateSiloStatus = (sensorReadings: number[]) => {
   };
 };
 
-// Get silo color based on silo number using sensor priority hierarchy
+// Get silo color based on silo number - ALWAYS from API after scanning
 export const getSiloColorByNumber = (siloNum: number): TemperatureColor => {
-  // First check if we have real API data - this should ALWAYS take priority
-  // This ensures previously scanned silos keep their API colors even when 
-  // auto test is restarted and autoTestCompletedSilos is cleared
+  // CRITICAL: API color is the ONLY source of truth after scanning
+  // No static conditions or sensor-based calculations - colors come directly from API
   const apiData = getSiloData(siloNum);
+  
   if (apiData.isLoaded) {
-    // Use API's silo_color field directly as requested - this is the authoritative color from the API
-    return convertApiColorToTemperatureColor(apiData.siloColor);
+    // Use API's silo_color field directly - this is the authoritative color from the API
+    const apiColor = convertApiColorToTemperatureColor(apiData.siloColor);
+    console.log(`🎨 [SILO ${siloNum}] Using API color: ${apiData.siloColor} → ${apiColor}`);
+    return apiColor;
   }
   
-  // During auto test, check if silo is completed (but only if no API data exists)
-  if (currentScanSilo !== null) {
-    // If silo is completed during auto test, show color based on sensor readings (API already checked above)
-    if (autoTestCompletedSilos.has(siloNum)) {
-      const sensorReadings = getSensorReadings(siloNum);
-      return getSiloColorFromSensors(sensorReadings);
-    }
-    // If silo hasn't been scanned yet during auto test, return wheat color
-    return 'beige';
-  }
-  
-  // If not in auto test mode, check if silo data is loaded from API
-  if (!isSiloDataLoaded(siloNum)) {
-    return 'beige';
-  }
-  
-  const sensorReadings = getSensorReadings(siloNum);
-  return getSiloColorFromSensors(sensorReadings);
+  // Silo not yet scanned - show wheat/beige color
+  // NO sensor-based color calculation - only API colors after scanning
+  return 'beige';
 };
 
 // Generate temperature monitoring state
@@ -528,6 +515,11 @@ export const setCurrentScanSilo = (siloNum: number | null) => {
 export const markSiloCompleted = (siloNum: number) => {
   autoTestCompletedSilos.add(siloNum);
   previousCompletedSilo = siloNum;
+};
+
+// Check if a silo has been completed/scanned
+export const isSiloCompleted = (siloNum: number): boolean => {
+  return autoTestCompletedSilos.has(siloNum);
 };
 
 // Clear auto test state (reset to initial wheat color state)

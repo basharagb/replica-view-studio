@@ -44,7 +44,7 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
   };
 
   const handleCombinedSiloClick = (siloNumber: number) => {
-    // Allow popup functionality even during auto mode, but prevent other silo interactions
+    // Log click action
     console.log(`✅ [MAINTENANCE CLICK] Silo ${siloNumber} clicked (readingMode: ${readingMode}, isReading: ${isReading})`);
     
     // Always allow popup functionality
@@ -52,13 +52,8 @@ export const MaintenanceLabInterface = ({ onSiloClick }: MaintenanceLabInterface
       onSiloClick(siloNumber);
     }
     
-    // Only block the main silo system interactions during auto mode
-    if (readingMode === 'auto') {
-      console.log(`🚫 [MAINTENANCE AUTO MODE BLOCK] Blocked silo system interaction for silo ${siloNumber} during auto reading mode, but allowing popup`);
-      return; // Exit early - prevent silo system interactions during auto test, but popup is allowed
-    }
-    
-    // Normal silo system interaction when not in auto mode
+    // Allow silo system interaction - handleSiloClick now properly handles auto mode
+    // During auto mode, it fetches data for non-scanned silos without interrupting the scan
     handleSiloClick(siloNumber, selectedTemp);
   };
 
